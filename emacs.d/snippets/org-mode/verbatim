@@ -1,0 +1,4 @@
+# name: verbatim
+# key: vv
+# --
+=$1= $0

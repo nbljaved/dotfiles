@@ -1,0 +1,6 @@
+# name: \tikzpicture
+# key: \tikzp
+# --
+\begin{tikzpicture}
+$0
+\end{tikzpicture}
