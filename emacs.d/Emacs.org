@@ -1447,7 +1447,9 @@ https://github.com/alphapapa/magit-todos/tree/master
 
 #+begin_src emacs-lisp :lexical no
 (use-package forge
-  :after magit)
+  :after magit
+  :config
+  (setq  forge-topic-list-limit '(100 . -10)))
 #+end_src
 
 **** COMMENT magit-delta
@@ -1558,6 +1560,11 @@ https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 (use-package ssh-config-mode)
 #+end_src
 
+** auth
+
+#+begin_src emacs-lisp :lexical no
+(setq auth-sources '("~/.authinfo"))
+#+end_src
 
 ** Fun
 *** nov

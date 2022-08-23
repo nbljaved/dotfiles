@@ -819,7 +819,9 @@ Version 2017-11-10"
         magit-todos-group-by '(magit-todos-item-filename magit-todos-item-keyword)))
 
 (use-package forge
-  :after magit)
+  :after magit
+  :config
+  (setq  forge-topic-list-limit '(100 . -10)))
 
 (use-package topsy
   :hook (prog-mode . topsy-mode))
@@ -859,6 +861,8 @@ Version 2017-11-10"
                    "remote-shell" "/usr/bin/zsh"))
 
 (use-package ssh-config-mode)
+
+(setq auth-sources '("~/.authinfo"))
 
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)
