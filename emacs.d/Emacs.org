@@ -346,7 +346,12 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 (global-font-lock-mode 1)
 
 ;; highlight current line
+;; lin-mode
+;; https://protesilaos.com/emacs/lin
 (global-hl-line-mode 1)
+(use-package lin
+  :config
+  (lin-global-mode 1))
 
 ;; Spaces instead of tabs.
 (setq-default indent-tabs-mode nil)
@@ -1172,7 +1177,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
                                            ("Archives"
                                             (extension "zip" "rar" "gz" "bz2" "tar"))
                                            ("Media"
-                                            (extension "ogg" "flv" "mpg" "avi" "mp4" "mp3"))
+                                            (extension "ogg" "flv" "mpg" "avi" "mp4" "mp3" "jpg" "jpeg" "png"))
                                            ("epub"
                                             (extension "epub"))
                                            ("Spreadsheet"
@@ -1345,6 +1350,41 @@ Butler for buffers.
     (bufler-mode 1))
 #+end_src
 
+** dogears
+https://github.com/alphapapa/dogears.el
+/Never lose your place in Emacs again!/
+
+This library automatically and smartly remembers where you’ve been, in and across buffers, and helps you quickly return to any of those places. It works similarly to a Web browser’s history list and back/forward commands, but with more contextual information and customization. As well, for most modes, it can return to a place even if its buffer no longer exists.
+
+#+begin_src emacs-lisp :lexical no
+(use-package dogears
+  :bind (:map global-map
+              ("M-g d" . dogears-go)
+              ("M-g M-b" . dogears-back)
+              ("M-g M-f" . dogears-forward)
+              ("M-g M-d" . dogears-list)
+              ("M-g M-D" . dogears-sidebar))
+  :hook ((prog-mode . dogears-mode)
+         (org-mode . dogears-mode)))
+
+#+end_src
+- Usage :: It works by automatically remembering (“dogearing”) the place at point when any of three things happens:
+  1. The dogears idle timer runs (after 5 seconds idle, by default).
+  2. One of the dogears-hooks is run (only including imenu-after-jump-hook by default).
+  3. One of the functions listed in dogears-functions is called (none, by default).
+
+Then the user can run a command to view or go to places in the list.
+| Command          | Action                                                     |
+|------------------+------------------------------------------------------------|
+| dogears-mode     | Automatically remember places, according to configuration. |
+| dogears-remember | Manually remember the place at point.                      |
+| dogears-go       | Go to a dogeared place, selected with completion.          |
+| dogears-back     | Go to previous dogeared place.                             |
+| dogears-forward  | Go to next dogeared place.                                 |
+| dogears-list     | Show dogeared places in a tabulated list buffer.           |
+| dogears-sidebar  | Show Dogears list in a side window.                        |
+
+
 ** session
 http://emacs-session.sourceforge.net/index.html
 Session restores various variables (e.g., input histories) from your last session
@@ -1374,7 +1414,6 @@ automatically save the files (you want) at regular intervals
   (use-package ini-mode
     :mode ("\\.ini\\'" . ini-mode))
 #+end_src
-
 
 ** smart-compile
 https://www.emacswiki.org/emacs/SmartCompile
@@ -1421,8 +1460,9 @@ https://www.emacswiki.org/emacs/SmartCompile
     (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
 #+end_src
 
-** magit
-**** Basic
+** git
+**** magit
+
 #+begin_src emacs-lisp 
   (use-package magit
     :ensure t
@@ -1457,6 +1497,19 @@ https://github.com/alphapapa/magit-todos/tree/master
 #+begin_src emacs-lisp :lexical no
 (use-package magit-delta
   :hook (magit-mode . magit-delta-mode))
+#+end_src
+
+**** git-link
+https://github.com/sshaw/git-link
+Interactive Emacs functions that create URLs for files and commits in GitHub/Bitbucket/GitLab/... repositories.
+
+- =git-link= returns the URL for the current buffer's file location at the current line number or active region.
+- =git-link-commit= returns the URL for the commit at point.
+- =git-link-homepage= returns the URL for the repository's homepage.
+- URLs are added to the kill ring.
+
+#+begin_src emacs-lisp :lexical no
+(use-package git-link)
 #+end_src
 
 ** COMMENT weblorg
@@ -1564,6 +1617,13 @@ https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 
 #+begin_src emacs-lisp :lexical no
 (setq auth-sources '("~/.authinfo"))
+#+end_src
+
+** ledger-mode
+Install =ledger= application.
+
+#+begin_src emacs-lisp :lexical no
+(use-package ledger-mode)
 #+end_src
 
 ** Fun

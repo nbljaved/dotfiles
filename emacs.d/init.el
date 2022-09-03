@@ -182,7 +182,12 @@
 (global-font-lock-mode 1)
 
 ;; highlight current line
+;; lin-mode
+;; https://protesilaos.com/emacs/lin
 (global-hl-line-mode 1)
+(use-package lin
+  :config
+  (lin-global-mode 1))
 
 ;; Spaces instead of tabs.
 (setq-default indent-tabs-mode nil)
@@ -699,7 +704,7 @@ If a selection is active, pre-fill the prompt with it."
                                            ("Archives"
                                             (extension "zip" "rar" "gz" "bz2" "tar"))
                                            ("Media"
-                                            (extension "ogg" "flv" "mpg" "avi" "mp4" "mp3"))
+                                            (extension "ogg" "flv" "mpg" "avi" "mp4" "mp3" "jpg" "jpeg" "png"))
                                            ("epub"
                                             (extension "epub"))
                                            ("Spreadsheet"
@@ -766,6 +771,16 @@ If a selection is active, pre-fill the prompt with it."
 (global-tree-sitter-mode 1)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
+(use-package dogears
+  :bind (:map global-map
+              ("M-g d" . dogears-go)
+              ("M-g M-b" . dogears-back)
+              ("M-g M-f" . dogears-forward)
+              ("M-g M-d" . dogears-list)
+              ("M-g M-D" . dogears-sidebar))
+  :hook ((prog-mode . dogears-mode)
+         (org-mode . dogears-mode)))
+
 (use-package session
   :config
   )
@@ -823,6 +838,8 @@ Version 2017-11-10"
   :config
   (setq  forge-topic-list-limit '(100 . -10)))
 
+(use-package git-link)
+
 (use-package topsy
   :hook (prog-mode . topsy-mode))
 
@@ -863,6 +880,8 @@ Version 2017-11-10"
 (use-package ssh-config-mode)
 
 (setq auth-sources '("~/.authinfo"))
+
+(use-package ledger-mode)
 
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)
