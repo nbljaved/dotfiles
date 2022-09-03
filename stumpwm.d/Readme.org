@@ -1,0 +1,5 @@
+To update submodule (https://github.com/stumpwm/stumpwm-contrib) run:
+
+#+begin_src shell
+git submodule update --init --recursive
+#+end_src
