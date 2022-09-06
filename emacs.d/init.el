@@ -917,12 +917,8 @@ Version 2017-11-10"
 
 (use-package ninja-mode)
 
-(setq inferior-lisp-program "ros -Q -L lispworks run")
+(setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
 (setq max-lisp-eval-depth 8000)
-
-;; yasnippet
-(add-to-list 'load-path "~/.emacs.d/snippets/common-lisp-snippets/")
-(require 'common-lisp-snippets)
 
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
@@ -1008,17 +1004,26 @@ Version 2017-11-10"
 ;; (setq browse-url-browser-function 'browse-url-generic)
 ;; (setq browse-url-generic-program "google-chrome")
 
-(use-package haskell-mode
+(use-package cperl-mode
   :config
-  (setq haskell-process-path-ghci "~/.ghcup/bin/ghci"))
+;;; cperl-mode is preferred to perl-mode
+;;; "Brevity is the soul of wit" <foo at acm.org>
+  (defalias 'perl-mode 'cperl-mode))
 
-(add-hook 'haskell-mode-hook
-          (lambda ()
-            (set (make-local-variable 'company-backends)
-                 (append '((company-capf company-dabbrev-code))
-                         company-backends))))
+(use-package company-plsense
+  :config
+  (add-to-list 'company-backends 'company-plsense)
+  (add-hook 'perl-mode-hook 'company-mode)
+  (add-hook 'cperl-mode-hook 'company-mode))
 
-(setq exec-path (append '("/home/nabeel/.cabal/bin") exec-path))
+(use-package helm-perldoc)
+
+(add-to-list 'load-path "~/.emacs.d/manual/emacs-pde/lisp/")
+(load "pde-load")
+
+(use-package ffap-perl-module)
+
+(use-package man-completion)
 
 (use-package python
   :mode ("[./]flake8\\'" . conf-mode)

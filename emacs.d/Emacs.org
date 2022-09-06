@@ -1973,12 +1973,8 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 *** Basic (Roswell)
 
 #+begin_src emacs-lisp
-(setq inferior-lisp-program "ros -Q -L lispworks run")
+(setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
 (setq max-lisp-eval-depth 8000)
-
-;; yasnippet
-(add-to-list 'load-path "~/.emacs.d/snippets/common-lisp-snippets/")
-(require 'common-lisp-snippets)
 
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
@@ -2317,7 +2313,7 @@ With prefix arg, save the URL in the =kill-ring= instead.
 *** literate-lisp
 https://github.com/jingtaozf/literate-lisp
 
-** Haskell
+** COMMENT Haskell
 *** haskell-mode
 https://haskell.github.io/haskell-mode/manual/latest/index.html#Top
 
@@ -2336,6 +2332,85 @@ https://haskell.github.io/haskell-mode/manual/latest/index.html#Top
 #+end_src
 
 
+** Perl
+*** cperl-mode
+https://github.com/jrockway/cperl-mode
+Install =perl= in your OS
+
+#+begin_src emacs-lisp :lexical no
+(use-package cperl-mode
+  :config
+;;; cperl-mode is preferred to perl-mode
+;;; "Brevity is the soul of wit" <foo at acm.org>
+  (defalias 'perl-mode 'cperl-mode))
+#+end_src
+
+*** company-plsense
+https://github.com/CeleritasCelery/company-plsense
+Install =plsense= in your OS.
+
+#+begin_src emacs-lisp :lexical no
+(use-package company-plsense
+  :config
+  (add-to-list 'company-backends 'company-plsense)
+  (add-hook 'perl-mode-hook 'company-mode)
+  (add-hook 'cperl-mode-hook 'company-mode))
+#+end_src
+
+*** helm-perldoc
+https://github.com/emacsorphanage/helm-perldoc
+- helm-perldoc :: Search module and do action.
+- helm-perldoc:setup :: Update module list for viewing documenations.
+- helm-perldoc:carton-setup :: Update module list based Carton. Local library path is decided on helm-perldoc:default-carton-path.
+- helm-perldoc:history :: Search modules which is already searched
+
+Install [[https://github.com/perl-carton/carton][carton]].  
+#+begin_src emacs-lisp :lexical no
+(use-package helm-perldoc)
+#+end_src
+
+*** emacs-pde
+https://metacpan.org/pod/Emacs::PDE
+
+  #+begin_src emacs-lisp :lexical no
+  (add-to-list 'load-path "~/.emacs.d/manual/emacs-pde/lisp/")
+  (load "pde-load")
+  #+end_src
+
+*** COMMENT perbrew
+https://github.com/kentaro/perlbrew.el
+Install =perlbrew= in your OS using CPAN
+
+#+begin_src emacs-lisp :lexical no
+(use-package perlbrew
+  :config
+  ;; initialize perl version to use
+  (perlbrew-switch "perl-5.12.3"))
+#+end_src
+
+*** COMMENT perl-quote
+http://user42.tuxfamily.org/perl-quote/index.html
+
+#+begin_src emacs-lisp :lexical no
+(use-package perl-quote)
+#+end_src
+
+*** ffap-perl-module
+http://user42.tuxfamily.org/ffap-perl-module/index.html
+
+#+begin_src emacs-lisp :lexical no
+(use-package ffap-perl-module)
+#+end_src
+
+*** man-completion
+http://user42.tuxfamily.org/man-completion/index.html
+ man-completion.el sets up page name completion for Emacs M-x man, getting available page names from the man -k "apropos" database, and completing bare filenames too.
+
+A hook scheme lets you manipulate the page name picked out as the default. A Perl module function is included which can expand an abbreviation or prune a subpackage or variable name to get to the right page. It's particularly good for POE and perlcritic names.
+
+#+begin_src emacs-lisp :lexical no
+(use-package man-completion)
+#+end_src
 
 ** COMMENT Octave
 https://wiki.octave.org/Emacs
