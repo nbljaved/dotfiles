@@ -363,11 +363,6 @@
 
 (use-package helm-rg)
 
-(use-package helm-dash
-  :bind (("C-c h C-d" . helm-dash-at-point))
-  :config
-  (setq helm-dash-browser-func 'eww))
-
 (use-package helm-dired-history
   :after dired
   :bind (:map dired-mode-map
@@ -883,6 +878,12 @@ Version 2017-11-10"
 
 (use-package ledger-mode)
 
+(use-package devdocs
+  :bind (("C-h D" . devdocs-lookup))
+  :config
+  (add-hook 'java-mode-hook
+            (lambda () (setq-local devdocs-current-docs '("openjdk~18")))))
+
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)
   :config
@@ -1004,11 +1005,20 @@ Version 2017-11-10"
 ;; (setq browse-url-browser-function 'browse-url-generic)
 ;; (setq browse-url-generic-program "google-chrome")
 
+(load "antlr-mode" t)
+(add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
+
+(use-package meghanada
+  :hook ((java-mode . meghanada-mode))
+  :config
+  )
+
 (use-package cperl-mode
   :config
 ;;; cperl-mode is preferred to perl-mode
 ;;; "Brevity is the soul of wit" <foo at acm.org>
-  (defalias 'perl-mode 'cperl-mode))
+  (defalias 'perl-mode 'cperl-mode)
+  (setq cperl-hairy t))
 
 (use-package company-plsense
   :config
@@ -1019,7 +1029,7 @@ Version 2017-11-10"
 (use-package helm-perldoc)
 
 (add-to-list 'load-path "~/.emacs.d/manual/emacs-pde/lisp/")
-(load "pde-load")
+(load "pde-load" t)
 
 (use-package ffap-perl-module)
 
@@ -1032,7 +1042,7 @@ Version 2017-11-10"
   )
 
 (add-to-list 'exec-path "/home/nabeel/.local/bin")
-(require 'eglot)
+(require 'eglot nil t)
 ;; (add-hook 'python-mode-hook 'eglot-ensure)
 ;; (add-to-list 'eglot-server-programs '(foo-mode . ("foo-language-server" "--args")))
 ;; (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))

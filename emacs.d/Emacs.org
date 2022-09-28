@@ -616,7 +616,7 @@ https://github.com/cosmicexplorer/helm-rg
 (use-package helm-rg)
 #+end_src
 
-*** helm-dash
+*** COMMENT helm-dash
 https://github.com/dash-docs-el/helm-dash
 - This package uses =Dash= docsets inside emacs to browse documentation. 
 - It doesn't require Dash app.
@@ -625,7 +625,6 @@ https://github.com/dash-docs-el/helm-dash
    
 #+begin_src emacs-lisp
 (use-package helm-dash
-  :bind (("C-c h C-d" . helm-dash-at-point))
   :config
   (setq helm-dash-browser-func 'eww))
 #+end_src
@@ -1626,6 +1625,17 @@ Install =ledger= application.
 (use-package ledger-mode)
 #+end_src
 
+** devdocs
+https://github.com/astoff/devdocs.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package devdocs
+  :bind (("C-h D" . devdocs-lookup))
+  :config
+  (add-hook 'java-mode-hook
+            (lambda () (setq-local devdocs-current-docs '("openjdk~18")))))
+#+end_src
+
 ** Fun
 *** nov
 #+begin_src emacs-lisp
@@ -2331,6 +2341,52 @@ https://haskell.github.io/haskell-mode/manual/latest/index.html#Top
 (setq exec-path (append '("/home/nabeel/.cabal/bin") exec-path))
 #+end_src
 
+** Antlr4
+https://www.antlr.org/index.html
+- Make sure java is installed with
+  #+begin_src shell
+  sudo apt install openjdk-11-jdk
+  #+end_src
+
+- To install antrl do:
+ #+begin_src shell
+ cd /usr/local/lib/
+ sudo wget http://www.antlr.org/download/antlr-4.7-complete.jar
+ #+end_src
+
+ After that add to your =~/.bashrc=
+ #+begin_src shell
+ # ANTLR-4
+ export CLASSPATH=".:/usr/local/lib/antlr-4.7-complete.jar:$CLASSPATH"
+ alias antlr4='java -jar /usr/local/lib/antlr-4.7-complete.jar'
+ ## for tool TestRig
+ alias grun='java org.antlr.v4.gui.TestRig'
+ #+end_src
+
+- Emacs ships with old antlr-mode, find the latest one here https://sourceforge.net/projects/antlr-mode/
+  #+begin_src shell
+  mv ~/Downloads/antlr-mode-3.1.5.tar.gz ~/.emacs.d/manual/
+  cd ~/.emacs.d/manual/
+  tar -xvf antlr-mode-3.1.5.tar.gz
+  #+end_src
+
+#+begin_src emacs-lisp :lexical no
+(load "antlr-mode" t)
+(add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
+#+end_src
+
+** Java
+*** Meghanada
+https://github.com/mopemope/meghanada-emacs
+- Install =maven=
+- Install =java= (jdk)
+
+  #+begin_src emacs-lisp :lexical no
+  (use-package meghanada
+    :hook ((java-mode . meghanada-mode))
+    :config
+    )
+  #+end_src
 
 ** Perl
 *** cperl-mode
@@ -2342,7 +2398,8 @@ Install =perl= in your OS
   :config
 ;;; cperl-mode is preferred to perl-mode
 ;;; "Brevity is the soul of wit" <foo at acm.org>
-  (defalias 'perl-mode 'cperl-mode))
+  (defalias 'perl-mode 'cperl-mode)
+  (setq cperl-hairy t))
 #+end_src
 
 *** company-plsense
@@ -2374,7 +2431,7 @@ https://metacpan.org/pod/Emacs::PDE
 
   #+begin_src emacs-lisp :lexical no
   (add-to-list 'load-path "~/.emacs.d/manual/emacs-pde/lisp/")
-  (load "pde-load")
+  (load "pde-load" t)
   #+end_src
 
 *** COMMENT perbrew
@@ -2528,7 +2585,7 @@ https://github.com/non-Jedi/eglot-jl
   )
 
 (add-to-list 'exec-path "/home/nabeel/.local/bin")
-(require 'eglot)
+(require 'eglot nil t)
 ;; (add-hook 'python-mode-hook 'eglot-ensure)
 ;; (add-to-list 'eglot-server-programs '(foo-mode . ("foo-language-server" "--args")))
 ;; (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
