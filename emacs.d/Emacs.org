@@ -261,53 +261,55 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 *** modus-theme
 
 #+begin_src emacs-lisp
-  (use-package modus-themes
-    :demand t
-    :bind (("<f12>" . modus-themes-toggle))
-    :config 
-    (setq modus-themes-bold-constructs t
-          modus-themes-slanted-constructs t
-          modus-themes-syntax 'alt-syntax
-          modus-themes-hl-line 'intense-background
-          modus-themes-intense-hl-line t
-          modus-themes-links 'faint
-          modus-themes-paren-match 'intense-bold
-          modus-themes-org-blocks 'gray-background
-          modus-themes-region 'accent
-          modus-themes-variable-pitch-heading nil
-          modus-themes-variable-pitch-ui nil
-          modus-themes-mode-line nil
-          modus-themes-completions 'opinionated)
+(use-package modus-themes
+  :demand t
+  :bind (("<f12>" . modus-themes-toggle))
+  :config
+  (setq modus-themes-bold-constructs t
+        modus-themes-slanted-constructs t
+        modus-themes-syntax '(alt-syntax)
+        modus-themes-hl-line '(accented intense)
+        modus-themes-intense-hl-line t
+        modus-themes-links '(faint)
+        modus-themes-paren-match '(bold intense)
+        modus-themes-org-blocks 'gray-background
+        modus-themes-region '(accented)
+        modus-themes-variable-pitch-heading nil
+        modus-themes-variable-pitch-ui nil
+        modus-themes-mode-line nil
+        modus-themes-completions '((matches . (extrabold intense))
+                                   (selection . (extrabold intense))
+                                   (popup . (extrabold intense))))
 
-    (modus-themes-load-themes)
-    (modus-themes-load-vivendi))
+  (modus-themes-load-themes)
+  (modus-themes-load-vivendi))
 
-  (with-eval-after-load 'org
-    (setq org-src-block-faces
-          '(("emacs-lisp" modus-themes-nuanced-magenta)
-            ("elisp" modus-themes-nuanced-magenta)
-            ("clojure" modus-themes-nuanced-magenta)
-            ("clojurescript" modus-themes-nuanced-magenta)
-            ;; lisp
-            ("lisp" modus-themes-nuanced-magenta)
-            ("c" modus-themes-nuanced-blue)
-            ("c++" modus-themes-nuanced-blue)
-            ("sh" modus-themes-nuanced-green)
-            ("shell" modus-themes-nuanced-green)
-            ("html" modus-themes-nuanced-yellow)
-            ("xml" modus-themes-nuanced-yellow)
-            ("css" modus-themes-nuanced-red)
-            ("scss" modus-themes-nuanced-red)
-            ("python" modus-themes-nuanced-green)
-            ("ipython" modus-themes-nuanced-magenta)
-            ("r" modus-themes-nuanced-cyan)
-            ;; julia
-            ("julia" modus-themes-nuanced-magenta)
-            ("jupyter-julia" modus-themes-nuanced-magenta)
-            ("yaml" modus-themes-nuanced-cyan)
-            ("conf" modus-themes-nuanced-cyan)
-            ;; ("docker" modus-themes-nuanced-cyan)
-            )))
+(with-eval-after-load 'org
+  (setq org-src-block-faces
+        '(("emacs-lisp" modus-themes-nuanced-magenta)
+          ("elisp" modus-themes-nuanced-magenta)
+          ("clojure" modus-themes-nuanced-magenta)
+          ("clojurescript" modus-themes-nuanced-magenta)
+          ;; lisp
+          ("lisp" modus-themes-nuanced-magenta)
+          ("c" modus-themes-nuanced-blue)
+          ("c++" modus-themes-nuanced-blue)
+          ("sh" modus-themes-nuanced-green)
+          ("shell" modus-themes-nuanced-green)
+          ("html" modus-themes-nuanced-yellow)
+          ("xml" modus-themes-nuanced-yellow)
+          ("css" modus-themes-nuanced-red)
+          ("scss" modus-themes-nuanced-red)
+          ("python" modus-themes-nuanced-green)
+          ("ipython" modus-themes-nuanced-magenta)
+          ("r" modus-themes-nuanced-cyan)
+          ;; julia
+          ("julia" modus-themes-nuanced-magenta)
+          ("jupyter-julia" modus-themes-nuanced-magenta)
+          ("yaml" modus-themes-nuanced-cyan)
+          ("conf" modus-themes-nuanced-cyan)
+          ;; ("docker" modus-themes-nuanced-cyan)
+          )))
 #+end_src
 
 *** COMMENT doom-themes
@@ -2376,6 +2378,39 @@ https://www.antlr.org/index.html
 #+end_src
 
 ** Java
+*** Maven
+- Install =maven= 
+**** mvn-el
+https://github.com/apg/mvn-el
+#+begin_src emacs-lisp :lexical no
+(use-package mvn)
+;; The basic operation is to invoke M-x mvn, which will ask you for a goal.
+
+;; M-x mvn-last will re-issue the last command
+;; M-x mvn-compile will run the standard mvn compile
+;; M-x mvn-clean will run the standard mvn clean
+;; M-x mvn-test will run the standard mvn test
+#+end_src
+
+**** maven-test-mode
+https://github.com/rranelli/maven-test-mode
+#+begin_src emacs-lisp :lexical no
+(use-package maven-test-mode)
+
+;; toggle back and forth between a test and it's class (bound to \C-c ,t)
+
+;; verify the test class associated with the current buffer (bound to \C-c ,v)
+
+;; verify the test defined in the current buffer if it is a test file (bound to \C-c ,v)
+
+;; verify the test method defined at the point of the current buffer (bound to \C-c ,s)
+
+;; re-run the last verification process (bound to \C-c ,r)
+
+;; run tests for entire project (bound to \C-c ,a)
+
+#+end_src
+
 *** Meghanada
 https://github.com/mopemope/meghanada-emacs
 - Install =maven=
@@ -2941,6 +2976,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
  'org-babel-load-languages
  '((latex . t)
    (python . t)
+   (java . t)
    (C . t)
    (lisp . t)
    (emacs-lisp . t)

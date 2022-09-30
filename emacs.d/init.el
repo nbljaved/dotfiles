@@ -132,20 +132,22 @@
 (use-package modus-themes
   :demand t
   :bind (("<f12>" . modus-themes-toggle))
-  :config 
+  :config
   (setq modus-themes-bold-constructs t
         modus-themes-slanted-constructs t
-        modus-themes-syntax 'alt-syntax
-        modus-themes-hl-line 'intense-background
+        modus-themes-syntax '(alt-syntax)
+        modus-themes-hl-line '(accented intense)
         modus-themes-intense-hl-line t
-        modus-themes-links 'faint
-        modus-themes-paren-match 'intense-bold
+        modus-themes-links '(faint)
+        modus-themes-paren-match '(bold intense)
         modus-themes-org-blocks 'gray-background
-        modus-themes-region 'accent
+        modus-themes-region '(accented)
         modus-themes-variable-pitch-heading nil
         modus-themes-variable-pitch-ui nil
         modus-themes-mode-line nil
-        modus-themes-completions 'opinionated)
+        modus-themes-completions '((matches . (extrabold intense))
+                                   (selection . (extrabold intense))
+                                   (popup . (extrabold intense))))
 
   (modus-themes-load-themes)
   (modus-themes-load-vivendi))
@@ -1008,6 +1010,28 @@ Version 2017-11-10"
 (load "antlr-mode" t)
 (add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
 
+(use-package mvn)
+;; The basic operation is to invoke M-x mvn, which will ask you for a goal.
+
+;; M-x mvn-last will re-issue the last command
+;; M-x mvn-compile will run the standard mvn compile
+;; M-x mvn-clean will run the standard mvn clean
+;; M-x mvn-test will run the standard mvn test
+
+(use-package maven-test-mode)
+
+;; toggle back and forth between a test and it's class (bound to \C-c ,t)
+
+;; verify the test class associated with the current buffer (bound to \C-c ,v)
+
+;; verify the test defined in the current buffer if it is a test file (bound to \C-c ,v)
+
+;; verify the test method defined at the point of the current buffer (bound to \C-c ,s)
+
+;; re-run the last verification process (bound to \C-c ,r)
+
+;; run tests for entire project (bound to \C-c ,a)
+
 (use-package meghanada
   :hook ((java-mode . meghanada-mode))
   :config
@@ -1178,6 +1202,7 @@ Version 2017-11-10"
  'org-babel-load-languages
  '((latex . t)
    (python . t)
+   (java . t)
    (C . t)
    (lisp . t)
    (emacs-lisp . t)
