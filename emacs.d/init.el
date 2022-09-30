@@ -1042,7 +1042,13 @@ Version 2017-11-10"
 ;;; cperl-mode is preferred to perl-mode
 ;;; "Brevity is the soul of wit" <foo at acm.org>
   (defalias 'perl-mode 'cperl-mode)
-  (setq cperl-hairy t))
+  (setq cperl-font-lock t
+        cperl-electric-lbrace-space t
+        cperl-electric-parens t
+        cperl-electric-linefeed t
+        cperl-info-on-command-no-prompt t
+        cperl-clobber-lisp-bindings t
+        cperl-lazy-help-time t))
 
 (use-package company-plsense
   :config
