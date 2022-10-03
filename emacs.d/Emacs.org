@@ -1432,6 +1432,16 @@ https://www.emacswiki.org/emacs/SmartCompile
                  '("\\.[Cc]+[Pp]*\\'" . "g++ -g -Wall  %f -o %n")))
 #+end_src
 
+** compilation
+
+#+begin_src emacs-lisp :lexical no
+;;;; colorize output in compile buffer
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (ansi-color-apply-on-region compilation-filter-start (point)))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+#+end_src
+
 ** COMMENT tab-line
 
 #+begin_src emacs-lisp

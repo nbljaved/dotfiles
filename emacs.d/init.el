@@ -792,6 +792,12 @@ If a selection is active, pre-fill the prompt with it."
   (add-to-list 'smart-compile-alist
                '("\\.[Cc]+[Pp]*\\'" . "g++ -g -Wall  %f -o %n")))
 
+;;;; colorize output in compile buffer
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (ansi-color-apply-on-region compilation-filter-start (point)))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
 (require 'eww)
 (setq browse-url-browser-function 'eww-browse-url
       shr-use-colors nil
