@@ -547,12 +547,6 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (general-auto-unbind-keys 1))
 
-(use-package frog-jump-buffer
-  :after all-the-icons
-  :bind (("C-x C-b" . frog-jump-buffer))
-  :config
-  (setq frog-jump-buffer-use-all-the-icons-ivy t))
-
 ;; Some additional code to resolve the command-mode on minibuffer-exit  hook problem for users of helm/ivy with xah-fly keys:
 (use-package xah-fly-keys
   :defer 0.1
@@ -885,6 +879,17 @@ Version 2017-11-10"
   :config
   (add-hook 'java-mode-hook
             (lambda () (setq-local devdocs-current-docs '("openjdk~18")))))
+
+(use-package crdt
+  :bind (:map crdt-mode-map
+              ("C-c p" . crdt-list-users)
+              ("C-c b" . crdt-list-buffers)
+              ("C-c s" . crdt-list-sessions)
+              ("C-x C-b" . crdt-switch-to-buffer))
+  :config
+  (setq crdt-visualize-author-mode t
+        crdt-use-tuntox t
+        crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)

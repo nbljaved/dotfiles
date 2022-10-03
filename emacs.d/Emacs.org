@@ -908,7 +908,7 @@ https://github.com/noctuid/general.el#about
 #+end_src
 
 ** Movement
-*** frog-jump-buffer
+*** COMMENT frog-jump-buffer
 https://github.com/waymondo/frog-jump-buffer
 
 Use 0 to toggle between opening in the same window or (other-window).
@@ -1636,6 +1636,33 @@ https://github.com/astoff/devdocs.el
   :config
   (add-hook 'java-mode-hook
             (lambda () (setq-local devdocs-current-docs '("openjdk~18")))))
+#+end_src
+
+** crdt
+https://elpa.gnu.org/packages/crdt.html#org74bb356
+
+crdt.el is a real-time collaborative editing environment for Emacs using Conflict-free Replicated Data Types.
+
+Highlights:
+
+    CRDT, darling child of collaborative editing researches…
+    Share multiple buffer in one session
+    See other users' cursor and region
+    Synchronize Org mode folding status
+    Org mode integration
+    Comint derivatives integration (experimental)
+
+#+begin_src emacs-lisp :lexical no
+(use-package crdt
+  :bind (:map crdt-mode-map
+              ("C-c p" . crdt-list-users)
+              ("C-c b" . crdt-list-buffers)
+              ("C-c s" . crdt-list-sessions)
+              ("C-x C-b" . crdt-switch-to-buffer))
+  :config
+  (setq crdt-visualize-author-mode t
+        crdt-use-tuntox t
+        crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
 ** Fun
