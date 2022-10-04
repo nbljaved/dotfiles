@@ -942,48 +942,58 @@ https://github.com/meow-edit/meow
 ** xah-fly-keys
 
 #+begin_src emacs-lisp
-  ;; Some additional code to resolve the command-mode on minibuffer-exit  hook problem for users of helm/ivy with xah-fly keys:
-  (use-package xah-fly-keys
-    :defer 0.1
-    :init
-    (setq xah-fly-use-control-key nil)
-    (setq  xah-fly-use-meta-key nil )
-    :bind (("<menu>" . xah-fly-mode-toggle)
-           :map xah-fly-command-map
-           ("<menu>" . xah-fly-mode-toggle))
-    :config
-    (xah-fly-keys-set-layout "qwerty")
+;; Some additional code to resolve the command-mode on minibuffer-exit  hook problem for users of helm/ivy with xah-fly keys:
+(use-package xah-fly-keys
+  :defer 0.1
+  :init
+  (setq xah-fly-use-control-key nil)
+  (setq  xah-fly-use-meta-key nil )
+  :bind (("<menu>" . xah-fly-mode-toggle)
+         :map xah-fly-command-map
+         ("<menu>" . xah-fly-mode-toggle))
+  :config
+  (xah-fly-keys-set-layout "qwerty")
 
-    (setq in-xah-command nil)
+  (setq in-xah-command nil)
 
-    (defun nbl/xah-minibuffer-setup ()
-      "See if in command mode or not when entering minibuffer"
-      (if xah-fly-insert-state-q
-          (setq in-xah-command nil)
-        (setq in-xah-command t)))
+  (xah-fly-keys 1)
+  ;; the previous statement adds certain hooks,
+  ;; which I want to remove.
+  
+  (defun nbl/xah-minibuffer-setup ()
+    "See if in command mode or not when entering minibuffer"
+    (if xah-fly-insert-state-q
+        (setq in-xah-command nil)
+      (setq in-xah-command t)))
 
-    (defun nbl/xah-minibuffer-exit ()
-      "Exit minibuffer into the mode with which you entered"
-      (if in-xah-command
-          (xah-fly-command-mode-activate)
-        (xah-fly-insert-mode-activate)))
+  (defun nbl/xah-minibuffer-exit ()
+    "Exit minibuffer into the mode with which you entered"
+    (if in-xah-command
+        (xah-fly-command-mode-activate)
+      (xah-fly-insert-mode-activate)))
 
-    (add-hook 'minibuffer-setup-hook 'nbl/xah-minibuffer-setup)
+  ;; (add-hook 'minibuffer-setup-hook 'xah-fly-insert-mode-activate)
+  ;; (add-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
+  ;; (add-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
+  
+  (add-hook 'minibuffer-setup-hook 'nbl/xah-minibuffer-setup)
 
-    (remove-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
-    (add-hook 'minibuffer-exit-hook 'nbl/xah-minibuffer-exit)
+  (remove-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
+  (add-hook 'minibuffer-exit-hook 'nbl/xah-minibuffer-exit)
 
-    (defun nbl/xah-mode-on ()
-      (set-cursor-color "#00ff00"))
-    (defun nbl/xah-mode-off ()
-      (set-cursor-color "#00bfff"))
+  (remove-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
 
-    (add-hook 'xah-fly-command-mode-activate-hook 'nbl/xah-mode-on)
-    (add-hook 'xah-fly-insert-mode-activate-hook  'nbl/xah-mode-off)
-    (xah-fly-keys 1)
-    (xah-fly-insert-mode-activate)
-    (setq-default cursor-type 'box) ;; to override xah cursor stuff 
-    )
+  (defun nbl/xah-mode-on ()
+    (set-cursor-color "#00ff00"))
+  (defun nbl/xah-mode-off ()
+    (set-cursor-color "#00bfff"))
+
+  (add-hook 'xah-fly-command-mode-activate-hook 'nbl/xah-mode-on)
+  (add-hook 'xah-fly-insert-mode-activate-hook  'nbl/xah-mode-off)
+
+  (xah-fly-insert-mode-activate)
+  (setq-default cursor-type 'box) ;; to override xah cursor stuff 
+  )
 
 #+end_src
 

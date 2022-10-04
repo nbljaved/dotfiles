@@ -561,6 +561,10 @@ If a selection is active, pre-fill the prompt with it."
 
   (setq in-xah-command nil)
 
+  (xah-fly-keys 1)
+  ;; the previous statement adds certain hooks,
+  ;; which I want to remove.
+  
   (defun nbl/xah-minibuffer-setup ()
     "See if in command mode or not when entering minibuffer"
     (if xah-fly-insert-state-q
@@ -573,10 +577,16 @@ If a selection is active, pre-fill the prompt with it."
         (xah-fly-command-mode-activate)
       (xah-fly-insert-mode-activate)))
 
+  ;; (add-hook 'minibuffer-setup-hook 'xah-fly-insert-mode-activate)
+  ;; (add-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
+  ;; (add-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
+  
   (add-hook 'minibuffer-setup-hook 'nbl/xah-minibuffer-setup)
 
   (remove-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
   (add-hook 'minibuffer-exit-hook 'nbl/xah-minibuffer-exit)
+
+  (remove-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
 
   (defun nbl/xah-mode-on ()
     (set-cursor-color "#00ff00"))
@@ -585,7 +595,7 @@ If a selection is active, pre-fill the prompt with it."
 
   (add-hook 'xah-fly-command-mode-activate-hook 'nbl/xah-mode-on)
   (add-hook 'xah-fly-insert-mode-activate-hook  'nbl/xah-mode-off)
-  (xah-fly-keys 1)
+
   (xah-fly-insert-mode-activate)
   (setq-default cursor-type 'box) ;; to override xah cursor stuff 
   )
