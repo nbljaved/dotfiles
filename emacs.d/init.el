@@ -206,10 +206,6 @@
 ;; selected text is overwritten by the text we type
 (delete-selection-mode 1)
 
-(use-package multiple-cursors
-  :bind (("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)))
-
 (use-package smartparens
   :hook ((org-mode . smartparens-mode))
   :config
@@ -271,6 +267,12 @@
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook))
+
+(setq-default cursor-in-non-selected-windows '(hbar . 5))
+
+(use-package multiple-cursors
+  :bind (("C->" . mc/mark-next-like-this)
+         ("C-<" . mc/mark-previous-like-this)))
 
 (use-package company
   ;; :init
@@ -547,59 +549,6 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (general-auto-unbind-keys 1))
 
-;; Some additional code to resolve the command-mode on minibuffer-exit  hook problem for users of helm/ivy with xah-fly keys:
-(use-package xah-fly-keys
-  :defer 0.1
-  :init
-  (setq xah-fly-use-control-key nil)
-  (setq  xah-fly-use-meta-key nil )
-  :bind (("<menu>" . xah-fly-mode-toggle)
-         :map xah-fly-command-map
-         ("<menu>" . xah-fly-mode-toggle))
-  :config
-  (xah-fly-keys-set-layout "qwerty")
-
-  (setq in-xah-command nil)
-
-  (xah-fly-keys 1)
-  ;; the previous statement adds certain hooks,
-  ;; which I want to remove.
-  
-  (defun nbl/xah-minibuffer-setup ()
-    "See if in command mode or not when entering minibuffer"
-    (if xah-fly-insert-state-q
-        (setq in-xah-command nil)
-      (setq in-xah-command t)))
-
-  (defun nbl/xah-minibuffer-exit ()
-    "Exit minibuffer into the mode with which you entered"
-    (if in-xah-command
-        (xah-fly-command-mode-activate)
-      (xah-fly-insert-mode-activate)))
-
-  ;; (add-hook 'minibuffer-setup-hook 'xah-fly-insert-mode-activate)
-  ;; (add-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
-  ;; (add-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
-  
-  (add-hook 'minibuffer-setup-hook 'nbl/xah-minibuffer-setup)
-
-  (remove-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
-  (add-hook 'minibuffer-exit-hook 'nbl/xah-minibuffer-exit)
-
-  (remove-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
-
-  (defun nbl/xah-mode-on ()
-    (set-cursor-color "#00ff00"))
-  (defun nbl/xah-mode-off ()
-    (set-cursor-color "#00bfff"))
-
-  (add-hook 'xah-fly-command-mode-activate-hook 'nbl/xah-mode-on)
-  (add-hook 'xah-fly-insert-mode-activate-hook  'nbl/xah-mode-off)
-
-  (xah-fly-insert-mode-activate)
-  (setq-default cursor-type 'box) ;; to override xah cursor stuff 
-  )
-
 (use-package hydra
   :ensure t)
 
@@ -808,6 +757,9 @@ If a selection is active, pre-fill the prompt with it."
   (ansi-color-apply-on-region compilation-filter-start (point)))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
+;;
+(define-key compilation-mode-map (kbd "C-o") 'other-window)
+
 (require 'eww)
 (setq browse-url-browser-function 'eww-browse-url
       shr-use-colors nil
@@ -924,6 +876,8 @@ Version 2017-11-10"
 
 (use-package beacon
   :config
+  (setq beacon-blink-when-focused t
+        beacon-blink-when-buffer-changes t)
   (beacon-mode 1))
 
 (use-package info-colors

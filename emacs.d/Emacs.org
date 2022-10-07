@@ -164,21 +164,22 @@ Install =emacs-use-package= from Guix
 ** Basic
 
 #+begin_src emacs-lisp
-  (global-auto-revert-mode 1)
-  ;; Also auto refresh dired, but be quiet about it
-  (setq global-auto-revert-non-file-buffers t)
-  (setq auto-revert-verbose nil)
+(global-auto-revert-mode 1)
+;; Also auto refresh dired, but be quiet about it
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)
 
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 
-  (display-battery-mode 1)
-  ;; time
-  (setq display-time-format "%H:%M")
-  (setq display-time-default-load-average nil)
-  (setq display-time-24hr-format t)
-  (display-time-mode -1)
+(display-battery-mode 1)
+;; time
+(setq display-time-format "%H:%M")
+(setq display-time-default-load-average nil)
+(setq display-time-24hr-format t)
+(display-time-mode -1)
+
 #+end_src
 
 ** Font
@@ -376,16 +377,6 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 (use-package face-remap+)
 #+end_src
 
-*** multiple-cursors
-
-
-#+begin_src emacs-lisp
-(use-package multiple-cursors
-  :bind (("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)))
-
-#+end_src
-
 *** smartparens
 
 #+begin_src emacs-lisp
@@ -485,6 +476,22 @@ Keeps code indented . (always)
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook))
+#+end_src
+
+** cursor
+*** Basic
+
+#+begin_src emacs-lisp :lexical no
+(setq-default cursor-in-non-selected-windows '(hbar . 5))
+#+end_src
+
+*** multiple-cursors
+
+#+begin_src emacs-lisp
+(use-package multiple-cursors
+  :bind (("C->" . mc/mark-next-like-this)
+         ("C-<" . mc/mark-previous-like-this)))
+
 #+end_src
 
 * Completion
@@ -939,7 +946,7 @@ https://github.com/meow-edit/meow
   (use-package meow)
 #+end_src
 
-** xah-fly-keys
+** COMMENT xah-fly-keys
 
 #+begin_src emacs-lisp
 ;; Some additional code to resolve the command-mode on minibuffer-exit  hook problem for users of helm/ivy with xah-fly keys:
@@ -1450,6 +1457,9 @@ https://www.emacswiki.org/emacs/SmartCompile
 (defun colorize-compilation-buffer ()
   (ansi-color-apply-on-region compilation-filter-start (point)))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+;;
+(define-key compilation-mode-map (kbd "C-o") 'other-window)
 #+end_src
 
 ** COMMENT tab-line
@@ -1744,9 +1754,11 @@ Highlights:
 *** beacon
 
 #+begin_src emacs-lisp
-  (use-package beacon
-    :config
-    (beacon-mode 1))
+(use-package beacon
+  :config
+  (setq beacon-blink-when-focused t
+        beacon-blink-when-buffer-changes t)
+  (beacon-mode 1))
 #+end_src
 
 *** COMMENT line-reminder
@@ -2426,7 +2438,8 @@ https://www.antlr.org/index.html
 
 ** Java
 *** Maven
-- Install =maven= 
+https://maven.apache.org/guides/getting-started/index.html
+- Install =maven=
 **** mvn-el
 https://github.com/apg/mvn-el
 #+begin_src emacs-lisp :lexical no
