@@ -920,6 +920,7 @@ Version 2017-11-10"
         '((sbcl ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
+  (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
   (setq sly-default-lisp 'sbcl))
 
 
@@ -1154,7 +1155,10 @@ Version 2017-11-10"
 	org-use-sub-superscripts "{}"
 	org-edit-src-content-indentation 0
         org-use-speed-commands t
+        ;; org links
+        help-at-pt-display-when-idle t
 	)
+  (help-at-pt-set-timer)
   ;; download images if their link is provided in org link form
   (set org-display-remote-inline-images 'download))
 
@@ -1451,7 +1455,7 @@ Version 2017-11-10"
   :hook (org-mode . org-appear-mode)
   :config
   (setq org-appear-autoentities t
-        org-appear-autolinks t
+        org-appear-autolinks nil
         org-appear-autosubmarkers t))
 
 (use-package org-download

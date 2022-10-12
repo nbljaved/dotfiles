@@ -2074,6 +2074,7 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
         '((sbcl ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
+  (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
   (setq sly-default-lisp 'sbcl))
 
 
@@ -3011,7 +3012,10 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 	org-use-sub-superscripts "{}"
 	org-edit-src-content-indentation 0
         org-use-speed-commands t
+        ;; org links
+        help-at-pt-display-when-idle t
 	)
+  (help-at-pt-set-timer)
   ;; download images if their link is provided in org link form
   (set org-display-remote-inline-images 'download))
 
@@ -3433,7 +3437,7 @@ auto-toggle org elements
     :hook (org-mode . org-appear-mode)
     :config
     (setq org-appear-autoentities t
-          org-appear-autolinks t
+          org-appear-autolinks nil
           org-appear-autosubmarkers t))
 #+end_src
 
