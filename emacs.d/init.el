@@ -1544,3 +1544,12 @@ With a prefix ARG, remove start location."
   :config
   (setq org-tree-slide-skip-done t)
   (org-tree-slide-simple-profile))
+
+(use-package ox-reveal
+  :config
+  (setq org-reveal-root (concat "file://"
+                                (getenv "HOME")
+                                "/.emacs.d/manual/reveal.js")
+        org-reveal-hlevel 1
+        ;; to make src blocks executable
+        org-reveal-klipsify-src nil))

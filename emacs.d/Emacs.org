@@ -3596,8 +3596,32 @@ https://github.com/takaxp/org-tree-slide
     (org-tree-slide-simple-profile))
 #+end_src
 
+*** org-reveal
+https://github.com/yjwen/org-reveal/
+Install:
+- =nodejs=
+- =npm=
 
+#+begin_src shell
+cd ~/.emacs.d/manual/
+git clone https://github.com/hakimel/reveal.js.git
+#+end_src
 
+#+begin_src shell
+cd ~/.emacs.d/manual/reveal.js/
+npm install
+#+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package ox-reveal
+  :config
+  (setq org-reveal-root (concat "file://"
+                                (getenv "HOME")
+                                "/.emacs.d/manual/reveal.js")
+        org-reveal-hlevel 1
+        ;; to make src blocks executable
+        org-reveal-klipsify-src nil))
+#+end_src
 
 * Learn
 ** Running commands on file startup
