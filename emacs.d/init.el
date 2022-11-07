@@ -505,15 +505,12 @@ If a selection is active, pre-fill the prompt with it."
   (global-undo-tree-mode 1))
 
 (use-package avy
-  ;; :after org
+  :demand t
   :bind (("C-;" . avy-goto-char-timer)
          ("C-c SPC" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-1)
          ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)
-         :map org-mode-map
-         ("C-c SPC" . avy-goto-char-2)
-         ))
+         ("M-g l" . avy-goto-line)))
 
 (use-package ace-isearch
   :config

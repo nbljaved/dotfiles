@@ -837,19 +837,16 @@ https://github.com/apchamberlain/undo-tree.el
 #+end_src
 
 *** avy
-https://github.com/abo-abo/avy
+https://github.com/abo-abo/avy 
 
 #+begin_src emacs-lisp
 (use-package avy
-  ;; :after org
+  :demand t
   :bind (("C-;" . avy-goto-char-timer)
          ("C-c SPC" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-1)
          ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)
-         :map org-mode-map
-         ("C-c SPC" . avy-goto-char-2)
-         ))
+         ("M-g l" . avy-goto-line)))
 #+end_src
 
 *** ace-isearch
