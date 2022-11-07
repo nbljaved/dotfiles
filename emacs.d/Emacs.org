@@ -2086,6 +2086,11 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;;(global-log4sly-mode 1)
 #+end_src
 
+Turn off string elision
+#+begin_src elisp :lexical no :tangle ~/.slynkrc
+(setf (cdr (assoc 'slynk:*string-elision-length* slynk:*slynk-pprint-bindings*)) nil)
+#+end_src
+
 **** COMMENT mind-style
 
 #+begin_src emacs-lisp :lexical no
