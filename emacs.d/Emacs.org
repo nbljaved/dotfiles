@@ -2049,6 +2049,55 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
 #+end_src
+*** .roswell
+**** init.lisp
+
+- Rather than pushing the directory, that we want ASDF to search, into ~asdf:*central-registry*~, we can call the following function
+
+  - If only one asd file is present, it loads it. If none are present, it issues an error. And if more than one is present (for whatever reason), it offers a choice of which to choose or 0 to bail.
+  - Lives in =~/.roswell/init.lisp=
+    
+#+begin_src lisp :tangle ~/.roswell/init.lisp
+;; Written by https://www.reddit.com/user/mirkov19/
+(defun asdf::load-local-system (&rest keys
+                                &key
+                                (directory *default-pathname-defaults*)
+                                &allow-other-keys)
+  "Load asdf system present in DIRECTORY (default *DEFAULT-PATHNAME-DEFAULTS*)
+
+Pass all other keywords to ASDF:LOAD-SYSTEM
+
+This function is also an external symbol of ASDF package
+
+If no system is present, issue an error.
+If multiple systems are present, display them and allow user to select system to load,
+or to enter 0 to bail"
+  (let* ((asdf:*central-registry* (push directory asdf:*central-registry*))
+         (asd-files (remove-if-not (lambda (filetype)
+                                     (string= filetype "asd"))
+                                   (uiop:directory-files directory)
+                                   :key #'pathname-type)))
+    (labels ((load-system (system)
+               (format t "Found system \"~a\", loading it" system)
+               (apply #'asdf:load-system system keys)))
+      (case (length asd-files)
+        (0 (error "No ASD files in ~a" directory))
+        (1 (let ((system (pathname-name (first asd-files))))
+             (load-system system)))
+        (t (let* ((systems (mapcar #'pathname-name asd-files))
+                  (system
+                    (progn
+                      (loop :for i :from 1
+                            :for system :in systems
+                            :do (format t "~a: ~a~%" i system))
+                      (format *query-io* "Select system (0 for none): ")
+                      (force-output *query-io*)
+                      (let ((index (parse-integer (read-line *query-io*))))
+                        (if (zerop index)
+                            (format t "No file selected~%")
+                            (nth index systems))))))
+             (load-system system)))))))
+#+end_src
 
 *** Sly
 **** Basic
