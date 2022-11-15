@@ -180,6 +180,8 @@ Install =emacs-use-package= from Guix
 (setq display-time-24hr-format t)
 (display-time-mode -1)
 
+(column-number-mode 1)
+
 #+end_src
 
 ** Font

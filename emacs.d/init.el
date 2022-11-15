@@ -84,6 +84,8 @@
 (setq display-time-24hr-format t)
 (display-time-mode -1)
 
+(column-number-mode 1)
+
 (set-face-attribute 'default nil :font "Fira Code" :height 138)
 ;; Set the fixed pitch face
 (set-face-attribute 'fixed-pitch nil
