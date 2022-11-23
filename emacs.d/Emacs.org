@@ -1941,30 +1941,42 @@ https://github.com/k-talo/volatile-highlights.el
 #+end_src
 
 * Languages
-** COMMENT lsp
+** lsp
 
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :hook ((c++-mode . lsp-deferred))
-    :commands (lsp lsp-deferred)
-    :config
-    )
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (c++-mode . lsp-deferred)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
+  :config)
 
-  (use-package lsp-ui :commands lsp-ui-mode)
-  ;; if you are helm user
-  (use-package helm-lsp :commands helm-lsp-workspace-symbol
-    :config
-    (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
+(use-package lsp-ui :commands lsp-ui-mode)
+;; if you are helm user
+(use-package helm-lsp :commands helm-lsp-workspace-symbol
+  :config
+  (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
 
-  ;; company-lsp
-  ;; (use-package company-lsp
-  ;;   ;;:commands company-lsp
-  ;;   :config
-  ;;   (push 'company-lsp company-backends)
-  ;;   (setq company-lsp-async t
-  ;; 	company-lsp-enable-snippet t
-  ;; 	company-lsp-enable-recompletion t
-  ;; 	company-lsp-cache-candidates nil))
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+(use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+
+;; company-lsp
+;; (use-package company-lsp
+;;   ;;:commands company-lsp
+;;   :config
+;;   (push 'company-lsp company-backends)
+;;   (setq company-lsp-async t
+;; 	company-lsp-enable-snippet t
+;; 	company-lsp-enable-recompletion t
+;; 	company-lsp-cache-candidates nil))
 
 #+end_src
 
@@ -2493,6 +2505,7 @@ https://www.antlr.org/index.html
 #+end_src
 
 ** Java
+- Install =java= (jdk)
 *** Maven
 https://maven.apache.org/guides/getting-started/index.html
 - Install =maven=
@@ -2527,18 +2540,23 @@ https://github.com/rranelli/maven-test-mode
 
 #+end_src
 
-*** Meghanada
-https://github.com/mopemope/meghanada-emacs
-- Install =maven=
-- Install =java= (jdk)
+*** lsp-java
+https://github.com/emacs-lsp/lsp-java
+https://emacs-lsp.github.io/lsp-java/
 
-  #+begin_src emacs-lisp :lexical no
-  (use-package meghanada
-    :hook ((java-mode . meghanada-mode))
-    :config
-    )
-  #+end_src
-
+#+begin_src emacs-lisp :lexical no
+(use-package lsp-java
+  :hook ((java-mode . lsp-deferred))
+  :config
+  (setq
+   ;; Don't organise imports on save
+   lsp-java-save-action-organize-imports nil
+   ;; Fetch less results from the Eclipse server
+   lsp-java-completion-max-results 130
+   ;; Download 3rd party sources from Maven repo
+   lsp-java-maven-download-sources t
+   ))
+#+end_src
 ** Perl
 *** cperl-mode
 https://github.com/jrockway/cperl-mode
@@ -2591,7 +2609,7 @@ https://metacpan.org/pod/Emacs::PDE
   (load "pde-load" t)
   #+end_src
 
-*** COMMENT perbrew
+*** COMMENT perlbrew
 https://github.com/kentaro/perlbrew.el
 Install =perlbrew= in your OS using CPAN
 

@@ -886,6 +886,40 @@ Version 2017-11-10"
 
 (add-hook 'Info-selection-hook 'info-colors-fontify-node)
 
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (c++-mode . lsp-deferred)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
+  :config)
+
+(use-package lsp-ui :commands lsp-ui-mode)
+;; if you are helm user
+(use-package helm-lsp :commands helm-lsp-workspace-symbol
+  :config
+  (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
+
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+(use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+
+;; company-lsp
+;; (use-package company-lsp
+;;   ;;:commands company-lsp
+;;   :config
+;;   (push 'company-lsp company-backends)
+;;   (setq company-lsp-async t
+;; 	company-lsp-enable-snippet t
+;; 	company-lsp-enable-recompletion t
+;; 	company-lsp-cache-candidates nil))
+
 (use-package eglot
   :ensure t
   :bind (("C-c h" . eldoc)
@@ -1009,10 +1043,17 @@ Version 2017-11-10"
 
 ;; run tests for entire project (bound to \C-c ,a)
 
-(use-package meghanada
-  :hook ((java-mode . meghanada-mode))
+(use-package lsp-java
+  :hook ((java-mode . lsp-deferred))
   :config
-  )
+  (setq
+   ;; Don't organise imports on save
+   lsp-java-save-action-organize-imports nil
+   ;; Fetch less results from the Eclipse server
+   lsp-java-completion-max-results 130
+   ;; Download 3rd party sources from Maven repo
+   lsp-java-maven-download-sources t
+   ))
 
 (use-package cperl-mode
   :config
