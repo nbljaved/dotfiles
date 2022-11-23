@@ -1055,6 +1055,13 @@ Version 2017-11-10"
    lsp-java-maven-download-sources t
    ))
 
+;;; Spring-boot support
+(require 'lsp-java-boot)
+;; to enable the lenses
+(add-hook 'lsp-mode-hook #'lsp-lens-mode)
+(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
+
 (use-package cperl-mode
   :config
 ;;; cperl-mode is preferred to perl-mode

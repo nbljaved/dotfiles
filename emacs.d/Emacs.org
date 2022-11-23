@@ -1403,6 +1403,29 @@ Then the user can run a command to view or go to places in the list.
 | dogears-list     | Show dogeared places in a tabulated list buffer.           |
 | dogears-sidebar  | Show Dogears list in a side window.                        |
 
+** COMMENT projectile
+*** basic
+https://github.com/bbatsov/projectile
+
+#+begin_src emacs-lisp :lexical no
+(use-package projectile
+  :config
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+  (setq projectile-indexing-method 'alien)
+  (setq projectile-completion-system 'helm)
+  (projectile-mode 1))
+#+end_src
+
+*** COMMENT helm-projectile
+https://github.com/bbatsov/helm-projectile
+
+#+begin_src emacs-lisp :lexical no
+(use-package helm-projectile
+  :after (helm projectile)
+  :config
+  (setq projectile-completion-system 'helm)
+  (helm-projectile-on))
+#+end_src
 
 ** session
 http://emacs-session.sourceforge.net/index.html
@@ -2558,6 +2581,14 @@ On usage of lsp-java https://xpressrazor.wordpress.com/2020/11/04/java-programmi
    ;; Download 3rd party sources from Maven repo
    lsp-java-maven-download-sources t
    ))
+
+;;; Spring-boot support
+(require 'lsp-java-boot)
+;; to enable the lenses
+(add-hook 'lsp-mode-hook #'lsp-lens-mode)
+(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
+
 #+end_src
 ** Perl
 *** cperl-mode
