@@ -2544,6 +2544,8 @@ https://github.com/rranelli/maven-test-mode
 https://github.com/emacs-lsp/lsp-java
 https://emacs-lsp.github.io/lsp-java/
 
+On usage of lsp-java https://xpressrazor.wordpress.com/2020/11/04/java-programming-in-emacs/
+
 #+begin_src emacs-lisp :lexical no
 (use-package lsp-java
   :hook ((java-mode . lsp-deferred))
