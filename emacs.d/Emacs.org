@@ -180,6 +180,8 @@ Install =emacs-use-package= from Guix
 (setq display-time-24hr-format t)
 (display-time-mode -1)
 
+(column-number-mode 1)
+
 #+end_src
 
 ** Font
@@ -510,6 +512,8 @@ Keeps code indented . (always)
          :map company-active-map
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous)
+         ("C-d" . company-show-doc-buffer)
+         ("M-." . company-show-location)
          :map company-search-map
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous))
@@ -835,19 +839,16 @@ https://github.com/apchamberlain/undo-tree.el
 #+end_src
 
 *** avy
-https://github.com/abo-abo/avy
+https://github.com/abo-abo/avy 
 
 #+begin_src emacs-lisp
-  (use-package avy
-    :after org
-    :bind (("C-;" . avy-goto-char-timer)
-           ("C-c SPC" . avy-goto-char-2)
-           ("M-g w" . avy-goto-word-1)
-           ("M-g e" . avy-goto-word-0)
-           ("M-g l" . avy-goto-line)
-           :map org-mode-map
-           ("C-c SPC" . avy-goto-char-2)
-           ))
+(use-package avy
+  :demand t
+  :bind (("C-;" . avy-goto-char-timer)
+         ("C-c SPC" . avy-goto-char-2)
+         ("M-g w" . avy-goto-word-1)
+         ("M-g e" . avy-goto-word-0)
+         ("M-g l" . avy-goto-line)))
 #+end_src
 
 *** ace-isearch
@@ -1402,6 +1403,29 @@ Then the user can run a command to view or go to places in the list.
 | dogears-list     | Show dogeared places in a tabulated list buffer.           |
 | dogears-sidebar  | Show Dogears list in a side window.                        |
 
+** COMMENT projectile
+*** basic
+https://github.com/bbatsov/projectile
+
+#+begin_src emacs-lisp :lexical no
+(use-package projectile
+  :config
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+  (setq projectile-indexing-method 'alien)
+  (setq projectile-completion-system 'helm)
+  (projectile-mode 1))
+#+end_src
+
+*** COMMENT helm-projectile
+https://github.com/bbatsov/helm-projectile
+
+#+begin_src emacs-lisp :lexical no
+(use-package helm-projectile
+  :after (helm projectile)
+  :config
+  (setq projectile-completion-system 'helm)
+  (helm-projectile-on))
+#+end_src
 
 ** session
 http://emacs-session.sourceforge.net/index.html
@@ -1940,30 +1964,42 @@ https://github.com/k-talo/volatile-highlights.el
 #+end_src
 
 * Languages
-** COMMENT lsp
+** lsp
 
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :hook ((c++-mode . lsp-deferred))
-    :commands (lsp lsp-deferred)
-    :config
-    )
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (c++-mode . lsp-deferred)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
+  :config)
 
-  (use-package lsp-ui :commands lsp-ui-mode)
-  ;; if you are helm user
-  (use-package helm-lsp :commands helm-lsp-workspace-symbol
-    :config
-    (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
+(use-package lsp-ui :commands lsp-ui-mode)
+;; if you are helm user
+(use-package helm-lsp :commands helm-lsp-workspace-symbol
+  :config
+  (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
 
-  ;; company-lsp
-  ;; (use-package company-lsp
-  ;;   ;;:commands company-lsp
-  ;;   :config
-  ;;   (push 'company-lsp company-backends)
-  ;;   (setq company-lsp-async t
-  ;; 	company-lsp-enable-snippet t
-  ;; 	company-lsp-enable-recompletion t
-  ;; 	company-lsp-cache-candidates nil))
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+(use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+
+;; company-lsp
+;; (use-package company-lsp
+;;   ;;:commands company-lsp
+;;   :config
+;;   (push 'company-lsp company-backends)
+;;   (setq company-lsp-async t
+;; 	company-lsp-enable-snippet t
+;; 	company-lsp-enable-recompletion t
+;; 	company-lsp-cache-candidates nil))
 
 #+end_src
 
@@ -2050,6 +2086,55 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
 #+end_src
+*** .roswell
+**** init.lisp
+
+- Rather than pushing the directory, that we want ASDF to search, into ~asdf:*central-registry*~, we can call the following function
+
+  - If only one asd file is present, it loads it. If none are present, it issues an error. And if more than one is present (for whatever reason), it offers a choice of which to choose or 0 to bail.
+  - Lives in =~/.roswell/init.lisp=
+    
+#+begin_src lisp :tangle ~/.roswell/init.lisp
+;; Written by https://www.reddit.com/user/mirkov19/
+(defun asdf::load-local-system (&rest keys
+                                &key
+                                (directory *default-pathname-defaults*)
+                                &allow-other-keys)
+  "Load asdf system present in DIRECTORY (default *DEFAULT-PATHNAME-DEFAULTS*)
+
+Pass all other keywords to ASDF:LOAD-SYSTEM
+
+This function is also an external symbol of ASDF package
+
+If no system is present, issue an error.
+If multiple systems are present, display them and allow user to select system to load,
+or to enter 0 to bail"
+  (let* ((asdf:*central-registry* (push directory asdf:*central-registry*))
+         (asd-files (remove-if-not (lambda (filetype)
+                                     (string= filetype "asd"))
+                                   (uiop:directory-files directory)
+                                   :key #'pathname-type)))
+    (labels ((load-system (system)
+               (format t "Found system \"~a\", loading it" system)
+               (apply #'asdf:load-system system keys)))
+      (case (length asd-files)
+        (0 (error "No ASD files in ~a" directory))
+        (1 (let ((system (pathname-name (first asd-files))))
+             (load-system system)))
+        (t (let* ((systems (mapcar #'pathname-name asd-files))
+                  (system
+                    (progn
+                      (loop :for i :from 1
+                            :for system :in systems
+                            :do (format t "~a: ~a~%" i system))
+                      (format *query-io* "Select system (0 for none): ")
+                      (force-output *query-io*)
+                      (let ((index (parse-integer (read-line *query-io*))))
+                        (if (zerop index)
+                            (format t "No file selected~%")
+                            (nth index systems))))))
+             (load-system system)))))))
+#+end_src
 
 *** Sly
 **** Basic
@@ -2085,6 +2170,11 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;; To change the ROOT category from Emacs, you can use Log4CL dropdown submenu, or Emacs command log4slime-level-selection which is bound to C-c C-g by default.
 ;;(load "~/.roswell/lisp/quicklisp/log4sly-setup.el")
 ;;(global-log4sly-mode 1)
+#+end_src
+
+Turn off string elision
+#+begin_src elisp :lexical no :tangle ~/.slynkrc
+(setf (cdr (assoc 'slynk:*string-elision-length* slynk:*slynk-pprint-bindings*)) nil)
 #+end_src
 
 **** COMMENT mind-style
@@ -2438,6 +2528,7 @@ https://www.antlr.org/index.html
 #+end_src
 
 ** Java
+- Install =java= (jdk)
 *** Maven
 https://maven.apache.org/guides/getting-started/index.html
 - Install =maven=
@@ -2472,18 +2563,33 @@ https://github.com/rranelli/maven-test-mode
 
 #+end_src
 
-*** Meghanada
-https://github.com/mopemope/meghanada-emacs
-- Install =maven=
-- Install =java= (jdk)
+*** lsp-java
+https://github.com/emacs-lsp/lsp-java
+https://emacs-lsp.github.io/lsp-java/
 
-  #+begin_src emacs-lisp :lexical no
-  (use-package meghanada
-    :hook ((java-mode . meghanada-mode))
-    :config
-    )
-  #+end_src
+On usage of lsp-java https://xpressrazor.wordpress.com/2020/11/04/java-programming-in-emacs/
 
+#+begin_src emacs-lisp :lexical no
+(use-package lsp-java
+  :hook ((java-mode . lsp-deferred))
+  :config
+  (setq
+   ;; Don't organise imports on save
+   lsp-java-save-action-organize-imports nil
+   ;; Fetch less results from the Eclipse server
+   lsp-java-completion-max-results 130
+   ;; Download 3rd party sources from Maven repo
+   lsp-java-maven-download-sources t
+   ))
+
+;;; Spring-boot support
+(require 'lsp-java-boot)
+;; to enable the lenses
+(add-hook 'lsp-mode-hook #'lsp-lens-mode)
+(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
+
+#+end_src
 ** Perl
 *** cperl-mode
 https://github.com/jrockway/cperl-mode
@@ -2536,7 +2642,7 @@ https://metacpan.org/pod/Emacs::PDE
   (load "pde-load" t)
   #+end_src
 
-*** COMMENT perbrew
+*** COMMENT perlbrew
 https://github.com/kentaro/perlbrew.el
 Install =perlbrew= in your OS using CPAN
 
@@ -3596,8 +3702,32 @@ https://github.com/takaxp/org-tree-slide
     (org-tree-slide-simple-profile))
 #+end_src
 
+*** org-reveal
+https://github.com/yjwen/org-reveal/
+Install:
+- =nodejs=
+- =npm=
 
+#+begin_src shell
+cd ~/.emacs.d/manual/
+git clone https://github.com/hakimel/reveal.js.git
+#+end_src
 
+#+begin_src shell
+cd ~/.emacs.d/manual/reveal.js/
+npm install
+#+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package ox-reveal
+  :config
+  (setq org-reveal-root (concat "file://"
+                                (getenv "HOME")
+                                "/.emacs.d/manual/reveal.js")
+        org-reveal-hlevel 1
+        ;; to make src blocks executable
+        org-reveal-klipsify-src nil))
+#+end_src
 
 * Learn
 ** Running commands on file startup
@@ -3624,3 +3754,8 @@ https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs
 - clone-indirect-buffer makes a copy of a section of a buffer which can take buffer-state changes that won’t effect the whole buffer (e.g. text-size, collapsed content, highlights) without effecting the main buffer view, while content changes will be visible in both places.
 - Indentation-control. Select some lines, then do C-x TAB (indent-rigidly)and press left/right until your spacing is what you want.
 - just-one-space, included in simple.el with emacs: press once to remove all but one space at cursor spot; twice two remove all at once, three times to start over.
+
+** other people's configuration
+- https://gitlab.com/skybert/my-little-friends/blob/master/emacs/.emacs#L780 ::
+  - for his Java configuration
+  - git-gutter
