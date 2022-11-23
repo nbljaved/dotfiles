@@ -3721,3 +3721,8 @@ https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs
 - clone-indirect-buffer makes a copy of a section of a buffer which can take buffer-state changes that won’t effect the whole buffer (e.g. text-size, collapsed content, highlights) without effecting the main buffer view, while content changes will be visible in both places.
 - Indentation-control. Select some lines, then do C-x TAB (indent-rigidly)and press left/right until your spacing is what you want.
 - just-one-space, included in simple.el with emacs: press once to remove all but one space at cursor spot; twice two remove all at once, three times to start over.
+
+** other people's configuration
+- https://gitlab.com/skybert/my-little-friends/blob/master/emacs/.emacs#L780 ::
+  - for his Java configuration
+  - git-gutter
