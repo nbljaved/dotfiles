@@ -1,0 +1,12 @@
+My shell setup
+
+- To install ZSH
+  #+begin_src shell
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  #+end_src
+
+- To link the files to your home folder
+  #+begin_src shell
+    ln -s ~/shell/.bashrc ~/.bashrc
+    ln -s ~/shell/.zshrc  ~/.zshrc
+  #+end_src
