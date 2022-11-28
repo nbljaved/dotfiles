@@ -208,6 +208,9 @@
 ;; selected text is overwritten by the text we type
 (delete-selection-mode 1)
 
+;; Cycle spaces
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
+
 (use-package smartparens
   :hook ((org-mode . smartparens-mode))
   :config
@@ -956,6 +959,8 @@ Version 2017-11-10"
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
   (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
+  ;; To have Sly perform the indentation in the preferred style for Common Lisp code
+  (setq lisp-indent-function 'sly-common-lisp-indent-function)
   (setq sly-default-lisp 'sbcl))
 
 

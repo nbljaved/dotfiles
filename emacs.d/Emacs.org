@@ -372,6 +372,10 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 
 ;; selected text is overwritten by the text we type
 (delete-selection-mode 1)
+
+;; Cycle spaces
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
+
 #+end_src
 *** COMMENT face-remap+
 
@@ -2160,6 +2164,8 @@ or to enter 0 to bail"
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
   (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
+  ;; To have Sly perform the indentation in the preferred style for Common Lisp code
+  (setq lisp-indent-function 'sly-common-lisp-indent-function)
   (setq sly-default-lisp 'sbcl))
 
 
