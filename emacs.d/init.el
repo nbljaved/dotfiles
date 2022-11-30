@@ -556,6 +556,8 @@ If a selection is active, pre-fill the prompt with it."
 (setq recentf-max-saved-items 5000
       recentf-max-menu-items 100)
 (setq-default recentf-save-file "~/.emacs.d/recentf")
+;; save recentf-list every 5 minutes
+(run-at-time nil (* 5 60) 'recentf-save-list)
 (recentf-mode 1)
 
 (use-package recentf-ext)
