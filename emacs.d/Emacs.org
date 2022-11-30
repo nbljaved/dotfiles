@@ -1009,7 +1009,7 @@ https://github.com/meow-edit/meow
 
 #+end_src
 
-** COMMENT recent
+** recent
 *** recentf
 
 #+begin_src emacs-lisp 
@@ -2537,6 +2537,7 @@ https://www.antlr.org/index.html
 - Install =java= (jdk)
 *** Maven
 https://maven.apache.org/guides/getting-started/index.html
+https://spring.io/guides/gs/maven/
 - Install =maven=
 **** mvn-el
 https://github.com/apg/mvn-el

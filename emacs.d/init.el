@@ -553,6 +553,13 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (general-auto-unbind-keys 1))
 
+(setq recentf-max-saved-items 5000
+      recentf-max-menu-items 100)
+(setq-default recentf-save-file "~/.emacs.d/recentf")
+(recentf-mode 1)
+
+(use-package recentf-ext)
+
 (use-package hydra
   :ensure t)
 
