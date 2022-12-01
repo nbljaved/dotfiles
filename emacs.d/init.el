@@ -260,6 +260,7 @@
          ("M-7". eyebrowse-switch-to-window-config-7)
          ("M-8". eyebrowse-switch-to-window-config-8)
          ("M-9". eyebrowse-switch-to-window-config-9)
+         ("M-0". eyebrowse-switch-to-window-config)
          )
   :config
   (setq eyebrowse-switch-back-and-forth t)
@@ -819,7 +820,7 @@ Version 2017-11-10"
 
 (use-package json-mode)
 
-(use-package json-navigator)
+;;(use-package json-navigator)
 
 (use-package restclient
   :mode (("\\.http\\'" . restclient-mode))
@@ -969,7 +970,6 @@ Version 2017-11-10"
 
   (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
   ;; To have Sly perform the indentation in the preferred style for Common Lisp code
-  (setq lisp-indent-function 'sly-common-lisp-indent-function)
   (setq sly-default-lisp 'sbcl))
 
 
