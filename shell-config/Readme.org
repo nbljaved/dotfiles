@@ -1,12 +1,28 @@
 My shell setup
 
+- Install [[https://sw.kovidgoyal.net/kitty/][kitty]]
+  
 - To install ZSH
   #+begin_src shell
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   #+end_src
 
-- To link the files to your home folder
+- command to install optional packages
   #+begin_src shell
-    ln -s ~/shell/.bashrc ~/.bashrc
-    ln -s ~/shell/.zshrc  ~/.zshrc
+  git clone https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
   #+end_src
+
+
+- To link the files to your home folder
+  (Before creating a soft-link, you will have to remove the file existing at that location, probably save them somewhere else.)
+  #+begin_src shell
+  ln -s ~/shell-config/.bashrc ~/.bashrc
+  ln -s ~/shell-config/.zshrc  ~/.zshrc
+  ln -s ~/shell-config/.p10k.zsh  ~/.p10k.zsh
+  ln -s ~/shell-config/kitty   ~/.config/
+  #+end_src
+  
