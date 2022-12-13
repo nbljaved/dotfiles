@@ -90,3 +90,16 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 . "$HOME/.cargo/env"
+
+## Natsoft
+
+# ANTLR-4
+export CLASSPATH=".:/usr/local/lib/antlr-4.7-complete.jar:$CLASSPATH"
+alias antlr4='java -jar /usr/local/lib/antlr-4.7-complete.jar'
+## for tool TestRig
+alias grun='java org.antlr.v4.gui.TestRig'
+
+# Mousetrap
+export MOUSETRAP_HOME="$HOME/natsoft/repos/kml/CodeGen"
+#
+alias python='python3'

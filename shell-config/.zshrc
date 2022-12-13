@@ -98,7 +98,7 @@ plugins=(git
 	 # fish like history search after entering some text
 	 # history-substring-search
 	 zsh-syntax-highlighting
-	 zsh-autocomplete
+	 zsh-autosuggestions
 	 colored-man-pages
 	)
 
@@ -114,43 +114,19 @@ source /home/nabeel/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax
 # bindkey -M emacs '^P' history-substring-search-up
 # bindkey -M emacs '^N' history-substring-search-down
 
-## zsh-autocomplete
-zstyle ':autocomplete:*' min-delay 0.3  # number of seconds (float)
-# 0.0: Start autocompletion immediately when you stop typing.
-# 0.4: Wait 0.4 seconds for more keyboard input before showing completions.
-zstyle ':autocomplete:*' insert-unambiguous yes
-# no:  Tab inserts the top completion.
-# yes: Tab first inserts substring common to all listed completions, if any.
-zstyle ':autocomplete:*' widget-style menu-select
-# complete-word: (Shift-)Tab inserts the top (bottom) completion.
-# menu-complete: Press again to cycle to next (previous) completion.
-# menu-select:   Same as `menu-complete`, but updates selection in menu.
-# ⚠️ NOTE: This can NOT be changed at runtime.
-zstyle ':autocomplete:*' fzf-completion no
-# no:  Tab uses Zsh's completion system only.
-# yes: Tab first tries Fzf's completion, then falls back to Zsh's.
-# ⚠️ NOTE: This can NOT be changed at runtime and requires that you have
-# installed Fzf's shell extensions.
-source /home/nabeel/.oh-my-zsh/custom/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-#
-# NOTE: All settings below should come AFTER sourcing zsh-autocomplete!
-#
 bindkey -M emacs '^P' up-line-or-search
 # up-line-or-search:  Open history menu.
 # up-line-or-history: Cycle to previous history line.
 bindkey -M emacs '^N' down-line-or-search
 # down-line-or-select:  Open completion menu.
 # down-line-or-history: Cycle to next history line.
-bindkey -M emacs $key[Control-Space] set-mark-command
+#bindkey -M emacs $key[Control-Space] set-mark-command
 # list-expand:      Reveal hidden completions.
 # set-mark-command: Activate text selection.
-bindkey -M menuselect $key[Return] accept-line
+#bindkey -M menuselect $key[Return] accept-line
 # .accept-line: Accept command line.
 # accept-line:  Accept selection and exit menu.
 ################
-
-
-
 
 ## User configuration
 
@@ -265,4 +241,4 @@ alias lw-console="/home/nabeel/.roswell/impls/x86-64/linux/LispWorks/lw-console"
 
 # [ -f "/home/nabeel/.ghcup/env" ] && source "/home/nabeel/.ghcup/env" # ghcup-env
 
-source /usr/share/nvm/init-nvm.sh
+# source /usr/share/nvm/init-nvm.sh
