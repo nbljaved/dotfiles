@@ -1198,6 +1198,25 @@ Version 2017-11-10"
 
 (use-package python-cell)
 
+(use-package geiser
+  :config
+  (setq geiser-active-implementations '(guile)))
+
+(use-package geiser-guile
+  :config
+  ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
+  )
+
+;; (use-package geiser-racket)
+
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :bind (:map racket-mode-map
+              ("C-c C-p" . racket-cycle-paren-shapes))
+  :config
+  (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable))
+
 (use-package org
   :hook ((org-mode . variable-pitch-mode)
          (org-mode . org-indent-mode))

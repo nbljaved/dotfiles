@@ -2994,7 +2994,7 @@ https://github.com/thisch/python-cell.el/tree/master
 (use-package python-cell)
 #+end_src
 
-** COMMENT Scheme
+** Scheme
 *** geiser
 
 #+begin_src emacs-lisp
@@ -3004,7 +3004,7 @@ https://github.com/thisch/python-cell.el/tree/master
 
   (use-package geiser-guile
     :config
-    ;;(setq geiser-guile-binary "/home/nabeel/.guix-profile/bin/guile")
+    ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
     )
 
   ;; (use-package geiser-racket) 
@@ -3012,6 +3012,15 @@ https://github.com/thisch/python-cell.el/tree/master
 #+end_src
     
 *** racket
+Install =racket=.
+After installing 'racket', the following programs will also be made available:
+- =raco=
+- =drracket=
+#+CAPTION: If not installed then
+  #+begin_src shell
+  raco pkg install --auto drracket
+  #+end_src
+
 https://racket-mode.com/#racket_002dmode_002dstart_002dfaster
 
 use =M-x racket-mode-start-faster= after installing each new racket version.
