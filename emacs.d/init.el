@@ -336,7 +336,7 @@
                                                     helm-eshell-prompts helm-imenu
                                                     helm-imenu-in-all-buffers)
         helm-actions-inherit-frame-settings       t
-        helm-use-frame-when-more-than-two-windows t
+        helm-use-frame-when-more-than-two-windows nil
         helm-use-frame-when-dedicated-window      nil
         helm-show-action-window-other-window      'left
         helm-allow-mouse                          t
@@ -521,6 +521,11 @@ If a selection is active, pre-fill the prompt with it."
 (use-package ace-isearch
   :config
   (global-ace-isearch-mode 1))
+
+(use-package hungry-delete
+  :config
+  (setf hungry-delete-join-reluctantly t)
+  (global-hungry-delete-mode))
 
 (global-set-key (kbd "C-`") 'delete-window)
 (global-set-key (kbd "C-1") 'delete-other-windows)
@@ -1214,8 +1219,10 @@ Version 2017-11-10"
   :bind (:map racket-mode-map
               ("C-c C-p" . racket-cycle-paren-shapes))
   :config
-  (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
-  (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable))
+  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+  )
 
 (use-package org
   :hook ((org-mode . variable-pitch-mode)

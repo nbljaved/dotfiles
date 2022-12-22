@@ -578,7 +578,7 @@ Keeps code indented . (always)
                                                     helm-eshell-prompts helm-imenu
                                                     helm-imenu-in-all-buffers)
         helm-actions-inherit-frame-settings       t
-        helm-use-frame-when-more-than-two-windows t
+        helm-use-frame-when-more-than-two-windows nil
         helm-use-frame-when-dedicated-window      nil
         helm-show-action-window-other-window      'left
         helm-allow-mouse                          t
@@ -875,6 +875,16 @@ If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invo
 (use-package ace-isearch
   :config
   (global-ace-isearch-mode 1))
+#+end_src
+
+*** hungry-delete
+https://github.com/nflath/hungry-delete
+
+#+begin_src emacs-lisp :lexical no
+(use-package hungry-delete
+  :config
+  (setf hungry-delete-join-reluctantly t)
+  (global-hungry-delete-mode))
 #+end_src
 
 ** Keybindings
@@ -3025,14 +3035,18 @@ https://racket-mode.com/#racket_002dmode_002dstart_002dfaster
 
 use =M-x racket-mode-start-faster= after installing each new racket version.
 
+Use =C-c C-.= /racket-describe/.
+
 #+begin_src emacs-lisp
-  (use-package racket-mode
-    :mode ("\\.rkt\\'" . racket-mode)
-    :bind (:map racket-mode-map
-                ("C-c C-p" . racket-cycle-paren-shapes))
-    :config
-    (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
-    (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable))
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :bind (:map racket-mode-map
+              ("C-c C-p" . racket-cycle-paren-shapes))
+  :config
+  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+  )
 #+end_src
     
 ** COMMENT Jupyter 
