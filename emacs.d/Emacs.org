@@ -1159,6 +1159,14 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
 #+end_src
 
+*** Dirvish
+https://github.com/alexluigit/dirvish
+#+begin_src emacs-lisp :lexical no
+(use-package dirvish
+  :config
+  (dirvish-override-dired-mode t))
+#+end_src
+
 *** dired-hacks-utils
 
 #+begin_src emacs-lisp :lexical no

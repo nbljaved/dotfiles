@@ -638,6 +638,10 @@ If a selection is active, pre-fill the prompt with it."
 (define-key dired-mode-map (kbd "R") 'dired-async-do-rename)
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
 
+(use-package dirvish
+  :config
+  (dirvish-override-dired-mode t))
+
 (use-package dired-hacks-utils
   :after dired
   :hook ((dired-mode . dired-utils-format-information-line-mode))
