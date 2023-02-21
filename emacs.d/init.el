@@ -744,16 +744,6 @@ If a selection is active, pre-fill the prompt with it."
 (global-tree-sitter-mode 1)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
-(use-package dogears
-  :bind (:map global-map
-              ("M-g d" . dogears-go)
-              ("M-g M-b" . dogears-back)
-              ("M-g M-f" . dogears-forward)
-              ("M-g M-d" . dogears-list)
-              ("M-g M-D" . dogears-sidebar))
-  :hook ((prog-mode . dogears-mode)
-         (org-mode . dogears-mode)))
-
 (use-package session
   :config
   )

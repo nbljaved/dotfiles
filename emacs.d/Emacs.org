@@ -1394,7 +1394,7 @@ Butler for buffers.
     (bufler-mode 1))
 #+end_src
 
-** dogears
+** COMMENT dogears
 https://github.com/alphapapa/dogears.el
 /Never lose your place in Emacs again!/
 
