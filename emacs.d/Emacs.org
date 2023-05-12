@@ -1667,6 +1667,17 @@ https://ag91.github.io/blog/2022/01/16/moldable-emacs-translate-string-at-point-
   (setq gts-translate-list '(("en" "th") ("en" "ko") ("en" "ru"))))
 #+end_src
 
+** indent-tools
+https://gitlab.com/emacs-stuff/indent-tools
+
+#+begin_src emacs-lisp :lexical no
+(use-package indent-tools
+  :config
+  (global-set-key (kbd "C-c >") 'indent-tools-hydra/body))
+
+
+#+end_src
+
 ** Custom functions
 =org-toggle-inline-images= doesn't toggle those with a description
 

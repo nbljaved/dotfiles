@@ -842,6 +842,10 @@ Version 2017-11-10"
   :config
   (setq gts-translate-list '(("en" "th") ("en" "ko") ("en" "ru"))))
 
+(use-package indent-tools
+  :config
+  (global-set-key (kbd "C-c >") 'indent-tools-hydra/body))
+
 (defun nbl/org-toggle-inline-images () (interactive)
        (org-toggle-inline-images 1))
 
