@@ -1234,6 +1234,12 @@ https://github.com/alexluigit/dirvish
   (use-package dired-narrow)
 #+end_src
 
+*** dired-preview
+
+#+begin_src emacs-lisp :lexical no
+(use-package dired-preview)
+#+end_src
+
 *** diredf avfs
 just install =avfsd= as system package.
 
@@ -1520,24 +1526,25 @@ https://www.emacswiki.org/emacs/SmartCompile
 ** eww
 
 #+begin_src emacs-lisp
-  (require 'eww)
-  (setq browse-url-browser-function 'eww-browse-url
-        shr-use-colors nil
-        shr-use-fonts nil)
+(require 'eww)
+(setq browse-url-browser-function 'browse-url-default-browser
+      ;; browse-url-browser-function 'eww-browse-url
+      shr-use-colors nil
+      shr-use-fonts nil)
 
 
-  (when (fboundp 'eww)
-    (defun xah-rename-eww-buffer ()
-      "Rename `eww-mode' buffer so sites open in new page.
-  URL `http://ergoemacs.org/emacs/emacs_eww_web_browser.html'
-  Version 2017-11-10"
-      (let (($title (plist-get eww-data :title)))
-        (when (eq major-mode 'eww-mode )
-          (if $title
-              (rename-buffer (concat "eww " $title ) t)
-            (rename-buffer "eww" t)))))
+(when (fboundp 'eww)
+  (defun xah-rename-eww-buffer ()
+    "Rename `eww-mode' buffer so sites open in new page.
+URL `http://ergoemacs.org/emacs/emacs_eww_web_browser.html'
+Version 2017-11-10"
+    (let (($title (plist-get eww-data :title)))
+      (when (eq major-mode 'eww-mode )
+        (if $title
+            (rename-buffer (concat "eww " $title ) t)
+          (rename-buffer "eww" t)))))
 
-    (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
+  (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
 #+end_src
 
 ** git
@@ -2023,7 +2030,13 @@ https://github.com/k-talo/volatile-highlights.el
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
 ;; optionally if you want to use debugger
-(use-package dap-mode)
+(use-package dap-mode
+  :config
+  (require 'dap-firefox)
+  ;; Have to do 'M-x dap-firefox-setup',
+  ;; then dap-firefox-debug-program will have valid path on your system.
+  )
+
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 
@@ -2045,8 +2058,11 @@ https://github.com/joaotavora/eglot
 #+begin_src emacs-lisp
 (use-package eglot
   :ensure t
-  :bind (("C-c h" . eldoc)
-         ("C-c r" . eglot-rename))
+  :bind (:map eglot-mode-map
+              ("C-c h" . eldoc)
+              ("C-c r" . eglot-rename)
+              ("M-." . xref-find-definitions)
+              ("M-?" . xref-find-references))
   :config
   (setq eglot-connect-timeout 30
         eglot-extend-to-xref t))
@@ -2501,7 +2517,7 @@ With prefix arg, save the URL in the =kill-ring= instead.
 ;; If the default browser used is not the one you wanted, here's how
 ;; you might tell Emacs to use Firefox instead:
 
-;; (setq browse-url-firefox-program "firefox")
+(setq browse-url-firefox-program "firefox")
 
 ;; Or Google Chrome:
 
@@ -2562,6 +2578,20 @@ https://www.antlr.org/index.html
 #+begin_src emacs-lisp :lexical no
 (load "antlr-mode" t)
 (add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
+#+end_src
+
+
+
+** HTML
+*** Web mode
+https://github.com/fxbois/web-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package web-mode
+  :config
+  (setq web-mode-content-types-alist
+        '(("jsx" . "\\.js[x]?\\'")
+          ("tsx" . "\\.ts[x]?\\'"))))
 #+end_src
 
 ** Java
@@ -2628,6 +2658,69 @@ On usage of lsp-java https://xpressrazor.wordpress.com/2020/11/04/java-programmi
 ;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
 
 #+end_src
+
+** Javascript
+*** javascript-mode
+#+begin_src emacs-lisp :lexical no
+
+#+end_src
+*** COMMENT rjsx-mode
+https://github.com/felipeochoa/rjsx-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package rjsx-mode
+  :hook ((rjsx-mode . lsp-deferred)))
+#+end_src
+
+
+*** js2-mode
+https://github.com/mooz/js2-mode
+#+begin_src emacs-lisp :lexical no
+(use-package js2-mode
+  ;; :hook ((js-mode . lsp-deferred))
+  :config
+  ;; To install it as your major mode for JavaScript editing:
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+
+  (add-to-list 'auto-mode-alist '("\\.ts[x]\\'" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-mode))
+  ;; Use Emacs 27 and want to write JSX?
+  (add-hook 'js-mode-hook 'js2-minor-mode))
+
+
+  ;; You may also want to hook it in for shell scripts running via node.js:
+  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+#+end_src
+
+*** js-comint
+https://github.com/redguardtoo/js-comint
+#+begin_src emacs-lisp :lexical no
+(use-package js-comint
+  :config
+  (js-do-use-nvm)
+  ;; Remap Elisp's eval-last-sexp (C-x C-e) to eval JavaScript
+  (define-key js-mode-map [remap eval-last-sexp] #'js-comint-send-last-sexp)
+  (define-key js-mode-map (kbd "C-c C-l") 'js-send-buffer))
+
+(defun inferior-js-mode-hook-setup ()
+  (add-hook 'comint-output-filter-functions 'js-comint-process-output))
+(add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
+#+end_src
+
+*** nvm.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package nvm)
+#+end_src
+
+*** COMMENT skewer-mode
+https://github.com/skeeto/skewer-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package skewer-mode
+  :hook ((js2-mode . skewer-mode)))
+#+end_src
+
 ** Perl
 *** cperl-mode
 https://github.com/jrockway/cperl-mode

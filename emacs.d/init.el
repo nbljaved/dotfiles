@@ -685,6 +685,8 @@ If a selection is active, pre-fill the prompt with it."
 
 (use-package dired-narrow)
 
+(use-package dired-preview)
+
 (use-package diredfl
   :config
   (diredfl-global-mode))
@@ -774,7 +776,8 @@ If a selection is active, pre-fill the prompt with it."
 (define-key compilation-mode-map (kbd "C-o") 'other-window)
 
 (require 'eww)
-(setq browse-url-browser-function 'eww-browse-url
+(setq browse-url-browser-function 'browse-url-default-browser
+      ;; browse-url-browser-function 'eww-browse-url
       shr-use-colors nil
       shr-use-fonts nil)
 
@@ -922,7 +925,13 @@ Version 2017-11-10"
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
 ;; optionally if you want to use debugger
-(use-package dap-mode)
+(use-package dap-mode
+  :config
+  (require 'dap-firefox)
+  ;; Have to do 'M-x dap-firefox-setup',
+  ;; then dap-firefox-debug-program will have valid path on your system.
+  )
+
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 
@@ -938,8 +947,11 @@ Version 2017-11-10"
 
 (use-package eglot
   :ensure t
-  :bind (("C-c h" . eldoc)
-         ("C-c r" . eglot-rename))
+  :bind (:map eglot-mode-map
+              ("C-c h" . eldoc)
+              ("C-c r" . eglot-rename)
+              ("M-." . xref-find-definitions)
+              ("M-?" . xref-find-references))
   :config
   (setq eglot-connect-timeout 30
         eglot-extend-to-xref t))
@@ -1028,7 +1040,7 @@ Version 2017-11-10"
 ;; If the default browser used is not the one you wanted, here's how
 ;; you might tell Emacs to use Firefox instead:
 
-;; (setq browse-url-firefox-program "firefox")
+(setq browse-url-firefox-program "firefox")
 
 ;; Or Google Chrome:
 
@@ -1037,6 +1049,12 @@ Version 2017-11-10"
 
 (load "antlr-mode" t)
 (add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
+
+(use-package web-mode
+  :config
+  (setq web-mode-content-types-alist
+        '(("jsx" . "\\.js[x]?\\'")
+          ("tsx" . "\\.ts[x]?\\'"))))
 
 (use-package mvn)
 ;; The basic operation is to invoke M-x mvn, which will ask you for a goal.
@@ -1078,6 +1096,36 @@ Version 2017-11-10"
 (add-hook 'lsp-mode-hook #'lsp-lens-mode)
 (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
 ;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
+
+
+
+(use-package js2-mode
+  ;; :hook ((js-mode . lsp-deferred))
+  :config
+  ;; To install it as your major mode for JavaScript editing:
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+
+  (add-to-list 'auto-mode-alist '("\\.ts[x]\\'" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-mode))
+  ;; Use Emacs 27 and want to write JSX?
+  (add-hook 'js-mode-hook 'js2-minor-mode))
+
+
+  ;; You may also want to hook it in for shell scripts running via node.js:
+  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+
+(use-package js-comint
+  :config
+  (js-do-use-nvm)
+  ;; Remap Elisp's eval-last-sexp (C-x C-e) to eval JavaScript
+  (define-key js-mode-map [remap eval-last-sexp] #'js-comint-send-last-sexp)
+  (define-key js-mode-map (kbd "C-c C-l") 'js-send-buffer))
+
+(defun inferior-js-mode-hook-setup ()
+  (add-hook 'comint-output-filter-functions 'js-comint-process-output))
+(add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
+
+(use-package nvm)
 
 (use-package cperl-mode
   :config
