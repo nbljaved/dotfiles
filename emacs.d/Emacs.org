@@ -2546,7 +2546,7 @@ https://haskell.github.io/haskell-mode/manual/latest/index.html#Top
 (setq exec-path (append '("/home/nabeel/.cabal/bin") exec-path))
 #+end_src
 
-** Antlr4
+** COMMENT Antlr4
 https://www.antlr.org/index.html
 - Make sure java is installed with
   #+begin_src shell
@@ -2580,7 +2580,22 @@ https://www.antlr.org/index.html
 (add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
 #+end_src
 
+** Golang
+*** go-mode
+https://github.com/dominikh/go-mode.el
 
+#+begin_src emacs-lisp :lexical no
+(use-package go-mode
+  :config
+  (add-hook 'before-save-hook 'gofmt-before-save))
+#+end_src
+
+*** gopls
+Gopls is the official language server protocol (lsp) implementation provided by the Go team. It is intended to replace the existing third party tools for code formatting (gofmt), automatic imports (goimports), code navigation (godef/guru), type and function descriptions (godoc/godef), error checking, auto completion (gocode), variable and type renaming (rename), and more.
+
+#+begin_src shell
+go install golang.org/x/tools/gopls@latest
+#+end_src
 
 ** HTML
 *** Web mode
@@ -2660,10 +2675,6 @@ On usage of lsp-java https://xpressrazor.wordpress.com/2020/11/04/java-programmi
 #+end_src
 
 ** Javascript
-*** javascript-mode
-#+begin_src emacs-lisp :lexical no
-
-#+end_src
 *** COMMENT rjsx-mode
 https://github.com/felipeochoa/rjsx-mode
 
@@ -2671,7 +2682,6 @@ https://github.com/felipeochoa/rjsx-mode
 (use-package rjsx-mode
   :hook ((rjsx-mode . lsp-deferred)))
 #+end_src
-
 
 *** js2-mode
 https://github.com/mooz/js2-mode
@@ -2721,7 +2731,7 @@ https://github.com/skeeto/skewer-mode
   :hook ((js2-mode . skewer-mode)))
 #+end_src
 
-** Perl
+** COMMENT Perl
 *** cperl-mode
 https://github.com/jrockway/cperl-mode
 Install =perl= in your OS
@@ -3161,6 +3171,17 @@ Use =C-c C-.= /racket-describe/.
   )
 #+end_src
     
+** Shell
+*** shellcheck
+https://github.com/federicotdn/flymake-shellcheck
+
+#+begin_src emacs-lisp :lexical no
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+#+end_src
+
 ** COMMENT Jupyter 
 
 *** Prerequisites
@@ -3255,7 +3276,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers t
+	org-hide-emphasis-markers nil
 	org-return-follows-link t
 	org-export-dispatch-use-expert-ui t
 	;; prettify

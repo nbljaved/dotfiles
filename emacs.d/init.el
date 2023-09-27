@@ -1047,8 +1047,9 @@ Version 2017-11-10"
 ;; (setq browse-url-browser-function 'browse-url-generic)
 ;; (setq browse-url-generic-program "google-chrome")
 
-(load "antlr-mode" t)
-(add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
+(use-package go-mode
+  :config
+  (add-hook 'before-save-hook 'gofmt-before-save))
 
 (use-package web-mode
   :config
@@ -1097,8 +1098,6 @@ Version 2017-11-10"
 (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
 ;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
 
-
-
 (use-package js2-mode
   ;; :hook ((js-mode . lsp-deferred))
   :config
@@ -1126,34 +1125,6 @@ Version 2017-11-10"
 (add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
 
 (use-package nvm)
-
-(use-package cperl-mode
-  :config
-;;; cperl-mode is preferred to perl-mode
-;;; "Brevity is the soul of wit" <foo at acm.org>
-  (defalias 'perl-mode 'cperl-mode)
-  (setq cperl-font-lock t
-        cperl-electric-lbrace-space t
-        cperl-electric-parens t
-        cperl-electric-linefeed t
-        cperl-info-on-command-no-prompt t
-        cperl-clobber-lisp-bindings t
-        cperl-lazy-help-time t))
-
-(use-package company-plsense
-  :config
-  (add-to-list 'company-backends 'company-plsense)
-  (add-hook 'perl-mode-hook 'company-mode)
-  (add-hook 'cperl-mode-hook 'company-mode))
-
-(use-package helm-perldoc)
-
-(add-to-list 'load-path "~/.emacs.d/manual/emacs-pde/lisp/")
-(load "pde-load" t)
-
-(use-package ffap-perl-module)
-
-(use-package man-completion)
 
 (use-package python
   :mode ("[./]flake8\\'" . conf-mode)
@@ -1270,6 +1241,11 @@ Version 2017-11-10"
   ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
   )
 
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+
 (use-package org
   :hook ((org-mode . variable-pitch-mode)
          (org-mode . org-indent-mode))
@@ -1283,7 +1259,7 @@ Version 2017-11-10"
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers t
+	org-hide-emphasis-markers nil
 	org-return-follows-link t
 	org-export-dispatch-use-expert-ui t
 	;; prettify
