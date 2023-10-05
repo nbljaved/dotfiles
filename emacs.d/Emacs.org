@@ -3171,6 +3171,15 @@ Use =C-c C-.= /racket-describe/.
   )
 #+end_src
     
+*** sicp-info
+https://github.com/webframp/sicp-info
+Gets the texinfo of SICP into emacs.
+Do =M-x info= and search for 'SICP'
+
+#+begin_src emacs-lisp :lexical no
+(use-package sicp)
+#+end_src
+
 ** Shell
 *** shellcheck
 https://github.com/federicotdn/flymake-shellcheck

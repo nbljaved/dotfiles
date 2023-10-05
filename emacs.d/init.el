@@ -1241,6 +1241,8 @@ Version 2017-11-10"
   ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
   )
 
+(use-package sicp)
+
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load
   :init
