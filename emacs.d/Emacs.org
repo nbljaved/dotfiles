@@ -3900,7 +3900,7 @@ npm install
 #+begin_src lisp :eval no
 # Local Variables:
 # mode: org
-# eval: (+ 1 1)
+# Here you need to write a key "eval" with the lisp code you want to evaluate, eg: "eval: (+ 1 1)"
 # End:
 #+end_src
 
