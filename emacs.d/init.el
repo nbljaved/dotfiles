@@ -879,6 +879,16 @@ Version 2017-11-10"
         crdt-use-tuntox t
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 
+(use-package copilot
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure t
+  :config
+  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+  ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
+
+  )
+
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)
   :config
@@ -1008,23 +1018,6 @@ Version 2017-11-10"
 
 (use-package sly-named-readtables)
 
-(use-package lispy
-  :hook ((emacs-lisp-mode . lispy-mode)
-         (scheme-mode . lispy-mode)
-         (lisp-mode . lispy-mode)
-         (lisp-interaction-mode . lispy-mode)
-         (slime-repl-mode . lispy-mode)
-         (sly-mrepl-mode . lispy-mode)
-         (racket-mode . lispy-mode)
-         (racket-repl-mode . lispy-mode))
-  :bind (:map lispy-mode-map
-              ("M-." . nil)
-              ("E" . lispy-eval-and-comment))
-  :config
-  ;; no space when pressing :
-  (setq lispy-colon-p nil)
-  (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
-
 (use-package clhs
   :config
   (autoload 'clhs-doc "clhs" "Get doc on ANSI CL" t)
@@ -1046,6 +1039,49 @@ Version 2017-11-10"
 
 ;; (setq browse-url-browser-function 'browse-url-generic)
 ;; (setq browse-url-generic-program "google-chrome")
+
+(use-package geiser
+  :config
+  (setq geiser-active-implementations '(guile)))
+
+(use-package geiser-guile
+  :config
+  ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
+  )
+
+;; (use-package geiser-racket)
+
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :bind (:map racket-mode-map
+              ("C-c C-p" . racket-cycle-paren-shapes))
+  :config
+  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+  )
+
+(use-package sicp)
+
+(use-package lispy
+  :hook ((emacs-lisp-mode . lispy-mode)
+         (scheme-mode . lispy-mode)
+         (lisp-mode . lispy-mode)
+         (lisp-interaction-mode . lispy-mode)
+         (slime-repl-mode . lispy-mode)
+         (sly-mrepl-mode . lispy-mode)
+         (racket-mode . lispy-mode)
+         (racket-repl-mode . lispy-mode))
+  :bind (:map lispy-mode-map
+              ("M-." . nil)
+              ("E" . lispy-eval-and-comment))
+  :config
+  ;; no space when pressing :
+  (setq lispy-colon-p nil)
+  (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
+
+(use-package prism
+  :hook ((lispy-mode . prism-mode)))
 
 (use-package go-mode
   :config
@@ -1219,29 +1255,6 @@ Version 2017-11-10"
   :hook ((python-mode . yapf-mode)))
 
 (use-package python-cell)
-
-(use-package geiser
-  :config
-  (setq geiser-active-implementations '(guile)))
-
-(use-package geiser-guile
-  :config
-  ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
-  )
-
-;; (use-package geiser-racket)
-
-(use-package racket-mode
-  :mode ("\\.rkt\\'" . racket-mode)
-  :bind (:map racket-mode-map
-              ("C-c C-p" . racket-cycle-paren-shapes))
-  :config
-  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
-  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
-  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
-  )
-
-(use-package sicp)
 
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load

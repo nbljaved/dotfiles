@@ -1762,6 +1762,20 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
+** copilot.el
+
+#+begin_src emacs-lisp
+  (use-package copilot
+    :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+    :ensure t
+    :config
+    (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+    (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+    ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
+  
+    )
+#+end_src
+
 ** Fun
 *** nov
 #+begin_src emacs-lisp
@@ -2128,8 +2142,9 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 (use-package cider)
 #+end_src
 
-** Common Lisp
-*** Basic (Roswell)
+** Lisp
+*** Common Lisp
+**** Basic (Roswell)
 
 #+begin_src emacs-lisp
 (setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
@@ -2138,8 +2153,8 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
 #+end_src
-*** .roswell
-**** init.lisp
+**** .roswell
+***** init.lisp
 
 - Rather than pushing the directory, that we want ASDF to search, into ~asdf:*central-registry*~, we can call the following function
 
@@ -2188,8 +2203,8 @@ or to enter 0 to bail"
              (load-system system)))))))
 #+end_src
 
-*** Sly
-**** Basic
+**** Sly
+***** Basic
 
 #+begin_src emacs-lisp
 (use-package sly
@@ -2230,7 +2245,7 @@ Turn off string elision
 (setf (cdr (assoc 'slynk:*string-elision-length* slynk:*slynk-pprint-bindings*)) nil)
 #+end_src
 
-**** COMMENT mind-style
+***** COMMENT mind-style
 
 #+begin_src emacs-lisp :lexical no
 (defun nbl-mind-style () (interactive)
@@ -2276,7 +2291,7 @@ Turn off string elision
 ;;       (def!constant            (as defconstant)))))
 #+end_src
 
-**** sly-repl-ansi-color
+***** sly-repl-ansi-color
 
 #+begin_src emacs-lisp 
   (use-package sly-repl-ansi-color
@@ -2284,7 +2299,7 @@ Turn off string elision
     (push 'sly-repl-ansi-color sly-contribs ))
 #+end_src
 
-**** sly-quicklisp
+***** sly-quicklisp
 https://github.com/joaotavora/sly-quicklisp/tree/a46b848a2e6d206542c4cc14869456ba1eac7c9a
 sly-quickload command =C-c C-d C-q= that prompts the user for a package to install.
 
@@ -2292,7 +2307,7 @@ sly-quickload command =C-c C-d C-q= that prompts the user for a package to insta
   (use-package sly-quicklisp)
 #+end_src
 
-**** sly-asdf
+***** sly-asdf
 https://github.com/mmgeorge/sly-asdf
 When using the built-in system load utlity, accessed via =, + load-system= from the repl, ASDF system compilation and load errors will be trapped and recorded as with other sly compilation errors, as opposed to dumping into the debugger like with calling ~asdf:load-system~ directly.
 
@@ -2300,7 +2315,7 @@ When using the built-in system load utlity, accessed via =, + load-system= from 
   (use-package sly-asdf)
 #+end_src
 
-**** sly-macrostep
+***** sly-macrostep
 https://github.com/joaotavora/sly-macrostep
 In /.lisp/ files you can now use =C-c M-e= or =M-x macrostep-expand= to expand a macro.
 
@@ -2308,7 +2323,7 @@ In /.lisp/ files you can now use =C-c M-e= or =M-x macrostep-expand= to expand a
   (use-package sly-macrostep)
 #+end_src
 
-**** COMMENT sly-stepper
+***** COMMENT sly-stepper
 https://github.com/joaotavora/sly-stepper
 
 #+begin_src emacs-lisp 
@@ -2321,14 +2336,14 @@ https://github.com/joaotavora/sly-stepper
              :branch "master"))
 #+end_src
 
-**** sly-named-readtables
+***** sly-named-readtables
 https://github.com/joaotavora/sly-named-readtables
 
 #+begin_src emacs-lisp :lexical no
 (use-package sly-named-readtables)
 #+end_src
 
-**** COMMENT sly-package-inferred
+***** COMMENT sly-package-inferred
 - Warning! :: This system works with SLY version installed from [[https://github.com/svetlyak40wt/sly/tree/patches][here]]. Because it contains patch joaotavora/sly#417 which is not merged yet to upstream.
 
   #+begin_src emacs-lisp :lexical no
@@ -2342,7 +2357,7 @@ https://github.com/joaotavora/sly-named-readtables
       (require 'sly-package-inferred-autoloads))
   #+end_src
 
-*** COMMENT stumpwm-mode
+**** COMMENT stumpwm-mode
 load this file, set stumpwm-shell-program to point to stumpish and
 run =M-x stumpwm-mode= in your stumpwm lisp files.
 Now, you can easily eval code into a running stumpwm using the regular bindings.
@@ -2353,7 +2368,7 @@ Now, you can easily eval code into a running stumpwm using the regular bindings.
     (setq stumpwm-shell-program "/usr/bin/stumpish"))
 #+end_src
 
-*** COMMENT adjust-parens
+**** COMMENT adjust-parens
 https://elpa.gnu.org/packages/adjust-parens.html
 
 #+begin_src emacs-lisp
@@ -2365,7 +2380,7 @@ https://elpa.gnu.org/packages/adjust-parens.html
                 ("M-i" . lisp-dedent-adjust-parens)))
 #+end_src
 
-*** COMMENT highlight-quoted
+**** COMMENT highlight-quoted
 
 #+begin_src emacs-lisp
   (use-package highlight-quoted
@@ -2373,7 +2388,7 @@ https://elpa.gnu.org/packages/adjust-parens.html
            (paredit-mode . highlight-quoted-mode)))
 #+end_src
 
-*** COMMENT paredit
+**** COMMENT paredit
 
 #+begin_src emacs-lisp
 (use-package paredit
@@ -2414,29 +2429,7 @@ p               ;; ("M-[" . paredit-wrap-square)
 
 
 #+end_src
-
-*** lispy
-
-#+begin_src emacs-lisp
-(use-package lispy
-  :hook ((emacs-lisp-mode . lispy-mode)
-         (scheme-mode . lispy-mode)
-         (lisp-mode . lispy-mode)
-         (lisp-interaction-mode . lispy-mode)
-         (slime-repl-mode . lispy-mode)
-         (sly-mrepl-mode . lispy-mode)
-         (racket-mode . lispy-mode)
-         (racket-repl-mode . lispy-mode))
-  :bind (:map lispy-mode-map
-              ("M-." . nil)
-              ("E" . lispy-eval-and-comment))
-  :config
-  ;; no space when pressing :
-  (setq lispy-colon-p nil)
-  (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
-#+end_src
-
-*** COMMENT parinfer
+**** COMMENT parinfer
 https://shaunlebron.github.io/parinfer/#introduction
 
 + We perform the following steps to rearrange close-parens based on indentation.
@@ -2461,7 +2454,7 @@ We will refer to these later as rules #1, #2, #3 and #4.
 
 #+end_src
 
-*** COMMENT paxedit
+**** COMMENT paxedit
 
 #+begin_src emacs-lisp
   (use-package paxedit
@@ -2493,7 +2486,7 @@ We will refer to these later as rules #1, #2, #3 and #4.
             (define-key paxedit-mode-map (kbd "C-#") 'paxedit-symbol-kill)))
 #+end_src
 
-*** clhs
+**** clhs
 
 Access the Common lisp Hyperspec(CLHS)
 
@@ -2525,8 +2518,91 @@ With prefix arg, save the URL in the =kill-ring= instead.
 ;; (setq browse-url-generic-program "google-chrome")
 #+end_src
 
-*** literate-lisp
+**** literate-lisp
 https://github.com/jingtaozf/literate-lisp
+
+*** Scheme
+**** geiser
+
+#+begin_src emacs-lisp
+  (use-package geiser
+    :config
+    (setq geiser-active-implementations '(guile)))
+
+  (use-package geiser-guile
+    :config
+    ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
+    )
+
+  ;; (use-package geiser-racket) 
+
+#+end_src
+    
+**** racket
+Install =racket=.
+After installing 'racket', the following programs will also be made available:
+- =raco=
+- =drracket=
+#+CAPTION: If not installed then
+  #+begin_src shell
+  raco pkg install --auto drracket
+  #+end_src
+
+https://racket-mode.com/#racket_002dmode_002dstart_002dfaster
+
+use =M-x racket-mode-start-faster= after installing each new racket version.
+
+Use =C-c C-.= /racket-describe/.
+
+#+begin_src emacs-lisp
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :bind (:map racket-mode-map
+              ("C-c C-p" . racket-cycle-paren-shapes))
+  :config
+  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+  )
+#+end_src
+    
+**** sicp-info
+https://github.com/webframp/sicp-info
+Gets the texinfo of SICP into emacs.
+Do =M-x info= and search for 'SICP'
+
+#+begin_src emacs-lisp :lexical no
+(use-package sicp)
+#+end_src
+
+*** lispy
+
+#+begin_src emacs-lisp
+(use-package lispy
+  :hook ((emacs-lisp-mode . lispy-mode)
+         (scheme-mode . lispy-mode)
+         (lisp-mode . lispy-mode)
+         (lisp-interaction-mode . lispy-mode)
+         (slime-repl-mode . lispy-mode)
+         (sly-mrepl-mode . lispy-mode)
+         (racket-mode . lispy-mode)
+         (racket-repl-mode . lispy-mode))
+  :bind (:map lispy-mode-map
+              ("M-." . nil)
+              ("E" . lispy-eval-and-comment))
+  :config
+  ;; no space when pressing :
+  (setq lispy-colon-p nil)
+  (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
+#+end_src
+
+*** prism-mode
+https://github.com/alphapapa/prism.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package prism
+  :hook ((lispy-mode . prism-mode)))
+#+end_src
 
 ** COMMENT Haskell
 *** haskell-mode
@@ -3124,60 +3200,6 @@ https://github.com/thisch/python-cell.el/tree/master
 
 #+begin_src emacs-lisp :lexical no
 (use-package python-cell)
-#+end_src
-
-** Scheme
-*** geiser
-
-#+begin_src emacs-lisp
-  (use-package geiser
-    :config
-    (setq geiser-active-implementations '(guile)))
-
-  (use-package geiser-guile
-    :config
-    ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
-    )
-
-  ;; (use-package geiser-racket) 
-
-#+end_src
-    
-*** racket
-Install =racket=.
-After installing 'racket', the following programs will also be made available:
-- =raco=
-- =drracket=
-#+CAPTION: If not installed then
-  #+begin_src shell
-  raco pkg install --auto drracket
-  #+end_src
-
-https://racket-mode.com/#racket_002dmode_002dstart_002dfaster
-
-use =M-x racket-mode-start-faster= after installing each new racket version.
-
-Use =C-c C-.= /racket-describe/.
-
-#+begin_src emacs-lisp
-(use-package racket-mode
-  :mode ("\\.rkt\\'" . racket-mode)
-  :bind (:map racket-mode-map
-              ("C-c C-p" . racket-cycle-paren-shapes))
-  :config
-  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
-  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
-  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
-  )
-#+end_src
-    
-*** sicp-info
-https://github.com/webframp/sicp-info
-Gets the texinfo of SICP into emacs.
-Do =M-x info= and search for 'SICP'
-
-#+begin_src emacs-lisp :lexical no
-(use-package sicp)
 #+end_src
 
 ** Shell
@@ -3904,15 +3926,6 @@ npm install
 #+end_src
 
 * Learn
-** Running commands on file startup
-
-#+begin_src lisp :eval no
-# Local Variables:
-# mode: org
-# Here you need to write a key "eval" with the lisp code you want to evaluate, eg: "eval: (+ 1 1)"
-# End:
-#+end_src
-
 ** best-features-for-text-editing-in-emacs
 https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs/#built-in
 - C-t transpose-chars and its companion M-t transpose word
