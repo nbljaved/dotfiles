@@ -208,6 +208,9 @@
 ;; selected text is overwritten by the text we type
 (delete-selection-mode 1)
 
+;; Cycle spaces
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
+
 (use-package smartparens
   :hook ((org-mode . smartparens-mode))
   :config
@@ -257,6 +260,7 @@
          ("M-7". eyebrowse-switch-to-window-config-7)
          ("M-8". eyebrowse-switch-to-window-config-8)
          ("M-9". eyebrowse-switch-to-window-config-9)
+         ("M-0". eyebrowse-switch-to-window-config)
          )
   :config
   (setq eyebrowse-switch-back-and-forth t)
@@ -274,7 +278,8 @@
 
 (use-package multiple-cursors
   :bind (("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)))
+         ("C-<" . mc/mark-previous-like-this)
+         ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 
 (use-package company
   ;; :init
@@ -332,7 +337,7 @@
                                                     helm-eshell-prompts helm-imenu
                                                     helm-imenu-in-all-buffers)
         helm-actions-inherit-frame-settings       t
-        helm-use-frame-when-more-than-two-windows t
+        helm-use-frame-when-more-than-two-windows nil
         helm-use-frame-when-dedicated-window      nil
         helm-show-action-window-other-window      'left
         helm-allow-mouse                          t
@@ -508,7 +513,7 @@ If a selection is active, pre-fill the prompt with it."
 
 (use-package avy
   :demand t
-  :bind (("C-;" . avy-goto-char-timer)
+  :bind (("C-j" . avy-goto-char-timer)
          ("C-c SPC" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-1)
          ("M-g e" . avy-goto-word-0)
@@ -517,6 +522,11 @@ If a selection is active, pre-fill the prompt with it."
 (use-package ace-isearch
   :config
   (global-ace-isearch-mode 1))
+
+(use-package hungry-delete
+  :config
+  (setf hungry-delete-join-reluctantly t)
+  (global-hungry-delete-mode))
 
 (global-set-key (kbd "C-`") 'delete-window)
 (global-set-key (kbd "C-1") 'delete-other-windows)
@@ -549,6 +559,15 @@ If a selection is active, pre-fill the prompt with it."
   :demand t
   :config
   (general-auto-unbind-keys 1))
+
+(setq recentf-max-saved-items 5000
+      recentf-max-menu-items 100)
+(setq-default recentf-save-file "~/.emacs.d/recentf")
+;; save recentf-list every 5 minutes
+(run-at-time nil (* 5 60) 'recentf-save-list)
+(recentf-mode 1)
+
+(use-package recentf-ext)
 
 (use-package hydra
   :ensure t)
@@ -620,6 +639,10 @@ If a selection is active, pre-fill the prompt with it."
 (define-key dired-mode-map (kbd "R") 'dired-async-do-rename)
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
 
+(use-package dirvish
+  :config
+  (dirvish-override-dired-mode t))
+
 (use-package dired-hacks-utils
   :after dired
   :hook ((dired-mode . dired-utils-format-information-line-mode))
@@ -662,6 +685,8 @@ If a selection is active, pre-fill the prompt with it."
                                             (extension "csv"))))))
 
 (use-package dired-narrow)
+
+(use-package dired-preview)
 
 (use-package diredfl
   :config
@@ -722,16 +747,6 @@ If a selection is active, pre-fill the prompt with it."
 (global-tree-sitter-mode 1)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
-(use-package dogears
-  :bind (:map global-map
-              ("M-g d" . dogears-go)
-              ("M-g M-b" . dogears-back)
-              ("M-g M-f" . dogears-forward)
-              ("M-g M-d" . dogears-list)
-              ("M-g M-D" . dogears-sidebar))
-  :hook ((prog-mode . dogears-mode)
-         (org-mode . dogears-mode)))
-
 (use-package session
   :config
   )
@@ -762,7 +777,8 @@ If a selection is active, pre-fill the prompt with it."
 (define-key compilation-mode-map (kbd "C-o") 'other-window)
 
 (require 'eww)
-(setq browse-url-browser-function 'eww-browse-url
+(setq browse-url-browser-function 'browse-url-default-browser
+      ;; browse-url-browser-function 'eww-browse-url
       shr-use-colors nil
       shr-use-fonts nil)
 
@@ -807,7 +823,7 @@ Version 2017-11-10"
 
 (use-package json-mode)
 
-(use-package json-navigator)
+;;(use-package json-navigator)
 
 (use-package restclient
   :mode (("\\.http\\'" . restclient-mode))
@@ -829,6 +845,10 @@ Version 2017-11-10"
 (use-package go-translate
   :config
   (setq gts-translate-list '(("en" "th") ("en" "ko") ("en" "ru"))))
+
+(use-package indent-tools
+  :config
+  (global-set-key (kbd "C-c >") 'indent-tools-hydra/body))
 
 (defun nbl/org-toggle-inline-images () (interactive)
        (org-toggle-inline-images 1))
@@ -859,6 +879,16 @@ Version 2017-11-10"
   (setq crdt-visualize-author-mode t
         crdt-use-tuntox t
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
+
+(use-package copilot
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure t
+  :config
+  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+  ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
+
+  )
 
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)
@@ -906,7 +936,13 @@ Version 2017-11-10"
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
 ;; optionally if you want to use debugger
-(use-package dap-mode)
+(use-package dap-mode
+  :config
+  (require 'dap-firefox)
+  ;; Have to do 'M-x dap-firefox-setup',
+  ;; then dap-firefox-debug-program will have valid path on your system.
+  )
+
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 
@@ -922,8 +958,11 @@ Version 2017-11-10"
 
 (use-package eglot
   :ensure t
-  :bind (("C-c h" . eldoc)
-         ("C-c r" . eglot-rename))
+  :bind (:map eglot-mode-map
+              ("C-c h" . eldoc)
+              ("C-c r" . eglot-rename)
+              ("M-." . xref-find-definitions)
+              ("M-?" . xref-find-references))
   :config
   (setq eglot-connect-timeout 30
         eglot-extend-to-xref t))
@@ -956,6 +995,7 @@ Version 2017-11-10"
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
   (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
+  ;; To have Sly perform the indentation in the preferred style for Common Lisp code
   (setq sly-default-lisp 'sbcl))
 
 
@@ -979,6 +1019,51 @@ Version 2017-11-10"
 
 (use-package sly-named-readtables)
 
+(use-package clhs
+  :config
+  (autoload 'clhs-doc "clhs" "Get doc on ANSI CL" t)
+  (define-key help-map "\C-l" 'clhs-doc)
+  (custom-set-variables
+   '(tags-apropos-additional-actions '(("Common Lisp" clhs-doc clhs-symbols)))))
+
+;; CLHS is installed in this directory
+;;   /home/nabeel/.roswell/lisp/quicklisp/dists/quicklisp/software/
+;; Use C-c C-d h make-instance RET to test if the change was successful.
+;; If it was, then this will open your browser and the URL will begin with "file:///".
+(load "/home/nabeel/.roswell/lisp/quicklisp/clhs-use-local.el" t)
+;; If the default browser used is not the one you wanted, here's how
+;; you might tell Emacs to use Firefox instead:
+
+(setq browse-url-firefox-program "firefox")
+
+;; Or Google Chrome:
+
+;; (setq browse-url-browser-function 'browse-url-generic)
+;; (setq browse-url-generic-program "google-chrome")
+
+(use-package geiser
+  :config
+  (setq geiser-active-implementations '(guile)))
+
+(use-package geiser-guile
+  :config
+  ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
+  )
+
+;; (use-package geiser-racket)
+
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :bind (:map racket-mode-map
+              ("C-c C-p" . racket-cycle-paren-shapes))
+  :config
+  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+  )
+
+(use-package sicp)
+
 (use-package lispy
   :hook ((emacs-lisp-mode . lispy-mode)
          (scheme-mode . lispy-mode)
@@ -996,30 +1081,18 @@ Version 2017-11-10"
   (setq lispy-colon-p nil)
   (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
 
-(use-package clhs
+(use-package prism
+  :hook ((lispy-mode . prism-mode)))
+
+(use-package go-mode
   :config
-  (autoload 'clhs-doc "clhs" "Get doc on ANSI CL" t)
-  (define-key help-map "\C-l" 'clhs-doc)
-  (custom-set-variables
-   '(tags-apropos-additional-actions '(("Common Lisp" clhs-doc clhs-symbols)))))
+  (add-hook 'before-save-hook 'gofmt-before-save))
 
-;; CLHS is installed in this directory
-;;   /home/nabeel/.roswell/lisp/quicklisp/dists/quicklisp/software/
-;; Use C-c C-d h make-instance RET to test if the change was successful.
-;; If it was, then this will open your browser and the URL will begin with "file:///".
-(load "/home/nabeel/.roswell/lisp/quicklisp/clhs-use-local.el" t)
-;; If the default browser used is not the one you wanted, here's how
-;; you might tell Emacs to use Firefox instead:
-
-;; (setq browse-url-firefox-program "firefox")
-
-;; Or Google Chrome:
-
-;; (setq browse-url-browser-function 'browse-url-generic)
-;; (setq browse-url-generic-program "google-chrome")
-
-(load "antlr-mode" t)
-(add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
+(use-package web-mode
+  :config
+  (setq web-mode-content-types-alist
+        '(("jsx" . "\\.js[x]?\\'")
+          ("tsx" . "\\.ts[x]?\\'"))))
 
 (use-package mvn)
 ;; The basic operation is to invoke M-x mvn, which will ask you for a goal.
@@ -1062,33 +1135,33 @@ Version 2017-11-10"
 (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
 ;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
 
-(use-package cperl-mode
+(use-package js2-mode
+  ;; :hook ((js-mode . lsp-deferred))
   :config
-;;; cperl-mode is preferred to perl-mode
-;;; "Brevity is the soul of wit" <foo at acm.org>
-  (defalias 'perl-mode 'cperl-mode)
-  (setq cperl-font-lock t
-        cperl-electric-lbrace-space t
-        cperl-electric-parens t
-        cperl-electric-linefeed t
-        cperl-info-on-command-no-prompt t
-        cperl-clobber-lisp-bindings t
-        cperl-lazy-help-time t))
+  ;; To install it as your major mode for JavaScript editing:
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
-(use-package company-plsense
+  (add-to-list 'auto-mode-alist '("\\.ts[x]\\'" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-mode))
+  ;; Use Emacs 27 and want to write JSX?
+  (add-hook 'js-mode-hook 'js2-minor-mode))
+
+
+  ;; You may also want to hook it in for shell scripts running via node.js:
+  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+
+(use-package js-comint
   :config
-  (add-to-list 'company-backends 'company-plsense)
-  (add-hook 'perl-mode-hook 'company-mode)
-  (add-hook 'cperl-mode-hook 'company-mode))
+  (js-do-use-nvm)
+  ;; Remap Elisp's eval-last-sexp (C-x C-e) to eval JavaScript
+  (define-key js-mode-map [remap eval-last-sexp] #'js-comint-send-last-sexp)
+  (define-key js-mode-map (kbd "C-c C-l") 'js-send-buffer))
 
-(use-package helm-perldoc)
+(defun inferior-js-mode-hook-setup ()
+  (add-hook 'comint-output-filter-functions 'js-comint-process-output))
+(add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
 
-(add-to-list 'load-path "~/.emacs.d/manual/emacs-pde/lisp/")
-(load "pde-load" t)
-
-(use-package ffap-perl-module)
-
-(use-package man-completion)
+(use-package nvm)
 
 (use-package python
   :mode ("[./]flake8\\'" . conf-mode)
@@ -1184,6 +1257,11 @@ Version 2017-11-10"
 
 (use-package python-cell)
 
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+
 (use-package org
   :hook ((org-mode . variable-pitch-mode)
          (org-mode . org-indent-mode))
@@ -1197,7 +1275,7 @@ Version 2017-11-10"
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers t
+	org-hide-emphasis-markers nil
 	org-return-follows-link t
 	org-export-dispatch-use-expert-ui t
 	;; prettify

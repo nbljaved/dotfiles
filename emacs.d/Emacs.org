@@ -372,6 +372,10 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 
 ;; selected text is overwritten by the text we type
 (delete-selection-mode 1)
+
+;; Cycle spaces
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
+
 #+end_src
 *** COMMENT face-remap+
 
@@ -458,6 +462,7 @@ Keeps code indented . (always)
          ("M-7". eyebrowse-switch-to-window-config-7)
          ("M-8". eyebrowse-switch-to-window-config-8)
          ("M-9". eyebrowse-switch-to-window-config-9)
+         ("M-0". eyebrowse-switch-to-window-config)
          )
   :config
   (setq eyebrowse-switch-back-and-forth t)
@@ -492,7 +497,8 @@ Keeps code indented . (always)
 #+begin_src emacs-lisp
 (use-package multiple-cursors
   :bind (("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)))
+         ("C-<" . mc/mark-previous-like-this)
+         ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 
 #+end_src
 
@@ -573,7 +579,7 @@ Keeps code indented . (always)
                                                     helm-eshell-prompts helm-imenu
                                                     helm-imenu-in-all-buffers)
         helm-actions-inherit-frame-settings       t
-        helm-use-frame-when-more-than-two-windows t
+        helm-use-frame-when-more-than-two-windows nil
         helm-use-frame-when-dedicated-window      nil
         helm-show-action-window-other-window      'left
         helm-allow-mouse                          t
@@ -844,7 +850,7 @@ https://github.com/abo-abo/avy
 #+begin_src emacs-lisp
 (use-package avy
   :demand t
-  :bind (("C-;" . avy-goto-char-timer)
+  :bind (("C-j" . avy-goto-char-timer)
          ("C-c SPC" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-1)
          ("M-g e" . avy-goto-word-0)
@@ -870,6 +876,16 @@ If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invo
 (use-package ace-isearch
   :config
   (global-ace-isearch-mode 1))
+#+end_src
+
+*** hungry-delete
+https://github.com/nflath/hungry-delete
+
+#+begin_src emacs-lisp :lexical no
+(use-package hungry-delete
+  :config
+  (setf hungry-delete-join-reluctantly t)
+  (global-hungry-delete-mode))
 #+end_src
 
 ** Keybindings
@@ -1005,14 +1021,16 @@ https://github.com/meow-edit/meow
 
 #+end_src
 
-** COMMENT recent
+** recent
 *** recentf
 
 #+begin_src emacs-lisp 
-  (setq recentf-max-saved-items 5000
-        recentf-max-menu-items 100)
-  (setq-default recentf-save-file "~/.emacs.d/recentf")
-  (recentf-mode 1)
+(setq recentf-max-saved-items 5000
+      recentf-max-menu-items 100)
+(setq-default recentf-save-file "~/.emacs.d/recentf")
+;; save recentf-list every 5 minutes
+(run-at-time nil (* 5 60) 'recentf-save-list)
+(recentf-mode 1)
 #+end_src
 
 *** recentf-ext
@@ -1142,6 +1160,14 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
 #+end_src
 
+*** Dirvish
+https://github.com/alexluigit/dirvish
+#+begin_src emacs-lisp :lexical no
+(use-package dirvish
+  :config
+  (dirvish-override-dired-mode t))
+#+end_src
+
 *** dired-hacks-utils
 
 #+begin_src emacs-lisp :lexical no
@@ -1207,6 +1233,12 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 
 #+begin_src emacs-lisp
   (use-package dired-narrow)
+#+end_src
+
+*** dired-preview
+
+#+begin_src emacs-lisp :lexical no
+(use-package dired-preview)
 #+end_src
 
 *** diredf avfs
@@ -1369,7 +1401,7 @@ Butler for buffers.
     (bufler-mode 1))
 #+end_src
 
-** dogears
+** COMMENT dogears
 https://github.com/alphapapa/dogears.el
 /Never lose your place in Emacs again!/
 
@@ -1495,24 +1527,25 @@ https://www.emacswiki.org/emacs/SmartCompile
 ** eww
 
 #+begin_src emacs-lisp
-  (require 'eww)
-  (setq browse-url-browser-function 'eww-browse-url
-        shr-use-colors nil
-        shr-use-fonts nil)
+(require 'eww)
+(setq browse-url-browser-function 'browse-url-default-browser
+      ;; browse-url-browser-function 'eww-browse-url
+      shr-use-colors nil
+      shr-use-fonts nil)
 
 
-  (when (fboundp 'eww)
-    (defun xah-rename-eww-buffer ()
-      "Rename `eww-mode' buffer so sites open in new page.
-  URL `http://ergoemacs.org/emacs/emacs_eww_web_browser.html'
-  Version 2017-11-10"
-      (let (($title (plist-get eww-data :title)))
-        (when (eq major-mode 'eww-mode )
-          (if $title
-              (rename-buffer (concat "eww " $title ) t)
-            (rename-buffer "eww" t)))))
+(when (fboundp 'eww)
+  (defun xah-rename-eww-buffer ()
+    "Rename `eww-mode' buffer so sites open in new page.
+URL `http://ergoemacs.org/emacs/emacs_eww_web_browser.html'
+Version 2017-11-10"
+    (let (($title (plist-get eww-data :title)))
+      (when (eq major-mode 'eww-mode )
+        (if $title
+            (rename-buffer (concat "eww " $title ) t)
+          (rename-buffer "eww" t)))))
 
-    (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
+  (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
 #+end_src
 
 ** git
@@ -1598,7 +1631,7 @@ https://github.com/DamienCassou/json-navigator/tree/afd902e0b5cde37fad4786515a69
 #+begin_src emacs-lisp :lexical no
 (use-package json-mode)
 
-(use-package json-navigator)
+;;(use-package json-navigator)
 #+end_src
 
 ** restclient
@@ -1640,6 +1673,17 @@ https://ag91.github.io/blog/2022/01/16/moldable-emacs-translate-string-at-point-
 (use-package go-translate
   :config
   (setq gts-translate-list '(("en" "th") ("en" "ko") ("en" "ru"))))
+#+end_src
+
+** indent-tools
+https://gitlab.com/emacs-stuff/indent-tools
+
+#+begin_src emacs-lisp :lexical no
+(use-package indent-tools
+  :config
+  (global-set-key (kbd "C-c >") 'indent-tools-hydra/body))
+
+
 #+end_src
 
 ** Custom functions
@@ -1717,6 +1761,20 @@ Highlights:
   (setq crdt-visualize-author-mode t
         crdt-use-tuntox t
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
+#+end_src
+
+** copilot.el
+
+#+begin_src emacs-lisp
+  (use-package copilot
+    :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+    :ensure t
+    :config
+    (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+    (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+    ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
+  
+    )
 #+end_src
 
 ** Fun
@@ -1987,7 +2045,13 @@ https://github.com/k-talo/volatile-highlights.el
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
 ;; optionally if you want to use debugger
-(use-package dap-mode)
+(use-package dap-mode
+  :config
+  (require 'dap-firefox)
+  ;; Have to do 'M-x dap-firefox-setup',
+  ;; then dap-firefox-debug-program will have valid path on your system.
+  )
+
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 
@@ -2009,8 +2073,11 @@ https://github.com/joaotavora/eglot
 #+begin_src emacs-lisp
 (use-package eglot
   :ensure t
-  :bind (("C-c h" . eldoc)
-         ("C-c r" . eglot-rename))
+  :bind (:map eglot-mode-map
+              ("C-c h" . eldoc)
+              ("C-c r" . eglot-rename)
+              ("M-." . xref-find-definitions)
+              ("M-?" . xref-find-references))
   :config
   (setq eglot-connect-timeout 30
         eglot-extend-to-xref t))
@@ -2076,8 +2143,9 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 (use-package cider)
 #+end_src
 
-** Common Lisp
-*** Basic (Roswell)
+** Lisp
+*** Common Lisp
+**** Basic (Roswell)
 
 #+begin_src emacs-lisp
 (setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
@@ -2086,8 +2154,8 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
 #+end_src
-*** .roswell
-**** init.lisp
+**** .roswell
+***** init.lisp
 
 - Rather than pushing the directory, that we want ASDF to search, into ~asdf:*central-registry*~, we can call the following function
 
@@ -2136,8 +2204,8 @@ or to enter 0 to bail"
              (load-system system)))))))
 #+end_src
 
-*** Sly
-**** Basic
+**** Sly
+***** Basic
 
 #+begin_src emacs-lisp
 (use-package sly
@@ -2160,6 +2228,7 @@ or to enter 0 to bail"
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
   (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
+  ;; To have Sly perform the indentation in the preferred style for Common Lisp code
   (setq sly-default-lisp 'sbcl))
 
 
@@ -2177,7 +2246,7 @@ Turn off string elision
 (setf (cdr (assoc 'slynk:*string-elision-length* slynk:*slynk-pprint-bindings*)) nil)
 #+end_src
 
-**** COMMENT mind-style
+***** COMMENT mind-style
 
 #+begin_src emacs-lisp :lexical no
 (defun nbl-mind-style () (interactive)
@@ -2223,7 +2292,7 @@ Turn off string elision
 ;;       (def!constant            (as defconstant)))))
 #+end_src
 
-**** sly-repl-ansi-color
+***** sly-repl-ansi-color
 
 #+begin_src emacs-lisp 
   (use-package sly-repl-ansi-color
@@ -2231,7 +2300,7 @@ Turn off string elision
     (push 'sly-repl-ansi-color sly-contribs ))
 #+end_src
 
-**** sly-quicklisp
+***** sly-quicklisp
 https://github.com/joaotavora/sly-quicklisp/tree/a46b848a2e6d206542c4cc14869456ba1eac7c9a
 sly-quickload command =C-c C-d C-q= that prompts the user for a package to install.
 
@@ -2239,7 +2308,7 @@ sly-quickload command =C-c C-d C-q= that prompts the user for a package to insta
   (use-package sly-quicklisp)
 #+end_src
 
-**** sly-asdf
+***** sly-asdf
 https://github.com/mmgeorge/sly-asdf
 When using the built-in system load utlity, accessed via =, + load-system= from the repl, ASDF system compilation and load errors will be trapped and recorded as with other sly compilation errors, as opposed to dumping into the debugger like with calling ~asdf:load-system~ directly.
 
@@ -2247,7 +2316,7 @@ When using the built-in system load utlity, accessed via =, + load-system= from 
   (use-package sly-asdf)
 #+end_src
 
-**** sly-macrostep
+***** sly-macrostep
 https://github.com/joaotavora/sly-macrostep
 In /.lisp/ files you can now use =C-c M-e= or =M-x macrostep-expand= to expand a macro.
 
@@ -2255,7 +2324,7 @@ In /.lisp/ files you can now use =C-c M-e= or =M-x macrostep-expand= to expand a
   (use-package sly-macrostep)
 #+end_src
 
-**** COMMENT sly-stepper
+***** COMMENT sly-stepper
 https://github.com/joaotavora/sly-stepper
 
 #+begin_src emacs-lisp 
@@ -2268,14 +2337,14 @@ https://github.com/joaotavora/sly-stepper
              :branch "master"))
 #+end_src
 
-**** sly-named-readtables
+***** sly-named-readtables
 https://github.com/joaotavora/sly-named-readtables
 
 #+begin_src emacs-lisp :lexical no
 (use-package sly-named-readtables)
 #+end_src
 
-**** COMMENT sly-package-inferred
+***** COMMENT sly-package-inferred
 - Warning! :: This system works with SLY version installed from [[https://github.com/svetlyak40wt/sly/tree/patches][here]]. Because it contains patch joaotavora/sly#417 which is not merged yet to upstream.
 
   #+begin_src emacs-lisp :lexical no
@@ -2289,7 +2358,7 @@ https://github.com/joaotavora/sly-named-readtables
       (require 'sly-package-inferred-autoloads))
   #+end_src
 
-*** COMMENT stumpwm-mode
+**** COMMENT stumpwm-mode
 load this file, set stumpwm-shell-program to point to stumpish and
 run =M-x stumpwm-mode= in your stumpwm lisp files.
 Now, you can easily eval code into a running stumpwm using the regular bindings.
@@ -2300,7 +2369,7 @@ Now, you can easily eval code into a running stumpwm using the regular bindings.
     (setq stumpwm-shell-program "/usr/bin/stumpish"))
 #+end_src
 
-*** COMMENT adjust-parens
+**** COMMENT adjust-parens
 https://elpa.gnu.org/packages/adjust-parens.html
 
 #+begin_src emacs-lisp
@@ -2312,7 +2381,7 @@ https://elpa.gnu.org/packages/adjust-parens.html
                 ("M-i" . lisp-dedent-adjust-parens)))
 #+end_src
 
-*** COMMENT highlight-quoted
+**** COMMENT highlight-quoted
 
 #+begin_src emacs-lisp
   (use-package highlight-quoted
@@ -2320,7 +2389,7 @@ https://elpa.gnu.org/packages/adjust-parens.html
            (paredit-mode . highlight-quoted-mode)))
 #+end_src
 
-*** COMMENT paredit
+**** COMMENT paredit
 
 #+begin_src emacs-lisp
 (use-package paredit
@@ -2361,29 +2430,7 @@ p               ;; ("M-[" . paredit-wrap-square)
 
 
 #+end_src
-
-*** lispy
-
-#+begin_src emacs-lisp
-(use-package lispy
-  :hook ((emacs-lisp-mode . lispy-mode)
-         (scheme-mode . lispy-mode)
-         (lisp-mode . lispy-mode)
-         (lisp-interaction-mode . lispy-mode)
-         (slime-repl-mode . lispy-mode)
-         (sly-mrepl-mode . lispy-mode)
-         (racket-mode . lispy-mode)
-         (racket-repl-mode . lispy-mode))
-  :bind (:map lispy-mode-map
-              ("M-." . nil)
-              ("E" . lispy-eval-and-comment))
-  :config
-  ;; no space when pressing :
-  (setq lispy-colon-p nil)
-  (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
-#+end_src
-
-*** COMMENT parinfer
+**** COMMENT parinfer
 https://shaunlebron.github.io/parinfer/#introduction
 
 + We perform the following steps to rearrange close-parens based on indentation.
@@ -2408,7 +2455,7 @@ We will refer to these later as rules #1, #2, #3 and #4.
 
 #+end_src
 
-*** COMMENT paxedit
+**** COMMENT paxedit
 
 #+begin_src emacs-lisp
   (use-package paxedit
@@ -2440,7 +2487,7 @@ We will refer to these later as rules #1, #2, #3 and #4.
             (define-key paxedit-mode-map (kbd "C-#") 'paxedit-symbol-kill)))
 #+end_src
 
-*** clhs
+**** clhs
 
 Access the Common lisp Hyperspec(CLHS)
 
@@ -2464,7 +2511,7 @@ With prefix arg, save the URL in the =kill-ring= instead.
 ;; If the default browser used is not the one you wanted, here's how
 ;; you might tell Emacs to use Firefox instead:
 
-;; (setq browse-url-firefox-program "firefox")
+(setq browse-url-firefox-program "firefox")
 
 ;; Or Google Chrome:
 
@@ -2472,8 +2519,91 @@ With prefix arg, save the URL in the =kill-ring= instead.
 ;; (setq browse-url-generic-program "google-chrome")
 #+end_src
 
-*** literate-lisp
+**** literate-lisp
 https://github.com/jingtaozf/literate-lisp
+
+*** Scheme
+**** geiser
+
+#+begin_src emacs-lisp
+  (use-package geiser
+    :config
+    (setq geiser-active-implementations '(guile)))
+
+  (use-package geiser-guile
+    :config
+    ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
+    )
+
+  ;; (use-package geiser-racket) 
+
+#+end_src
+    
+**** racket
+Install =racket=.
+After installing 'racket', the following programs will also be made available:
+- =raco=
+- =drracket=
+#+CAPTION: If not installed then
+  #+begin_src shell
+  raco pkg install --auto drracket
+  #+end_src
+
+https://racket-mode.com/#racket_002dmode_002dstart_002dfaster
+
+use =M-x racket-mode-start-faster= after installing each new racket version.
+
+Use =C-c C-.= /racket-describe/.
+
+#+begin_src emacs-lisp
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :bind (:map racket-mode-map
+              ("C-c C-p" . racket-cycle-paren-shapes))
+  :config
+  ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
+  ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
+  ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+  )
+#+end_src
+    
+**** sicp-info
+https://github.com/webframp/sicp-info
+Gets the texinfo of SICP into emacs.
+Do =M-x info= and search for 'SICP'
+
+#+begin_src emacs-lisp :lexical no
+(use-package sicp)
+#+end_src
+
+*** lispy
+
+#+begin_src emacs-lisp
+(use-package lispy
+  :hook ((emacs-lisp-mode . lispy-mode)
+         (scheme-mode . lispy-mode)
+         (lisp-mode . lispy-mode)
+         (lisp-interaction-mode . lispy-mode)
+         (slime-repl-mode . lispy-mode)
+         (sly-mrepl-mode . lispy-mode)
+         (racket-mode . lispy-mode)
+         (racket-repl-mode . lispy-mode))
+  :bind (:map lispy-mode-map
+              ("M-." . nil)
+              ("E" . lispy-eval-and-comment))
+  :config
+  ;; no space when pressing :
+  (setq lispy-colon-p nil)
+  (define-key lispy-mode-map (kbd "SPC") #'lispy-space))
+#+end_src
+
+*** prism-mode
+https://github.com/alphapapa/prism.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package prism
+  :hook ((lispy-mode . prism-mode)))
+#+end_src
 
 ** COMMENT Haskell
 *** haskell-mode
@@ -2493,7 +2623,7 @@ https://haskell.github.io/haskell-mode/manual/latest/index.html#Top
 (setq exec-path (append '("/home/nabeel/.cabal/bin") exec-path))
 #+end_src
 
-** Antlr4
+** COMMENT Antlr4
 https://www.antlr.org/index.html
 - Make sure java is installed with
   #+begin_src shell
@@ -2527,10 +2657,40 @@ https://www.antlr.org/index.html
 (add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-v4-mode))
 #+end_src
 
+** Golang
+*** go-mode
+https://github.com/dominikh/go-mode.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package go-mode
+  :config
+  (add-hook 'before-save-hook 'gofmt-before-save))
+#+end_src
+
+*** gopls
+Gopls is the official language server protocol (lsp) implementation provided by the Go team. It is intended to replace the existing third party tools for code formatting (gofmt), automatic imports (goimports), code navigation (godef/guru), type and function descriptions (godoc/godef), error checking, auto completion (gocode), variable and type renaming (rename), and more.
+
+#+begin_src shell
+go install golang.org/x/tools/gopls@latest
+#+end_src
+
+** HTML
+*** Web mode
+https://github.com/fxbois/web-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package web-mode
+  :config
+  (setq web-mode-content-types-alist
+        '(("jsx" . "\\.js[x]?\\'")
+          ("tsx" . "\\.ts[x]?\\'"))))
+#+end_src
+
 ** Java
 - Install =java= (jdk)
 *** Maven
 https://maven.apache.org/guides/getting-started/index.html
+https://spring.io/guides/gs/maven/
 - Install =maven=
 **** mvn-el
 https://github.com/apg/mvn-el
@@ -2590,7 +2750,65 @@ On usage of lsp-java https://xpressrazor.wordpress.com/2020/11/04/java-programmi
 ;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
 
 #+end_src
-** Perl
+
+** Javascript
+*** COMMENT rjsx-mode
+https://github.com/felipeochoa/rjsx-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package rjsx-mode
+  :hook ((rjsx-mode . lsp-deferred)))
+#+end_src
+
+*** js2-mode
+https://github.com/mooz/js2-mode
+#+begin_src emacs-lisp :lexical no
+(use-package js2-mode
+  ;; :hook ((js-mode . lsp-deferred))
+  :config
+  ;; To install it as your major mode for JavaScript editing:
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+
+  (add-to-list 'auto-mode-alist '("\\.ts[x]\\'" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-mode))
+  ;; Use Emacs 27 and want to write JSX?
+  (add-hook 'js-mode-hook 'js2-minor-mode))
+
+
+  ;; You may also want to hook it in for shell scripts running via node.js:
+  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+#+end_src
+
+*** js-comint
+https://github.com/redguardtoo/js-comint
+#+begin_src emacs-lisp :lexical no
+(use-package js-comint
+  :config
+  (js-do-use-nvm)
+  ;; Remap Elisp's eval-last-sexp (C-x C-e) to eval JavaScript
+  (define-key js-mode-map [remap eval-last-sexp] #'js-comint-send-last-sexp)
+  (define-key js-mode-map (kbd "C-c C-l") 'js-send-buffer))
+
+(defun inferior-js-mode-hook-setup ()
+  (add-hook 'comint-output-filter-functions 'js-comint-process-output))
+(add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
+#+end_src
+
+*** nvm.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package nvm)
+#+end_src
+
+*** COMMENT skewer-mode
+https://github.com/skeeto/skewer-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package skewer-mode
+  :hook ((js2-mode . skewer-mode)))
+#+end_src
+
+** COMMENT Perl
 *** cperl-mode
 https://github.com/jrockway/cperl-mode
 Install =perl= in your OS
@@ -2985,38 +3203,17 @@ https://github.com/thisch/python-cell.el/tree/master
 (use-package python-cell)
 #+end_src
 
-** COMMENT Scheme
-*** geiser
+** Shell
+*** shellcheck
+https://github.com/federicotdn/flymake-shellcheck
 
-#+begin_src emacs-lisp
-  (use-package geiser
-    :config
-    (setq geiser-active-implementations '(guile)))
-
-  (use-package geiser-guile
-    :config
-    ;;(setq geiser-guile-binary "/home/nabeel/.guix-profile/bin/guile")
-    )
-
-  ;; (use-package geiser-racket) 
-
+#+begin_src emacs-lisp :lexical no
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
 #+end_src
-    
-*** racket
-https://racket-mode.com/#racket_002dmode_002dstart_002dfaster
 
-use =M-x racket-mode-start-faster= after installing each new racket version.
-
-#+begin_src emacs-lisp
-  (use-package racket-mode
-    :mode ("\\.rkt\\'" . racket-mode)
-    :bind (:map racket-mode-map
-                ("C-c C-p" . racket-cycle-paren-shapes))
-    :config
-    (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
-    (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable))
-#+end_src
-    
 ** COMMENT Jupyter 
 
 *** Prerequisites
@@ -3111,7 +3308,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers t
+	org-hide-emphasis-markers nil
 	org-return-follows-link t
 	org-export-dispatch-use-expert-ui t
 	;; prettify
@@ -3730,15 +3927,6 @@ npm install
 #+end_src
 
 * Learn
-** Running commands on file startup
-
-#+begin_src lisp :eval no
-# Local Variables:
-# mode: org
-# eval: (+ 1 1)
-# End:
-#+end_src
-
 ** best-features-for-text-editing-in-emacs
 https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs/#built-in
 - C-t transpose-chars and its companion M-t transpose word
