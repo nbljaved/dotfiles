@@ -896,6 +896,17 @@ https://github.com/noctuid/general.el#about
     (general-auto-unbind-keys 1))
 #+end_src
 
+*** key-chord
+https://github.com/emacsorphanage/key-chord
+
+#+begin_src emacs-lisp :lexical no
+(use-package key-chord
+  :after avy
+  :config
+  (key-chord-define-global "fj" 'avy-goto-char-2)
+  (key-chord-mode 1))
+#+end_src
+
 ** Movement
 *** avy
 https://github.com/abo-abo/avy 
