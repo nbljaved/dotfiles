@@ -843,41 +843,6 @@ https://github.com/apchamberlain/undo-tree.el
     :config
     (global-undo-tree-mode 1))
 #+end_src
-
-*** avy
-https://github.com/abo-abo/avy 
-
-#+begin_src emacs-lisp
-(use-package avy
-  :demand t
-  :bind (("C-j" . avy-goto-char-timer)
-         ("C-c SPC" . avy-goto-char-2)
-         ("M-g w" . avy-goto-word-1)
-         ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)))
-#+end_src
-
-*** ace-isearch
-https://github.com/tam17aki/ace-isearch
-
-ace-isearch.el provides a minor mode that combines isearch, ace-jump-mode or avy and helm-swoop or swiper.
-
-The "default" behavior (ace-isearch-jump-based-on-one-char t) can be summarized as:
-
-    L = 1 : ace-jump-mode or avy
-    1 < L < 6 : isearch
-    L >= 6 : helm-swoop or swiper
-
-where L is the input string length during isearch. When L is 1, after a few seconds specified by ace-isearch-jump-delay, ace-jump-mode or avy will be invoked. Of course you can customize the above behaviour.
-
-If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invoke ace-jump-mode or avy after ace-isearch-jump-delay. This has the effect of doing regular isearch for L=1 and L=3 to 6, with the ability to switch to 2-character avy or ace-jump-mode (not yet supported) once ace-isearch-jump-delay has passed. Much easier to do than to write about :-)
-
-#+begin_src emacs-lisp :lexical no
-(use-package ace-isearch
-  :config
-  (global-ace-isearch-mode 1))
-#+end_src
-
 *** hungry-delete
 https://github.com/nflath/hungry-delete
 
@@ -932,6 +897,40 @@ https://github.com/noctuid/general.el#about
 #+end_src
 
 ** Movement
+*** avy
+https://github.com/abo-abo/avy 
+
+#+begin_src emacs-lisp
+(use-package avy
+  :demand t
+  :bind (("C-j" . avy-goto-char-timer)
+         ("C-c SPC" . avy-goto-char-2)
+         ("M-g w" . avy-goto-word-1)
+         ("M-g e" . avy-goto-word-0)
+         ("M-g l" . avy-goto-line)))
+#+end_src
+
+*** ace-isearch
+https://github.com/tam17aki/ace-isearch
+
+ace-isearch.el provides a minor mode that combines isearch, ace-jump-mode or avy and helm-swoop or swiper.
+
+The "default" behavior (ace-isearch-jump-based-on-one-char t) can be summarized as:
+
+    L = 1 : ace-jump-mode or avy
+    1 < L < 6 : isearch
+    L >= 6 : helm-swoop or swiper
+
+where L is the input string length during isearch. When L is 1, after a few seconds specified by ace-isearch-jump-delay, ace-jump-mode or avy will be invoked. Of course you can customize the above behaviour.
+
+If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invoke ace-jump-mode or avy after ace-isearch-jump-delay. This has the effect of doing regular isearch for L=1 and L=3 to 6, with the ability to switch to 2-character avy or ace-jump-mode (not yet supported) once ace-isearch-jump-delay has passed. Much easier to do than to write about :-)
+
+#+begin_src emacs-lisp :lexical no
+(use-package ace-isearch
+  :config
+  (global-ace-isearch-mode 1))
+#+end_src
+
 *** COMMENT frog-jump-buffer
 https://github.com/waymondo/frog-jump-buffer
 
@@ -1048,6 +1047,23 @@ https://github.com/rubikitch/recentf-ext
 #+end_src
 
 ** Shells
+*** eat (emulate a terminal)
+https://codeberg.org/akib/emacs-eat
+
+[[https://abode.karthinks.com/share/eat-modes.png][EAT keybindings]]
+
+#+begin_src emacs-lisp :lexical no
+(straight-use-package
+ '(eat :type git
+       :host codeberg
+       :repo "akib/emacs-eat"
+       :files ("*.el" ("term" "term/*.el") "*.texi"
+               "*.ti" ("terminfo/e" "terminfo/e/*")
+               ("terminfo/65" "terminfo/65/*")
+               ("integration" "integration/*")
+               (:exclude ".dir-locals.el" "*-tests.el"))))
+#+end_src
+
 *** term
 
 #+begin_src emacs-lisp
