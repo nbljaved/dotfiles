@@ -1086,7 +1086,7 @@ https://codeberg.org/akib/emacs-eat
 
 #+end_src
 
-*** vterm
+*** COMMENT vterm
 When you enable vterm-copy-mode, the terminal buffer behaves like a normal read-only text buffer: you can search, copy text, etc.
 The default keybinding to toggle vterm-copy-mode is C-c C-t.
 When a region is selected, it is possible to copy the text and leave vterm-copy-mode with the enter key.
@@ -1187,7 +1187,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
 #+end_src
 
-*** Dirvish
+*** COMMENT Dirvish
 https://github.com/alexluigit/dirvish
 #+begin_src emacs-lisp :lexical no
 (use-package dirvish
@@ -1828,15 +1828,15 @@ Highlights:
     (parrot-mode 1))
 #+end_src
 
-*** COMMENT nyan
+*** nyan
 
 #+begin_src emacs-lisp
-  (use-package nyan-mode
-    :config
-    (setq nyan-animate-nyancat t)
-    (setq nyan-wavy-trail nil)
-    (setq nyan-)
-    (nyan-mode 1))
+(use-package nyan-mode
+  :config
+  (setq nyan-animate-nyancat t)
+  (setq nyan-wavy-trail nil)
+  ;; (setq nyan-)
+  (nyan-mode 1))
 #+end_src
 
 *** COMMENT poke-line
@@ -3335,7 +3335,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers nil
+	org-hide-emphasis-markers t
 	org-return-follows-link t
 	org-export-dispatch-use-expert-ui t
 	;; prettify
@@ -3565,6 +3565,7 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 #+end_src
 
 *** ox-pandoc
+https://github.com/kawabata/ox-pandoc
 
 #+begin_src emacs-lisp
   (use-package ox-pandoc)
