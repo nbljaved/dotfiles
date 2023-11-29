@@ -1139,7 +1139,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (defalias 'eshell/v 'eshell-exec-visual)
 #+end_src
 
-*** fish
+*** COMMENT fish
 
 **** fish-mode
 
@@ -2094,12 +2094,11 @@ https://github.com/k-talo/volatile-highlights.el
 
 #+end_src
 
-** eglot
+** COMMENT eglot
 https://github.com/joaotavora/eglot
 
 #+begin_src emacs-lisp
 (use-package eglot
-  :ensure t
   :bind (:map eglot-mode-map
               ("C-c h" . eldoc)
               ("C-c r" . eglot-rename)
