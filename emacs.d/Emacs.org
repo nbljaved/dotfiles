@@ -843,41 +843,6 @@ https://github.com/apchamberlain/undo-tree.el
     :config
     (global-undo-tree-mode 1))
 #+end_src
-
-*** avy
-https://github.com/abo-abo/avy 
-
-#+begin_src emacs-lisp
-(use-package avy
-  :demand t
-  :bind (("C-j" . avy-goto-char-timer)
-         ("C-c SPC" . avy-goto-char-2)
-         ("M-g w" . avy-goto-word-1)
-         ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)))
-#+end_src
-
-*** ace-isearch
-https://github.com/tam17aki/ace-isearch
-
-ace-isearch.el provides a minor mode that combines isearch, ace-jump-mode or avy and helm-swoop or swiper.
-
-The "default" behavior (ace-isearch-jump-based-on-one-char t) can be summarized as:
-
-    L = 1 : ace-jump-mode or avy
-    1 < L < 6 : isearch
-    L >= 6 : helm-swoop or swiper
-
-where L is the input string length during isearch. When L is 1, after a few seconds specified by ace-isearch-jump-delay, ace-jump-mode or avy will be invoked. Of course you can customize the above behaviour.
-
-If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invoke ace-jump-mode or avy after ace-isearch-jump-delay. This has the effect of doing regular isearch for L=1 and L=3 to 6, with the ability to switch to 2-character avy or ace-jump-mode (not yet supported) once ace-isearch-jump-delay has passed. Much easier to do than to write about :-)
-
-#+begin_src emacs-lisp :lexical no
-(use-package ace-isearch
-  :config
-  (global-ace-isearch-mode 1))
-#+end_src
-
 *** hungry-delete
 https://github.com/nflath/hungry-delete
 
@@ -931,7 +896,52 @@ https://github.com/noctuid/general.el#about
     (general-auto-unbind-keys 1))
 #+end_src
 
+*** key-chord
+https://github.com/emacsorphanage/key-chord
+
+#+begin_src emacs-lisp :lexical no
+(use-package key-chord
+  :after avy
+  :config
+  (key-chord-define-global "fj" 'avy-goto-char-2)
+  (key-chord-mode 1))
+#+end_src
+
 ** Movement
+*** avy
+https://github.com/abo-abo/avy 
+
+#+begin_src emacs-lisp
+(use-package avy
+  :demand t
+  :bind (("C-j" . avy-goto-char-timer)
+         ("C-c SPC" . avy-goto-char-2)
+         ("M-g w" . avy-goto-word-1)
+         ("M-g e" . avy-goto-word-0)
+         ("M-g l" . avy-goto-line)))
+#+end_src
+
+*** ace-isearch
+https://github.com/tam17aki/ace-isearch
+
+ace-isearch.el provides a minor mode that combines isearch, ace-jump-mode or avy and helm-swoop or swiper.
+
+The "default" behavior (ace-isearch-jump-based-on-one-char t) can be summarized as:
+
+    L = 1 : ace-jump-mode or avy
+    1 < L < 6 : isearch
+    L >= 6 : helm-swoop or swiper
+
+where L is the input string length during isearch. When L is 1, after a few seconds specified by ace-isearch-jump-delay, ace-jump-mode or avy will be invoked. Of course you can customize the above behaviour.
+
+If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invoke ace-jump-mode or avy after ace-isearch-jump-delay. This has the effect of doing regular isearch for L=1 and L=3 to 6, with the ability to switch to 2-character avy or ace-jump-mode (not yet supported) once ace-isearch-jump-delay has passed. Much easier to do than to write about :-)
+
+#+begin_src emacs-lisp :lexical no
+(use-package ace-isearch
+  :config
+  (global-ace-isearch-mode 1))
+#+end_src
+
 *** COMMENT frog-jump-buffer
 https://github.com/waymondo/frog-jump-buffer
 
@@ -1048,6 +1058,23 @@ https://github.com/rubikitch/recentf-ext
 #+end_src
 
 ** Shells
+*** eat (emulate a terminal)
+https://codeberg.org/akib/emacs-eat
+
+[[https://abode.karthinks.com/share/eat-modes.png][EAT keybindings]]
+
+#+begin_src emacs-lisp :lexical no
+(straight-use-package
+ '(eat :type git
+       :host codeberg
+       :repo "akib/emacs-eat"
+       :files ("*.el" ("term" "term/*.el") "*.texi"
+               "*.ti" ("terminfo/e" "terminfo/e/*")
+               ("terminfo/65" "terminfo/65/*")
+               ("integration" "integration/*")
+               (:exclude ".dir-locals.el" "*-tests.el"))))
+#+end_src
+
 *** term
 
 #+begin_src emacs-lisp
@@ -1059,7 +1086,7 @@ https://github.com/rubikitch/recentf-ext
 
 #+end_src
 
-*** vterm
+*** COMMENT vterm
 When you enable vterm-copy-mode, the terminal buffer behaves like a normal read-only text buffer: you can search, copy text, etc.
 The default keybinding to toggle vterm-copy-mode is C-c C-t.
 When a region is selected, it is possible to copy the text and leave vterm-copy-mode with the enter key.
@@ -1112,7 +1139,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (defalias 'eshell/v 'eshell-exec-visual)
 #+end_src
 
-*** fish
+*** COMMENT fish
 
 **** fish-mode
 
@@ -1160,7 +1187,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
 #+end_src
 
-*** Dirvish
+*** COMMENT Dirvish
 https://github.com/alexluigit/dirvish
 #+begin_src emacs-lisp :lexical no
 (use-package dirvish
@@ -1801,15 +1828,15 @@ Highlights:
     (parrot-mode 1))
 #+end_src
 
-*** COMMENT nyan
+*** nyan
 
 #+begin_src emacs-lisp
-  (use-package nyan-mode
-    :config
-    (setq nyan-animate-nyancat t)
-    (setq nyan-wavy-trail nil)
-    (setq nyan-)
-    (nyan-mode 1))
+(use-package nyan-mode
+  :config
+  (setq nyan-animate-nyancat t)
+  (setq nyan-wavy-trail nil)
+  ;; (setq nyan-)
+  (nyan-mode 1))
 #+end_src
 
 *** COMMENT poke-line
@@ -2067,12 +2094,11 @@ https://github.com/k-talo/volatile-highlights.el
 
 #+end_src
 
-** eglot
+** COMMENT eglot
 https://github.com/joaotavora/eglot
 
 #+begin_src emacs-lisp
 (use-package eglot
-  :ensure t
   :bind (:map eglot-mode-map
               ("C-c h" . eldoc)
               ("C-c r" . eglot-rename)
@@ -3308,7 +3334,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers nil
+	org-hide-emphasis-markers t
 	org-return-follows-link t
 	org-export-dispatch-use-expert-ui t
 	;; prettify
@@ -3538,6 +3564,7 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 #+end_src
 
 *** ox-pandoc
+https://github.com/kawabata/ox-pandoc
 
 #+begin_src emacs-lisp
   (use-package ox-pandoc)
