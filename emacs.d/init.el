@@ -1,5 +1,4 @@
 (setq debug-on-error t)
-(toggle-debug-on-error 1)
 ;; The default is 800 kilobytes.  Measured in bytes.
 (setq gc-cons-threshold (* 50 1000 1000))
 ;; Profile emacs startup
@@ -11,30 +10,75 @@
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
-;; Bootstrap straight.el
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+(defvar elpaca-installer-version 0.6)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 
+;; Install a package via the elpaca macro
+;; See the "recipes" section of the manual for more details.
 
-(setq straight-recipe-repositories '(melpa gnu-elpa-mirror el-get emacsmirror-mirror))
-;; Use straight.el for use-package expressions
-(straight-use-package 'use-package)
-(use-package straight
-  :custom (straight-use-package-by-default t))
-;; Load the helper package for commands like `straight-x-clean-unused-repos'
-;;(require 'straight-x)
+;; (elpaca example-package)
 
-;; do not byte-compile packages downloaded from package.el
+;; Install use-package support
+(elpaca elpaca-use-package
+  ;; Enable :elpaca use-package keyword.
+  (elpaca-use-package-mode)
+  ;; Assume :elpaca t unless otherwise specified.
+  (setq elpaca-use-package-by-default t))
+
+;; Block until current queue processed.
+(elpaca-wait)
+
+;;When installing a package which modifies a form used at the top-level
+;;(e.g. a package which adds a use-package key word),
+;;use `elpaca-wait' to block until that package has been installed/configured.
+;;For example:
+;;(use-package general :demand t)
+;;(elpaca-wait)
+
+;; Expands to: (elpaca evil (use-package evil :demand t))
+(use-package evil :demand t)
+
+;;Turns off elpaca-use-package-mode current declaration
+;;Note this will cause the declaration to be interpreted immediately (not deferred).
+;;Useful for configuring built-in emacs features.
+(use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
+
+;; Don't install anything. Defer execution of BODY
+(elpaca nil (message "deferred"))
 
 ;; Silence compiler warnings as they can be pretty disruptive
 (setq comp-async-report-warnings-errors nil)
@@ -62,8 +106,6 @@
 (setenv "LC_CTYPE" "en_US.UTF-8")
 
 (setq initial-major-mode 'org-mode)
-
-(server-start)
 
 ;; Emacs to fully redraw the display before it processes queued input events. 
 (setq redisplay-dont-pause t)
@@ -111,7 +153,7 @@
   (global-emojify-mode))
 
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
+  :init (doom-modeline-mode 1)
   :config
   (setq doom-modeline-bar-width 5
         ;; small scroll-bar like in the bar 
@@ -150,9 +192,7 @@
         modus-themes-completions '((matches . (extrabold intense))
                                    (selection . (extrabold intense))
                                    (popup . (extrabold intense))))
-
-  (modus-themes-load-themes)
-  (modus-themes-load-vivendi))
+  (modus-themes-load-theme 'modus-vivendi))
 
 (with-eval-after-load 'org
   (setq org-src-block-faces
@@ -198,7 +238,7 @@
 
 ;; insert  "" () etc in pairs
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
-(add-hook 'prog-mode-hook 'linum-mode)
+;;(add-hook 'prog-mode-hook 'linum-mode)
 
 ;;(electric-pair-mode -1)
 
@@ -511,18 +551,6 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (global-undo-tree-mode 1))
 
-(use-package avy
-  :demand t
-  :bind (("C-j" . avy-goto-char-timer)
-         ("C-c SPC" . avy-goto-char-2)
-         ("M-g w" . avy-goto-word-1)
-         ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)))
-
-(use-package ace-isearch
-  :config
-  (global-ace-isearch-mode 1))
-
 (use-package hungry-delete
   :config
   (setf hungry-delete-join-reluctantly t)
@@ -560,6 +588,24 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (general-auto-unbind-keys 1))
 
+(use-package key-chord
+  :after avy
+  :config
+  (key-chord-define-global "fj" 'avy-goto-char-2)
+  (key-chord-mode 1))
+
+(use-package avy
+  :demand t
+  :bind (("C-j" . avy-goto-char-timer)
+         ("C-c SPC" . avy-goto-char-2)
+         ("M-g w" . avy-goto-word-1)
+         ("M-g e" . avy-goto-word-0)
+         ("M-g l" . avy-goto-line)))
+
+(use-package ace-isearch
+  :config
+  (global-ace-isearch-mode 1))
+
 (setq recentf-max-saved-items 5000
       recentf-max-menu-items 100)
 (setq-default recentf-save-file "~/.emacs.d/recentf")
@@ -577,27 +623,6 @@ If a selection is active, pre-fill the prompt with it."
 (define-key term-mode-map (kbd "C-o") 'other-window)
 (define-key term-raw-map (kbd "C-o") 'other-window)
 
-(use-package vterm
-  :bind (("C-<return>" . vterm-other-window)
-	 ("C-o" . 'other-window))
-  :config
-  (setq vterm-shell "/bin/zsh"
-        vterm-kill-buffer-on-exit t
-        vterm-term-environment-variable "eterm-256color"
-        vterm-disable-bold t
-        vterm-timer-delay nil
-        ))
-
-(use-package vterm-toggle
-  :bind (;;("s-<return>" . vterm-toggle-cd)
-         :map vterm-mode-map
-         ("C-o" . other-window)))
-
-;; (use-package multi-vterm
-;;   ::bind (("s-<return>" . multi-vterm)
-;;           :map vterm-mode-map
-;;           ("C-o" . other-window)))
-
 (use-package eshell-syntax-highlighting
   :after eshell-mode
   :config
@@ -611,18 +636,6 @@ If a selection is active, pre-fill the prompt with it."
   (eshell-vterm-mode))
 
 (defalias 'eshell/v 'eshell-exec-visual)
-
-(use-package fish-mode)
-
-(use-package fish-completion
-  :hook ((eshell-mode . fish-completion-mode)
-         (shell-mode . fish-completion-mode))
-  :config
-  ;; To enable fish completion in all Eshell and M-x shell buffers, add this to your Emacs configuration:
-  ;; (when (and (executable-find "fish")
-  ;;            (require 'fish-completion nil t))
-  ;;   (global-fish-completion-mode))
-  )
 
 (use-package eterm-256color
   :hook ((term-mode . eterm-256color-mode)
@@ -638,10 +651,6 @@ If a selection is active, pre-fill the prompt with it."
 
 (define-key dired-mode-map (kbd "R") 'dired-async-do-rename)
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
-
-(use-package dirvish
-  :config
-  (dirvish-override-dired-mode t))
 
 (use-package dired-hacks-utils
   :after dired
@@ -703,21 +712,17 @@ If a selection is active, pre-fill the prompt with it."
   (setq dired-subtree-overlays t))
 
 (use-package pdf-tools
-  ;; :straight nil
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward))
-  :config)
+  :config
+  )
 
-(pdf-tools-install t)
+;;(pdf-tools-install t)
 
 (use-package pdf-view-restore
   :after pdf-tools
   :config
   (add-hook 'pdf-view-mode-hook 'pdf-view-restore-mode))
-
-(use-package telega
-  :config
-  )
 
 (use-package which-key
   :config
@@ -732,20 +737,12 @@ If a selection is active, pre-fill the prompt with it."
   :ensure t
   :bind (("C-c d" . docker)))
 
-(use-package docker-tramp
-  :ensure t)
-
 (use-package docker-compose-mode)
 
 (use-package dockerfile-mode
   :ensure t
   :config
   (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode)))
-
-(use-package tree-sitter)
-(use-package tree-sitter-langs)
-(global-tree-sitter-mode 1)
-(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 (use-package session
   :config
@@ -774,7 +771,7 @@ If a selection is active, pre-fill the prompt with it."
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 ;;
-(define-key compilation-mode-map (kbd "C-o") 'other-window)
+;;(define-key compilation-mode-map (kbd "C-o") 'other-window)
 
 (require 'eww)
 (setq browse-url-browser-function 'browse-url-default-browser
@@ -881,7 +878,7 @@ Version 2017-11-10"
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 
 (use-package copilot
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
   :ensure t
   :config
   (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
@@ -896,6 +893,13 @@ Version 2017-11-10"
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
   (setq nov-unzip-program "/usr/bin/unzip")
   )
+
+(use-package nyan-mode
+  :config
+  (setq nyan-animate-nyancat t)
+  (setq nyan-wavy-trail nil)
+  ;; (setq nyan-)
+  (nyan-mode 1))
 
 (use-package mlscroll
   :config
@@ -957,7 +961,7 @@ Version 2017-11-10"
 ;; 	company-lsp-cache-candidates nil))
 
 (use-package eglot
-  :ensure t
+  :elpaca nil
   :bind (:map eglot-mode-map
               ("C-c h" . eldoc)
               ("C-c r" . eglot-rename)
@@ -976,11 +980,6 @@ Version 2017-11-10"
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
 
 (use-package sly
-  :straight (sly
-             :type git
-             :host github
-             :repo "svetlyak40wt/sly"
-             :branch "patches")
   :hook ((sly-mode . rainbow-delimiters-mode)
          (sly-mrepl-mode . lispy-mode))
   :bind (;; ("C-c C-d C-l" . sly-quickload)
@@ -994,7 +993,7 @@ Version 2017-11-10"
         '((sbcl ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
-  (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
+  ;;(require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
   ;; To have Sly perform the indentation in the preferred style for Common Lisp code
   (setq sly-default-lisp 'sbcl))
 
@@ -1116,32 +1115,13 @@ Version 2017-11-10"
 
 ;; run tests for entire project (bound to \C-c ,a)
 
-(use-package lsp-java
-  :hook ((java-mode . lsp-deferred))
-  :config
-  (setq
-   ;; Don't organise imports on save
-   lsp-java-save-action-organize-imports nil
-   ;; Fetch less results from the Eclipse server
-   lsp-java-completion-max-results 130
-   ;; Download 3rd party sources from Maven repo
-   lsp-java-maven-download-sources t
-   ))
-
-;;; Spring-boot support
-(require 'lsp-java-boot)
-;; to enable the lenses
-(add-hook 'lsp-mode-hook #'lsp-lens-mode)
-(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
-;; lsp-java provides a frontend for Spring Initializr which simplifies the creation of Spring Boot projects directly from Emacs via =lsp-java-spring-initializer=.
-
 (use-package js2-mode
   ;; :hook ((js-mode . lsp-deferred))
   :config
   ;; To install it as your major mode for JavaScript editing:
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
-  (add-to-list 'auto-mode-alist '("\\.ts[x]\\'" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.ts[x]?\\'" . js2-mode))
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js-mode))
   ;; Use Emacs 27 and want to write JSX?
   (add-hook 'js-mode-hook 'js2-minor-mode))
@@ -1222,9 +1202,9 @@ Version 2017-11-10"
    pipenv-projectile-after-switch-function
    #'pipenv-projectile-after-switch-extended))
 
-(use-package pyenv-mode)
-
-(require 'pyenv-mode)
+(use-package pyenv-mode
+  :config
+  (require 'pyenv-mode))
 
 (defun projectile-pyenv-mode-set ()
   "Set pyenv version matching project name."
@@ -1263,28 +1243,29 @@ Version 2017-11-10"
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
 
 (use-package org
+  :elpaca nil
   :hook ((org-mode . variable-pitch-mode)
          (org-mode . org-indent-mode))
   :bind (("C-c l" . org-store-link)
-	 ("C-c a" . org-agenda)
-	 ("C-c c" . org-capture)
-	 :map org-mode-map
-	 ("C-c C-'" . org-babel-demarcate-block)
-	 ("C-<print>" . org-screenshot-take)
-	 ("C-c C-x C-v" . nbl/org-toggle-inline-images))
+         ("C-c a" . org-agenda)
+         ("C-c c" . org-capture)
+         :map org-mode-map
+         ("C-c C-'" . org-babel-demarcate-block)
+         ("C-<print>" . org-screenshot-take)
+         ("C-c C-x C-v" . nbl/org-toggle-inline-images))
   :config
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-fontify-natively t
-	org-hide-emphasis-markers nil
-	org-return-follows-link t
-	org-export-dispatch-use-expert-ui t
-	;; prettify
-	org-use-sub-superscripts "{}"
-	org-edit-src-content-indentation 0
+        org-hide-emphasis-markers t
+        org-return-follows-link t
+        org-export-dispatch-use-expert-ui t
+        ;; prettify
+        org-use-sub-superscripts "{}"
+        org-edit-src-content-indentation 0
         org-use-speed-commands t
         ;; org links
         help-at-pt-display-when-idle t
-	)
+        )
   (help-at-pt-set-timer)
   ;; download images if their link is provided in org link form
   (set org-display-remote-inline-images 'download))
@@ -1301,9 +1282,9 @@ Version 2017-11-10"
     (save-excursion
       (goto-char beg)
       (when (looking-at org-babel-result-regexp)
-	(let ((end (org-babel-result-end))
-	      (ansi-color-context-region nil))
-	  (ansi-color-apply-on-region beg end))))))
+        (let ((end (org-babel-result-end))
+              (ansi-color-context-region nil))
+          (ansi-color-apply-on-region beg end))))))
 
 (with-eval-after-load 'org
   (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
@@ -1444,9 +1425,12 @@ Version 2017-11-10"
 ?
 \\end{tikzpicture}" nil))))
 
-(use-package tex
-  :straight nil
-  :ensure auctex
+(use-package auctex
+  ;;:ensure auctex
+  :elpaca  (auctex :pre-build (("./autogen.sh")
+                               ("./configure" "--without-texmf-dir" "--with-lispdir=.")
+                               ("make")))
+  :mode (("\\.tex\\'" . LaTeX-mode))
   :config
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
@@ -1462,11 +1446,6 @@ Version 2017-11-10"
 
 (use-package ox-pandoc)
 
-(require 'ox-extra)
-
-(ox-extras-activate '(latex-headers-blocks
-                      ignore-headlines))
-
 (use-package company-math
   :after company
   :config
@@ -1481,10 +1460,6 @@ Version 2017-11-10"
   (setq company-org-block-edit-style 'auto))
 
 (use-package unicode-math-input)
-
-(use-package xah-math-input
-  :config
-  (global-xah-math-input-mode 1))
 
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode))
@@ -1601,7 +1576,7 @@ Version 2017-11-10"
 (use-package ox-gfm)
 
 (use-package org-pandoc-import
-  :straight (org-pandoc-import
+  :elpaca (org-pandoc-import
              :host github
              :repo "tecosaur/org-pandoc-import"
              :files ("*.el" "filters" "preprocessors"))
@@ -1613,50 +1588,6 @@ Version 2017-11-10"
   :hook (org-mode . org-sticky-header-mode)
   :config
   (setq org-sticky-header-full-path 'reversed))
-
-(use-package org-noter
-  :after org
-  :config
-  (setq org-noter-always-create-frame nil
-        org-noter-separate-notes-from-heading t
-        org-noter-doc-property-in-notes t
-        org-noter-auto-save-last-location1 t))
-
-(use-package org-pdftools
-  :hook (org-mode . org-pdftools-setup-link))
-
-(use-package org-noter-pdftools
-  :after org-noter
-  :config
-  ;; Add a function to ensure precise note is inserted
-  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-                                                   (not org-noter-insert-note-no-questions)
-                                                 org-noter-insert-note-no-questions))
-           (org-pdftools-use-isearch-link t)
-           (org-pdftools-use-freestyle-annot t))
-       (org-noter-insert-note (org-noter--get-precise-info)))))
-
-  ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-  (defun org-noter-set-start-location (&optional arg)
-    "When opening a session with this document, go to the current location.
-With a prefix ARG, remove start location."
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((inhibit-read-only t)
-           (ast (org-noter--parse-root))
-           (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-       (with-current-buffer (org-noter--session-notes-buffer session)
-         (org-with-wide-buffer
-          (goto-char (org-element-property :begin ast))
-          (if arg
-              (org-entry-delete nil org-noter-property-note-location)
-            (org-entry-put nil org-noter-property-note-location
-                           (org-noter--pretty-print-location location))))))))
-  (with-eval-after-load 'pdf-annot
-    (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 
 (use-package org-web-tools)
 

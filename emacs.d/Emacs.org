@@ -1,14 +1,13 @@
 #+PROPERTY: header-args:emacs-lisp :results silent :tangle ./init.el
 #+startup: contents
 #+auto_tangle: t
- 
+
 * Startup
 ** Startup Performance
 Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time.
 
 #+begin_src emacs-lisp
 (setq debug-on-error t)
-(toggle-debug-on-error 1)
 ;; The default is 800 kilobytes.  Measured in bytes.
 (setq gc-cons-threshold (* 50 1000 1000))
 ;; Profile emacs startup
@@ -25,56 +24,109 @@ Make startup faster by reducing the frequency of garbage collection and then use
 Install =emacs-use-package= from Guix
 
 #+begin_src emacs-lisp :tangle ~/.emacs.d/early-init.el
-;; Initialize package sources
-(require 'package)
-(setq package-archives '(("org" . "https://orgmode.org/elpa/")
-                         ("melpa" . "https://melpa.org/packages/")
-                         
-                         ;;("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ;; org-contrib
-                         ("gnu" . "https://elpa.gnu.org/packages/")
-                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-;; Guix
-;; (add-to-list 'load-path "~/.guix-profile/share/emacs/site-lisp/")
-;; (guix-emacs-autoload-packages)
+  ;; ;; Initialize package sources
+  ;; (require 'package)
+  ;; (setq package-archives '(("org" . "https://orgmode.org/elpa/")
+  ;;                          ("melpa" . "https://melpa.org/packages/")
 
-(add-to-list 'load-path "~/.emacs.d/manual/")
-(add-to-list 'load-path "~/.emacs.d/straight/build/")
-;; Initializes the package infrastructure
-(package-initialize)
-;; to prevent package.el loading packages prior to their init-file loading.
-;; (setq package-enable-at-startup t)
+  ;;                          ;;("melpa-stable" . "https://stable.melpa.org/packages/")
+  ;;                          ;; org-contrib
+  ;;                          ("gnu" . "https://elpa.gnu.org/packages/")
+  ;;                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+  ;; ;; Guix
+  ;; ;; (add-to-list 'load-path "~/.guix-profile/share/emacs/site-lisp/")
+  ;; ;; (guix-emacs-autoload-packages)
+
+  ;; (add-to-list 'load-path "~/.emacs.d/manual/")
+  ;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")
+  ;; ;; Initializes the package infrastructure
+  ;; ;; (package-initialize)
+  ;; ;; to prevent package.el loading packages prior to their init-file loading.
+  (setq package-enable-at-startup nil)
+  ;; ;; (setq package-enable-at-startup t)
 #+end_src
 
-** straight.el
+** elpaca
+To install Elpaca, add the following elisp to your init.el.
+It must come before any calls to other Elpaca functions/macros.
+This will clone Elpaca into your user-emacs-directory under the elpaca
+subdirectory.
+It then builds and activates Elpaca.
 
 #+begin_src emacs-lisp
-;; Bootstrap straight.el
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-
-(setq straight-recipe-repositories '(melpa gnu-elpa-mirror el-get emacsmirror-mirror))
-;; Use straight.el for use-package expressions
-(straight-use-package 'use-package)
-(use-package straight
-  :custom (straight-use-package-by-default t))
-;; Load the helper package for commands like `straight-x-clean-unused-repos'
-;;(require 'straight-x)
-
-;; do not byte-compile packages downloaded from package.el
+  (defvar elpaca-installer-version 0.6)
+  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                                :ref nil
+                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                                :build (:not elpaca--activate-package)))
+  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+         (build (expand-file-name "elpaca/" elpaca-builds-directory))
+         (order (cdr elpaca-order))
+         (default-directory repo))
+    (add-to-list 'load-path (if (file-exists-p build) build repo))
+    (unless (file-exists-p repo)
+      (make-directory repo t)
+      (when (< emacs-major-version 28) (require 'subr-x))
+      (condition-case-unless-debug err
+          (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                   ((zerop (call-process "git" nil buffer t "clone"
+                                         (plist-get order :repo) repo)))
+                   ((zerop (call-process "git" nil buffer t "checkout"
+                                         (or (plist-get order :ref) "--"))))
+                   (emacs (concat invocation-directory invocation-name))
+                   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                         "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                   ((require 'elpaca))
+                   ((elpaca-generate-autoloads "elpaca" repo)))
+              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+            (error "%s" (with-current-buffer buffer (buffer-string))))
+        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+    (unless (require 'elpaca-autoloads nil t)
+      (require 'elpaca)
+      (elpaca-generate-autoloads "elpaca" repo)
+      (load "./elpaca-autoloads")))
+  (add-hook 'after-init-hook #'elpaca-process-queues)
+  (elpaca `(,@elpaca-order))
 #+end_src
-   
+
+#+begin_src emacs-lisp
+  ;; Install a package via the elpaca macro
+  ;; See the "recipes" section of the manual for more details.
+
+  ;; (elpaca example-package)
+
+  ;; Install use-package support
+  (elpaca elpaca-use-package
+    ;; Enable :elpaca use-package keyword.
+    (elpaca-use-package-mode)
+    ;; Assume :elpaca t unless otherwise specified.
+    (setq elpaca-use-package-by-default t))
+
+  ;; Block until current queue processed.
+  (elpaca-wait)
+
+  ;;When installing a package which modifies a form used at the top-level
+  ;;(e.g. a package which adds a use-package key word),
+  ;;use `elpaca-wait' to block until that package has been installed/configured.
+  ;;For example:
+  ;;(use-package general :demand t)
+  ;;(elpaca-wait)
+
+  ;; Expands to: (elpaca evil (use-package evil :demand t))
+  (use-package evil :demand t)
+
+  ;;Turns off elpaca-use-package-mode current declaration
+  ;;Note this will cause the declaration to be interpreted immediately (not deferred).
+  ;;Useful for configuring built-in emacs features.
+  (use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
+
+  ;; Don't install anything. Defer execution of BODY
+  (elpaca nil (message "deferred"))
+#+end_src
+
 ** COMMENT use-package
 
 #+begin_src emacs-lisp
@@ -147,7 +199,7 @@ Install =emacs-use-package= from Guix
   (setq initial-major-mode 'org-mode)
 #+end_src
    
-** Server mode
+** COMMENT Server mode
 
 #+begin_src emacs-lisp
   (server-start)
@@ -235,10 +287,10 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 ** Modeline
 
 [[file:~/.emacs.d/straight/repos/doom-modeline/doom-modeline.el::(doom-modeline-def-modeline 'pdf)][custom modeline]]
-
+For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 #+begin_src emacs-lisp
   (use-package doom-modeline
-    :hook (after-init . doom-modeline-mode)
+    :init (doom-modeline-mode 1)
     :config
     (setq doom-modeline-bar-width 5
           ;; small scroll-bar like in the bar 
@@ -264,55 +316,53 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 *** modus-theme
 
 #+begin_src emacs-lisp
-(use-package modus-themes
-  :demand t
-  :bind (("<f12>" . modus-themes-toggle))
-  :config
-  (setq modus-themes-bold-constructs t
-        modus-themes-slanted-constructs t
-        modus-themes-syntax '(alt-syntax)
-        modus-themes-hl-line '(accented intense)
-        modus-themes-intense-hl-line t
-        modus-themes-links '(faint)
-        modus-themes-paren-match '(bold intense)
-        modus-themes-org-blocks 'gray-background
-        modus-themes-region '(accented)
-        modus-themes-variable-pitch-heading nil
-        modus-themes-variable-pitch-ui nil
-        modus-themes-mode-line nil
-        modus-themes-completions '((matches . (extrabold intense))
-                                   (selection . (extrabold intense))
-                                   (popup . (extrabold intense))))
+  (use-package modus-themes
+    :demand t
+    :bind (("<f12>" . modus-themes-toggle))
+    :config
+    (setq modus-themes-bold-constructs t
+          modus-themes-slanted-constructs t
+          modus-themes-syntax '(alt-syntax)
+          modus-themes-hl-line '(accented intense)
+          modus-themes-intense-hl-line t
+          modus-themes-links '(faint)
+          modus-themes-paren-match '(bold intense)
+          modus-themes-org-blocks 'gray-background
+          modus-themes-region '(accented)
+          modus-themes-variable-pitch-heading nil
+          modus-themes-variable-pitch-ui nil
+          modus-themes-mode-line nil
+          modus-themes-completions '((matches . (extrabold intense))
+                                     (selection . (extrabold intense))
+                                     (popup . (extrabold intense))))
+    (modus-themes-load-theme 'modus-vivendi))
 
-  (modus-themes-load-themes)
-  (modus-themes-load-vivendi))
-
-(with-eval-after-load 'org
-  (setq org-src-block-faces
-        '(("emacs-lisp" modus-themes-nuanced-magenta)
-          ("elisp" modus-themes-nuanced-magenta)
-          ("clojure" modus-themes-nuanced-magenta)
-          ("clojurescript" modus-themes-nuanced-magenta)
-          ;; lisp
-          ("lisp" modus-themes-nuanced-magenta)
-          ("c" modus-themes-nuanced-blue)
-          ("c++" modus-themes-nuanced-blue)
-          ("sh" modus-themes-nuanced-green)
-          ("shell" modus-themes-nuanced-green)
-          ("html" modus-themes-nuanced-yellow)
-          ("xml" modus-themes-nuanced-yellow)
-          ("css" modus-themes-nuanced-red)
-          ("scss" modus-themes-nuanced-red)
-          ("python" modus-themes-nuanced-green)
-          ("ipython" modus-themes-nuanced-magenta)
-          ("r" modus-themes-nuanced-cyan)
-          ;; julia
-          ("julia" modus-themes-nuanced-magenta)
-          ("jupyter-julia" modus-themes-nuanced-magenta)
-          ("yaml" modus-themes-nuanced-cyan)
-          ("conf" modus-themes-nuanced-cyan)
-          ;; ("docker" modus-themes-nuanced-cyan)
-          )))
+  (with-eval-after-load 'org
+    (setq org-src-block-faces
+          '(("emacs-lisp" modus-themes-nuanced-magenta)
+            ("elisp" modus-themes-nuanced-magenta)
+            ("clojure" modus-themes-nuanced-magenta)
+            ("clojurescript" modus-themes-nuanced-magenta)
+            ;; lisp
+            ("lisp" modus-themes-nuanced-magenta)
+            ("c" modus-themes-nuanced-blue)
+            ("c++" modus-themes-nuanced-blue)
+            ("sh" modus-themes-nuanced-green)
+            ("shell" modus-themes-nuanced-green)
+            ("html" modus-themes-nuanced-yellow)
+            ("xml" modus-themes-nuanced-yellow)
+            ("css" modus-themes-nuanced-red)
+            ("scss" modus-themes-nuanced-red)
+            ("python" modus-themes-nuanced-green)
+            ("ipython" modus-themes-nuanced-magenta)
+            ("r" modus-themes-nuanced-cyan)
+            ;; julia
+            ("julia" modus-themes-nuanced-magenta)
+            ("jupyter-julia" modus-themes-nuanced-magenta)
+            ("yaml" modus-themes-nuanced-cyan)
+            ("conf" modus-themes-nuanced-cyan)
+            ;; ("docker" modus-themes-nuanced-cyan)
+            )))
 #+end_src
 
 *** COMMENT doom-themes
@@ -363,7 +413,7 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 
 ;; insert  "" () etc in pairs
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
-(add-hook 'prog-mode-hook 'linum-mode)
+;;(add-hook 'prog-mode-hook 'linum-mode)
 
 ;;(electric-pair-mode -1)
 
@@ -1058,7 +1108,8 @@ https://github.com/rubikitch/recentf-ext
 #+end_src
 
 ** Shells
-*** eat (emulate a terminal)
+*** TODO COMMENT eat (emulate a terminal)
+
 https://codeberg.org/akib/emacs-eat
 
 [[https://abode.karthinks.com/share/eat-modes.png][EAT keybindings]]
@@ -1303,12 +1354,12 @@ From =Guix=.
 
 #+begin_src emacs-lisp
   (use-package pdf-tools
-    ;; :straight nil
     :bind (:map pdf-view-mode-map
                 ("C-s" . isearch-forward))
-    :config)
+    :config
+    )
 
-  (pdf-tools-install t)
+  ;;(pdf-tools-install t)
 #+end_src
 
 ** pdf-view-restore
@@ -1320,7 +1371,7 @@ From =Guix=.
     (add-hook 'pdf-view-mode-hook 'pdf-view-restore-mode))
 #+end_src
 
-** telega
+** COMMENT telega
 From AUR, install =libtgvoip=, =libtd=
    
 #+begin_src emacs-lisp
@@ -1363,7 +1414,7 @@ https://github.com/Silex/docker.el
     :bind (("C-c d" . docker)))
 #+end_src
 
-*** docker-tramp
+*** COMMENT docker-tramp
 https://github.com/emacs-pe/docker-tramp.el
 
 #+begin_src emacs-lisp
@@ -1409,7 +1460,7 @@ See https://github.com/alezost/guix.el
   (remove-hook 'poly-org-mode (lambda () (olivetti-mode -1))))
 #+end_src
 
-** tree-sitter
+** COMMENT tree-sitter
 
 #+begin_src emacs-lisp
   (use-package tree-sitter)
@@ -1542,7 +1593,7 @@ https://www.emacswiki.org/emacs/SmartCompile
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 ;;
-(define-key compilation-mode-map (kbd "C-o") 'other-window)
+;;(define-key compilation-mode-map (kbd "C-o") 'other-window)
 #+end_src
 
 ** COMMENT tab-line
@@ -1794,7 +1845,7 @@ Highlights:
 
 #+begin_src emacs-lisp
   (use-package copilot
-    :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+    :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
     :ensure t
     :config
     (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
@@ -2034,7 +2085,7 @@ https://github.com/k-talo/volatile-highlights.el
 
 #+begin_src emacs-lisp :lexical no
 (use-package undo-hl
-  :straight (undo-hl
+  :elpaca (undo-hl
              :type git
              :host github
              :repo "casouri/undo-hl"
@@ -2094,11 +2145,12 @@ https://github.com/k-talo/volatile-highlights.el
 
 #+end_src
 
-** COMMENT eglot
+** eglot
 https://github.com/joaotavora/eglot
 
 #+begin_src emacs-lisp
 (use-package eglot
+  :elpaca nil
   :bind (:map eglot-mode-map
               ("C-c h" . eldoc)
               ("C-c r" . eglot-rename)
@@ -2235,11 +2287,6 @@ or to enter 0 to bail"
 
 #+begin_src emacs-lisp
 (use-package sly
-  :straight (sly
-             :type git
-             :host github
-             :repo "svetlyak40wt/sly"
-             :branch "patches")
   :hook ((sly-mode . rainbow-delimiters-mode)
          (sly-mrepl-mode . lispy-mode))
   :bind (;; ("C-c C-d C-l" . sly-quickload)
@@ -2253,7 +2300,7 @@ or to enter 0 to bail"
         '((sbcl ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
-  (require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
+  ;;(require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
   ;; To have Sly perform the indentation in the preferred style for Common Lisp code
   (setq sly-default-lisp 'sbcl))
 
@@ -2356,7 +2403,7 @@ https://github.com/joaotavora/sly-stepper
 #+begin_src emacs-lisp 
 (use-package sly-stepper
   :after sly
-  :straight (sly-stepper
+  :elpaca (sly-stepper
              :type git
              :host github
              :repo "joaotavora/sly-stepper"
@@ -2375,7 +2422,7 @@ https://github.com/joaotavora/sly-named-readtables
 
   #+begin_src emacs-lisp :lexical no
     (use-package sly-package-inferred
-      :straight (sly-package-inferred
+      :elpaca (sly-package-inferred
                  :type git
                  :host github
                  :repo "40ants/sly-package-inferred"
@@ -2749,7 +2796,7 @@ https://github.com/rranelli/maven-test-mode
 
 #+end_src
 
-*** lsp-java
+*** COMMENT lsp-java
 https://github.com/emacs-lsp/lsp-java
 https://emacs-lsp.github.io/lsp-java/
 
@@ -3167,18 +3214,18 @@ M-x pyenv-mode-unset
 
 
 #+begin_src emacs-lisp :lexical no
-(use-package pyenv-mode)
+  (use-package pyenv-mode
+    :config
+    (require 'pyenv-mode))
 
-(require 'pyenv-mode)
+  (defun projectile-pyenv-mode-set ()
+    "Set pyenv version matching project name."
+    (let ((project (projectile-project-name)))
+      (if (member project (pyenv-mode-versions))
+          (pyenv-mode-set project)
+        (pyenv-mode-unset))))
 
-(defun projectile-pyenv-mode-set ()
-  "Set pyenv version matching project name."
-  (let ((project (projectile-project-name)))
-    (if (member project (pyenv-mode-versions))
-        (pyenv-mode-set project)
-      (pyenv-mode-unset))))
-
-(add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
+  (add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
 #+end_src
 
 **** live-py-mode
@@ -3246,22 +3293,22 @@ https://github.com/federicotdn/flymake-shellcheck
 
 #+begin_src emacs-lisp
   (use-package zmq
-    ;; :straight nil
+    ;; :elpaca nil
     :ensure t
     )
 
   (use-package websocket
-    ;; :straight nil
+    ;; :elpaca nil
     :ensure t
     )
 
   (use-package web-server
-    ;; :straight nil
+    ;; :elpaca nil
     :ensure t
     )
 n
   (use-package simple-httpd
-    ;; :straight nil
+    ;; :elpaca nil
     :ensure t
     )
 #+end_src
@@ -3270,8 +3317,8 @@ n
     
 #+begin_src emacs-lisp
   (use-package jupyter
-    ;; :straight (:no-native-compile t)
-    ;; :straight nil
+    ;; :elpaca (:no-native-compile t)
+    ;; :elpaca nil
     :ensure t
     :bind (:map org-mode-map
                 ("C-j" . jupyter-org-hydra/body))
@@ -3321,52 +3368,53 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 ** Basic
 
 #+begin_src emacs-lisp
-(use-package org
-  :hook ((org-mode . variable-pitch-mode)
-         (org-mode . org-indent-mode))
-  :bind (("C-c l" . org-store-link)
-	 ("C-c a" . org-agenda)
-	 ("C-c c" . org-capture)
-	 :map org-mode-map
-	 ("C-c C-'" . org-babel-demarcate-block)
-	 ("C-<print>" . org-screenshot-take)
-	 ("C-c C-x C-v" . nbl/org-toggle-inline-images))
-  :config
-  (setq org-confirm-babel-evaluate nil)
-  (setq org-src-fontify-natively t
-	org-hide-emphasis-markers t
-	org-return-follows-link t
-	org-export-dispatch-use-expert-ui t
-	;; prettify
-	org-use-sub-superscripts "{}"
-	org-edit-src-content-indentation 0
-        org-use-speed-commands t
-        ;; org links
-        help-at-pt-display-when-idle t
-	)
-  (help-at-pt-set-timer)
-  ;; download images if their link is provided in org link form
-  (set org-display-remote-inline-images 'download))
+  (use-package org
+    :elpaca nil
+    :hook ((org-mode . variable-pitch-mode)
+           (org-mode . org-indent-mode))
+    :bind (("C-c l" . org-store-link)
+           ("C-c a" . org-agenda)
+           ("C-c c" . org-capture)
+           :map org-mode-map
+           ("C-c C-'" . org-babel-demarcate-block)
+           ("C-<print>" . org-screenshot-take)
+           ("C-c C-x C-v" . nbl/org-toggle-inline-images))
+    :config
+    (setq org-confirm-babel-evaluate nil)
+    (setq org-src-fontify-natively t
+          org-hide-emphasis-markers t
+          org-return-follows-link t
+          org-export-dispatch-use-expert-ui t
+          ;; prettify
+          org-use-sub-superscripts "{}"
+          org-edit-src-content-indentation 0
+          org-use-speed-commands t
+          ;; org links
+          help-at-pt-display-when-idle t
+          )
+    (help-at-pt-set-timer)
+    ;; download images if their link is provided in org link form
+    (set org-display-remote-inline-images 'download))
 
-;; C-c C-c also refreshes org-inline-image
+  ;; C-c C-c also refreshes org-inline-image
 
-(defun shk-fix-inline-images ()
-  (when org-inline-image-overlays
-    (org-redisplay-inline-images)))
+  (defun shk-fix-inline-images ()
+    (when org-inline-image-overlays
+      (org-redisplay-inline-images)))
 
-;; https://emacs.stackexchange.com/questions/44664/apply-ansi-color-escape-sequences-for-org-babel-results
-(defun ek/babel-ansi ()
-  (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
-    (save-excursion
-      (goto-char beg)
-      (when (looking-at org-babel-result-regexp)
-	(let ((end (org-babel-result-end))
-	      (ansi-color-context-region nil))
-	  (ansi-color-apply-on-region beg end))))))
+  ;; https://emacs.stackexchange.com/questions/44664/apply-ansi-color-escape-sequences-for-org-babel-results
+  (defun ek/babel-ansi ()
+    (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
+      (save-excursion
+        (goto-char beg)
+        (when (looking-at org-babel-result-regexp)
+          (let ((end (org-babel-result-end))
+                (ansi-color-context-region nil))
+            (ansi-color-apply-on-region beg end))))))
 
-(with-eval-after-load 'org
-  (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
-  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
+  (with-eval-after-load 'org
+    (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
+    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -3542,11 +3590,14 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 *** Auctex
 
 #+begin_src emacs-lisp
-  (use-package tex
-    :straight nil
-    :ensure auctex
-    :config
-    (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+(use-package auctex
+  ;;:ensure auctex
+  :elpaca  (auctex :pre-build (("./autogen.sh")
+                               ("./configure" "--without-texmf-dir" "--with-lispdir=.")
+                               ("make")))
+  :mode (("\\.tex\\'" . LaTeX-mode))
+  :config
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 #+end_src
 
 *** org-ref
@@ -3570,7 +3621,7 @@ https://github.com/kawabata/ox-pandoc
   (use-package ox-pandoc)
 #+end_src
 
-*** ox-extra
+*** COMMENT ox-extra
 
 #+begin_src emacs-lisp
   (require 'ox-extra)
@@ -3605,15 +3656,6 @@ Activate with =C-u C-\ unicode-math RET=. Then TeX commands (e.g., \alpha) are r
  
 #+begin_src emacs-lisp
   (use-package unicode-math-input)
-#+end_src
-
-*** xah-math-input
-Type inf, then press Shift+Space, then it becomes ∞.
-
-#+begin_src emacs-lisp
-  (use-package xah-math-input
-    :config
-    (global-xah-math-input-mode 1))
 #+end_src
 
 *** org-fragtog
@@ -3802,7 +3844,7 @@ Github Flavored Markdown exporter for Org Mode
 
 #+begin_src emacs-lisp
   (use-package org-transclusion
-    :straight (org-transclusion
+    :elpaca (org-transclusion
                :type git
                :host github
                :repo "nobiot/org-transclusion"
@@ -3816,7 +3858,7 @@ https://github.com/tecosaur/org-pandoc-import
 
 #+begin_src emacs-lisp
   (use-package org-pandoc-import
-    :straight (org-pandoc-import
+    :elpaca (org-pandoc-import
                :host github
                :repo "tecosaur/org-pandoc-import"
                :files ("*.el" "filters" "preprocessors"))
@@ -3836,7 +3878,7 @@ https://github.com/alphapapa/org-sticky-header
     (setq org-sticky-header-full-path 'reversed))
 #+end_src
 
-*** org-noter
+*** COMMENT org-noter
 https://github.com/weirdNox/org-noter
 
 #+begin_src emacs-lisp
@@ -3849,7 +3891,7 @@ https://github.com/weirdNox/org-noter
           org-noter-auto-save-last-location1 t))
 #+end_src
 
-*** org-pdftools & org-noter-pdftools
+*** COMMENT org-pdftools & org-noter-pdftools
 a custom org link type for pdf-tools
 https://github.com/fuxialexander/org-pdftools
 
