@@ -551,6 +551,11 @@ Keeps code indented . (always)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 
 #+end_src
+** treemacs
+
+#+begin_src emacs-lisp
+(use-package treemacs)
+#+end_src
 
 * Completion
 ** company
