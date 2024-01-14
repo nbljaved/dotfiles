@@ -1152,7 +1152,7 @@ When a region is selected, it is possible to copy the text and leave vterm-copy-
   :bind (("C-<return>" . vterm-other-window)
 	 ("C-o" . 'other-window))
   :config
-  (setq vterm-shell "/bin/zsh"
+  (setq ;;vterm-shell "/bin/zsh"
         vterm-kill-buffer-on-exit t
         vterm-term-environment-variable "eterm-256color"
         vterm-disable-bold t
@@ -1635,13 +1635,12 @@ Version 2017-11-10"
 **** magit
 
 #+begin_src emacs-lisp 
-  (use-package magit
-    :ensure t
-    :bind (:map magit-mode-map
-                ("M-1" . nil)
-                ("M-2" . nil)
-                ("M-3" . nil)
-                ("M-4" . nil)))
+(use-package magit
+  :bind (:map magit-mode-map
+              ("M-1" . nil)
+              ("M-2" . nil)
+              ("M-3" . nil)
+              ("M-4" . nil)))
 #+end_src
 
 **** magit-todos
@@ -1778,7 +1777,7 @@ https://gitlab.com/emacs-stuff/indent-tools
 #+end_src
 
 ** ssh
-**** Basic
+**** COMMENT Basic
 
 #+begin_src emacs-lisp :lexical no
 (add-to-list 'tramp-connection-properties
@@ -1858,6 +1857,11 @@ Highlights:
     ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
   
     )
+#+end_src
+
+** pfuture
+#+begin_src emacs-lisp
+(use-package pfuture)
 #+end_src
 
 ** Fun
@@ -2174,7 +2178,7 @@ https://github.com/joaotavora/eglot
     :hook ((c-mode c++-mode objc-mode cuda-mode) .
            (lambda () (require 'ccls) (lsp-deferred))))
 #+end_src
-*** ninja
+*** COMMENT ninja
 #+begin_src emacs-lisp
 (use-package ninja-mode)
 #+end_src
@@ -2228,10 +2232,11 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 
 ** Lisp
 *** Common Lisp
-**** Basic (Roswell)
+**** Basic
 
 #+begin_src emacs-lisp
-(setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
+;; (setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
+(setq inferior-lisp-program "sbcl --dynamic-space-size 32000 --control-stack-size 4096")
 (setq max-lisp-eval-depth 8000)
 
 ;; .mlisp
@@ -2244,6 +2249,10 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 
   - If only one asd file is present, it loads it. If none are present, it issues an error. And if more than one is present (for whatever reason), it offers a choice of which to choose or 0 to bail.
   - Lives in =~/.roswell/init.lisp=
+
+    #+begin_src emacs-lisp
+      (make-directory "~/.roswell" :parents)
+    #+end_src
     
 #+begin_src lisp :tangle ~/.roswell/init.lisp
 ;; Written by https://www.reddit.com/user/mirkov19/
@@ -2302,7 +2311,8 @@ or to enter 0 to bail"
         sly-net-coding-system 'utf-8-unix
         sly-common-lisp-style-default 'sbcl)
   (setq sly-lisp-implementations
-        '((sbcl ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
+        '((sbcl ;; ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096")
+           ("sbcl" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
   ;;(require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
@@ -2604,16 +2614,20 @@ https://github.com/jingtaozf/literate-lisp
 **** geiser
 
 #+begin_src emacs-lisp
-  (use-package geiser
-    :config
-    (setq geiser-active-implementations '(guile)))
+(use-package geiser
+  :config
+  (setq geiser-active-implementations '(guile)))
 
-  (use-package geiser-guile
-    :config
-    ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
-    )
+(use-package geiser-guile
+  :config
+  ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
+  )
 
-  ;; (use-package geiser-racket) 
+(with-eval-after-load 'geiser-guile
+  (add-to-list 'geiser-guile-load-path "/run/current-system/profile/share/guile/site/3.0"))
+
+(use-package guix)
+;; (use-package geiser-racket) 
 
 #+end_src
     
@@ -3233,7 +3247,7 @@ M-x pyenv-mode-unset
   (add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
 #+end_src
 
-**** live-py-mode
+**** COMMENT live-py-mode
 https://github.com/donkirkby/live-py-plugin/tree/master
 https://donkirkby.github.io/live-py-plugin/starting_emacs.html
 
@@ -3700,12 +3714,15 @@ https://www.orgroam.com/manual.html#Installation
 Install =sqlite3= on the system
 install
 #+begin_src emacs-lisp
+(make-directory "~/org/roam" :parents)
+#+end_src
+#+begin_src emacs-lisp
   (use-package org-roam
     :demand t
     :init
     (setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory (file-truename "/home/nabeel/org/roam/"))
+    (org-roam-directory (file-truename "~/org/roam/"))
     :config
     (org-roam-db-autosync-mode 1))
 #+end_src
@@ -3973,7 +3990,7 @@ https://github.com/takaxp/org-tree-slide
     (org-tree-slide-simple-profile))
 #+end_src
 
-*** org-reveal
+*** COMMENT org-reveal
 https://github.com/yjwen/org-reveal/
 Install:
 - =nodejs=
