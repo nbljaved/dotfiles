@@ -20,6 +20,13 @@ Make startup faster by reducing the frequency of garbage collection and then use
                      gcs-done)))
 #+end_src
 
+** Operating system and distribution
+
+#+begin_src emacs-lisp :lexical no
+;; Global variable to check if guix exists on current system
+(setq guix?  (executable-find "guix"))
+#+end_src
+
 ** Package Management 
 Install =emacs-use-package= from Guix
 
@@ -1371,6 +1378,14 @@ From =Guix=.
     (add-hook 'pdf-view-mode-hook 'pdf-view-restore-mode))
 #+end_src
 
+** info
+
+#+begin_src emacs-lisp :lexical no
+(when guix?
+  (add-to-list 'Info-additional-directory-list
+               "/home/nabeel/.guix-profile/share/info/"))
+#+end_src
+
 ** COMMENT telega
 From AUR, install =libtgvoip=, =libtd=
    
@@ -1778,7 +1793,7 @@ https://gitlab.com/emacs-stuff/indent-tools
 #+begin_src emacs-lisp :lexical no
 (add-to-list 'tramp-connection-properties
              (list (regexp-quote "/sshx:user@host:")
-                   "remote-shell" "/usr/bin/zsh"))
+                   "remote-shell" "/usr/bin/bash"))
 #+end_src
 
 **** ssh-config-mode
@@ -2603,10 +2618,9 @@ https://github.com/jingtaozf/literate-lisp
     :config
     (setq geiser-active-implementations '(guile)))
 
-  (use-package geiser-guile
-    :config
-    ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
-    )
+(use-package geiser-guile
+  :config
+  (setq geiser-guile-binary "~/.guix-profile/bin/guile"))
 
   ;; (use-package geiser-racket) 
 
@@ -2852,7 +2866,7 @@ https://github.com/mooz/js2-mode
   (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
 #+end_src
 
-*** js-comint
+*** COMMENT js-comint
 https://github.com/redguardtoo/js-comint
 #+begin_src emacs-lisp :lexical no
 (use-package js-comint
