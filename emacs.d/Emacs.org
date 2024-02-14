@@ -1477,6 +1477,25 @@ See https://github.com/alezost/guix.el
   (require 'guix-autoloads))
 #+end_src
 
+** gptel
+https://github.com/karthink/gptel
+
+#+begin_src emacs-lisp :lexical no
+(use-package gptel
+  :config
+  ;; Register a backend
+  ;; Together.ai offers an OpenAI compatible API
+  (set-default gptel-backend
+               (gptel-make-openai "TogetherAI" ;Any name you want
+                 :host "api.together.xyz"
+                 :key (gptel-api-key-from-auth-source "api.together.xyz")
+                 :stream t
+                 :models '(;; has many more, check together.ai
+                           "mistralai/Mixtral-8x7B-Instruct-v0.1"
+                           "codellama/CodeLlama-13b-Instruct-hf"
+                           "codellama/CodeLlama-34b-Instruct-hf"))))
+#+end_src
+
 ** COMMENT polymode
 
 #+begin_src emacs-lisp
