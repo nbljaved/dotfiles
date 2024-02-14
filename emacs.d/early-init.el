@@ -7,9 +7,7 @@
 ;;                          ;; org-contrib
 ;;                          ("gnu" . "https://elpa.gnu.org/packages/")
 ;;                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-;; ;; Guix
-;; ;; (add-to-list 'load-path "~/.guix-profile/share/emacs/site-lisp/")
-;; ;; (guix-emacs-autoload-packages)
+
 
 ;; (add-to-list 'load-path "~/.emacs.d/manual/")
 ;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")

@@ -23,34 +23,43 @@ Make startup faster by reducing the frequency of garbage collection and then use
 ** Operating system and distribution
 
 #+begin_src emacs-lisp :lexical no
-;; Global variable to check if guix exists on current system
-(setq guix?  (executable-find "guix"))
+(defvar guix? (executable-find "guix")
+  "Boolean to check if guix exists on current system")
+
+(defvar guix-profile-path (or (getenv "GUIX_PROFILE")
+			      (concat (getenv "HOME")
+				      "/.guix-profile"))
+  "Value of environment variable $GUIX_PROFILE.")
+
+(when guix?
+  (let ((default-directory (concat guix-profile-path
+                                   "/share/emacs/site-lisp/")))
+    (normal-top-level-add-subdirs-to-load-path)))
+
 #+end_src
 
 ** Package Management 
 Install =emacs-use-package= from Guix
 
 #+begin_src emacs-lisp :tangle ~/.emacs.d/early-init.el
-  ;; ;; Initialize package sources
-  ;; (require 'package)
-  ;; (setq package-archives '(("org" . "https://orgmode.org/elpa/")
-  ;;                          ("melpa" . "https://melpa.org/packages/")
+;; ;; Initialize package sources
+;; (require 'package)
+;; (setq package-archives '(("org" . "https://orgmode.org/elpa/")
+;;                          ("melpa" . "https://melpa.org/packages/")
 
-  ;;                          ;;("melpa-stable" . "https://stable.melpa.org/packages/")
-  ;;                          ;; org-contrib
-  ;;                          ("gnu" . "https://elpa.gnu.org/packages/")
-  ;;                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-  ;; ;; Guix
-  ;; ;; (add-to-list 'load-path "~/.guix-profile/share/emacs/site-lisp/")
-  ;; ;; (guix-emacs-autoload-packages)
+;;                          ;;("melpa-stable" . "https://stable.melpa.org/packages/")
+;;                          ;; org-contrib
+;;                          ("gnu" . "https://elpa.gnu.org/packages/")
+;;                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
-  ;; (add-to-list 'load-path "~/.emacs.d/manual/")
-  ;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")
-  ;; ;; Initializes the package infrastructure
-  ;; ;; (package-initialize)
-  ;; ;; to prevent package.el loading packages prior to their init-file loading.
-  (setq package-enable-at-startup nil)
-  ;; ;; (setq package-enable-at-startup t)
+
+;; (add-to-list 'load-path "~/.emacs.d/manual/")
+;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")
+;; ;; Initializes the package infrastructure
+;; ;; (package-initialize)
+;; ;; to prevent package.el loading packages prior to their init-file loading.
+(setq package-enable-at-startup nil)
+;; ;; (setq package-enable-at-startup t)
 #+end_src
 
 ** elpaca
@@ -1381,9 +1390,11 @@ From =Guix=.
 ** info
 
 #+begin_src emacs-lisp :lexical no
-(when guix?
-  (add-to-list 'Info-additional-directory-list
-               "/home/nabeel/.guix-profile/share/info/"))
+  (require 'info)
+  (when guix?
+    (add-to-list 'Info-additional-directory-list
+		 (concat guix-profile-path
+			 "/share/info/")))
 #+end_src
 
 ** COMMENT telega
@@ -1457,13 +1468,13 @@ https://github.com/spotify/dockerfile-mode/tree/5db94549ce8b000ae35adf511c820ad2
     (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode)))
 #+end_src
 
-** COMMENT guix
+** guix
 See https://github.com/alezost/guix.el
+=guix install emacs-guix=
 
 #+begin_src emacs-lisp
-  ;;(use-package guix)
-  (require 'guix)
-
+(when guix?
+  (require 'guix-autoloads))
 #+end_src
 
 ** COMMENT polymode
@@ -1856,18 +1867,25 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
-** copilot.el
+** COMMENT copilot.el
 
 #+begin_src emacs-lisp
-  (use-package copilot
-    :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
-    :ensure t
-    :config
-    (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-    (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-    ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
-  
-    )
+(use-package copilot
+  :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :config
+  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+  (setq copilot-idle-delay 0.1
+        copilot-log-max 4)
+  ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
+  )
+#+end_src
+
+** COMMENT codeium
+codeium-install
+#+begin_src emacs-lisp :lexical no
+(use-package codeium
+  :elpaca (codeium :type git :host github :repo "Exafunction/codeium.el"))
 #+end_src
 
 ** Fun
@@ -2176,14 +2194,20 @@ https://github.com/joaotavora/eglot
         eglot-extend-to-xref t))
 #+end_src
 
-** C++
-*** COMMENT ccls
+** C/C++
+
+*** ccls
+Install ccls (LSP server for C/C++)
+
+*** COMMENT emacs-ccls
+Uses lsp-mode
 
 #+begin_src emacs-lisp
   (use-package ccls
     :hook ((c-mode c++-mode objc-mode cuda-mode) .
            (lambda () (require 'ccls) (lsp-deferred))))
 #+end_src
+
 *** ninja
 #+begin_src emacs-lisp
 (use-package ninja-mode)
@@ -2614,18 +2638,26 @@ https://github.com/jingtaozf/literate-lisp
 **** geiser
 
 #+begin_src emacs-lisp
-  (use-package geiser
-    :config
-    (setq geiser-active-implementations '(guile)))
-
-(use-package geiser-guile
+(use-package geiser
   :config
-  (setq geiser-guile-binary "~/.guix-profile/bin/guile"))
+  (setq geiser-active-implementations '(guile)))
+#+end_src
 
-  ;; (use-package geiser-racket) 
+**** COMMENT geiser eros
+#+begin_src emacs-lisp :lexical no
 
 #+end_src
-    
+
+**** guile
+
+#+begin_src emacs-lisp
+(use-package geiser-guile
+  :config
+  (setq geiser-guile-binary (concat guix-profile-path "/bin/guile")))
+;; (use-package geiser-racket)
+#+end_src
+
+
 **** racket
 Install =racket=.
 After installing 'racket', the following programs will also be made available:
