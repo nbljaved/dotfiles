@@ -3157,10 +3157,11 @@ https://github.com/non-Jedi/eglot-jl
 **** python
 
 #+begin_src emacs-lisp :lexical no
-(use-package python
+(use-package python-mode
   :mode ("[./]flake8\\'" . conf-mode)
   :mode ("/Pipfile\\'" . conf-mode)
   :config
+  (add-to-list 'exec-path "/home/nabeel/.local/bin")
   )
 
 
@@ -3170,7 +3171,7 @@ https://github.com/non-Jedi/eglot-jl
 
 #+end_src
 
-**** anaconda-mode
+**** COMMENT anaconda-mode
 Either use this or =eglot=
 https://github.com/pythonic-emacs/anaconda-mode/tree/master
 
