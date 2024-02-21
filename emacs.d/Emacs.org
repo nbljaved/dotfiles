@@ -26,12 +26,18 @@ Make startup faster by reducing the frequency of garbage collection and then use
 (defvar guix? (executable-find "guix")
   "Boolean to check if guix exists on current system")
 
-(defvar guix-profile-path (or (getenv "GUIX_PROFILE")
-			      (concat (getenv "HOME")
-				      "/.guix-profile"))
-  "Value of environment variable $GUIX_PROFILE.")
-
 (when guix?
+  (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
+			        (concat (getenv "HOME")
+				        "/.guix-profile"))
+    "Value of environment variable $GUIX_PROFILE.")
+
+  (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")
+                                 (concat (getenv "HOME")
+                                         "/src/guix"))
+    "Value of environment variable $GUIX_CHECKOUT, i.e. the location
+of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
+  
   (let ((default-directory (concat guix-profile-path
                                    "/share/emacs/site-lisp/")))
     (normal-top-level-add-subdirs-to-load-path)))
@@ -923,10 +929,10 @@ https://github.com/nflath/hungry-delete
 *** Basic
 
 #+begin_src emacs-lisp
-(global-set-key (kbd "C-`") 'delete-window)
-(global-set-key (kbd "C-1") 'delete-other-windows)
-(global-set-key (kbd "C-2") 'split-window-below)
-(global-set-key (kbd "C-3") 'split-window-right)
+;; (global-set-key (kbd "C-`") 'delete-window)
+;; (global-set-key (kbd "C-1") 'delete-other-windows)
+;; (global-set-key (kbd "C-2") 'split-window-below)
+;; (global-set-key (kbd "C-3") 'split-window-right)
 
 (global-set-key (kbd "s-k") 'kill-this-buffer)
 (global-set-key (kbd "s-K") 'kill-buffer-and-window)
@@ -1485,15 +1491,16 @@ https://github.com/karthink/gptel
   :config
   ;; Register a backend
   ;; Together.ai offers an OpenAI compatible API
-  (set-default gptel-backend
-               (gptel-make-openai "TogetherAI" ;Any name you want
-                 :host "api.together.xyz"
-                 :key (gptel-api-key-from-auth-source "api.together.xyz")
-                 :stream t
-                 :models '(;; has many more, check together.ai
-                           "mistralai/Mixtral-8x7B-Instruct-v0.1"
-                           "codellama/CodeLlama-13b-Instruct-hf"
-                           "codellama/CodeLlama-34b-Instruct-hf"))))
+  (setq-default gptel-backend (gptel-make-openai "TogetherAI" ;Any name you want
+                                :host "api.together.xyz"
+                                :key (gptel-api-key-from-auth-source "api.together.xyz")
+                                :stream t
+                                :models '(;; has many more, check together.ai
+                                          "mistralai/Mixtral-8x7B-Instruct-v0.1"
+                                          "codellama/CodeLlama-13b-Instruct-hf"
+                                          "codellama/CodeLlama-34b-Instruct-hf")))
+  (global-set-key (kbd "C-x C-l") 'gptel-send)
+  (global-set-key (kbd "C-x l") 'gptel-abort))
 #+end_src
 
 ** COMMENT polymode
@@ -2653,6 +2660,12 @@ With prefix arg, save the URL in the =kill-ring= instead.
 **** literate-lisp
 https://github.com/jingtaozf/literate-lisp
 
+*** emacs-lisp
+**** eros
+#+begin_src emacs-lisp
+(use-package eros)
+#+end_src
+
 *** Scheme
 **** geiser
 
@@ -2672,8 +2685,10 @@ https://github.com/jingtaozf/literate-lisp
 #+begin_src emacs-lisp
 (use-package geiser-guile
   :config
-  (setq geiser-guile-binary (concat guix-profile-path "/bin/guile")))
-;; (use-package geiser-racket)
+  (setq geiser-guile-binary (concat guix-profile-path "/bin/guile"))
+  (when guix?
+    (with-eval-after-load 'geiser-guile
+      (add-to-list 'geiser-guile-load-path guix-checkout-path))))
 #+end_src
 
 
@@ -3148,8 +3163,7 @@ https://github.com/non-Jedi/eglot-jl
   :config
   )
 
-(add-to-list 'exec-path "/home/nabeel/.local/bin")
-(require 'eglot nil t)
+
 ;; (add-hook 'python-mode-hook 'eglot-ensure)
 ;; (add-to-list 'eglot-server-programs '(foo-mode . ("foo-language-server" "--args")))
 ;; (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
