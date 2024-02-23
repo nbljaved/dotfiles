@@ -4075,6 +4075,17 @@ npm install
         org-reveal-klipsify-src nil))
 #+end_src
 
+*** anki-editor
+https://github.com/louietan/anki-editor
+Requirements
+- anki-connect, an Anki add-on required by this package to interact with Anki.
+- curl
+
+
+#+begin_src emacs-lisp :lexical no
+(use-package anki-editor)
+#+end_src
+
 * Learn
 ** best-features-for-text-editing-in-emacs
 https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs/#built-in
