@@ -1,22 +1,30 @@
 #
 # ~/.bashrc
 #
+
+
+##############################################################################
+## ble.sh
+BLESH=$( guix package -I blesh | awk '{print $4}')
+BLESH="$BLESH/share/blesh/ble.sh"
+# Add this lines at the top of .bashrc:
+[[ $- == *i* ]] && source $BLESH --noattach
+
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
+##########
 
-# alias ls='ls --color=auto'
-# PS1='[\u@\h \W]\$ '
-
+# history
+export HISTSIZE=2000
+export HISTFILESIZE=2000
  
 ## Racket
-#export PATH="$HOME/racket/bin:$PATH"
-
-## Haskell
-# stack
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/racket/bin:$PATH"
 
 ## Kitty
 source <(kitty + complete setup bash)
+
+export TERM=xterm-256color # otherwise ssh has keyboard problems
 
 ## Common Lisp
 # SBCL
@@ -24,69 +32,62 @@ source <(kitty + complete setup bash)
 # Roswell
 #export PATH="$PATH:/home/nabeel/.roswell/bin"
 
-# ### GUIX
-# export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
-# GUIX_PROFILE="/home/nabeel/.guix-profile"
-# [[ -L "${GUIX_PROFILE}" ]] && . "${GUIX_PROFILE}/etc/profile"
-# source "/home/nabeel/.config/guix/current/etc/profile"
-#source "$GUIX_PROFILE/etc/profile"
-
-# # hint: After setting `PATH', run `hash guix' to make sure your shell refers to `/home/nabeel/.config/guix/current/bin/guix'.
-#export PATH="/home/nabeel/.config/guix/current/bin:$PATH" 
+alias python='python3'
+alias em='emacs -q -nw'
 
 
-# #X.509 Certificates
-# # guix install nss-certs
-# export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
-# export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
-# export GIT_SSL_CAINFO="$SSL_CERT_FILE"
+# lazy
+alias ld='lazydocker'
+alias lg='lazygit'
+alias ls='ls -alh'
+alias cat='bat'
+alias l='exa --color automatic --icons -l'
+alias rgi='rg --no-ignore --hidden -i'
 
-# # export XDG_DATA_DIRS="/usr/local/share:/usr/share:$XDG_DATA_DIRS"
-# # export XDG_CONFIG_DRIS="/etc/xdg:$XDG_CONFIG_DIRS"
 
-### FISH
-# run fish as interactive shell (rather set it in 'kitty' settings)
-#exec fish 
+# Golang
+export PATH=$PATH:/usr/local/go/bin
 
-# [ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
 
-## vterm
-vterm_printf(){
-    if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
-        # Tell tmux to pass the escape sequences through
-        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
-    elif [ "${TERM%%-*}" = "screen" ]; then
-        # GNU screen (screen, screen-256color, screen-256color-bce)
-        printf "\eP\e]%s\007\e\\" "$1"
-    else
-        printf "\e]%s\e\\" "$1"
+# Automatically added by the Guix install script.
+if [ -n "$GUIX_ENVIRONMENT" ]; then
+    if [[ $PS1 =~ (.*)"\\$" ]]; then
+        PS1="${BASH_REMATCH[1]} [env]\\\$ "
     fi
-}
-if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
-    function clear(){
-        vterm_printf "51;Evterm-clear-scrollback";
-        tput clear;
-    }
 fi
-vterm_prompt_end(){
-    vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
-}
-PS1=$PS1'\[$(vterm_prompt_end)\]'
-[ -f "/home/nabeel/.ghcup/env" ] && source "/home/nabeel/.ghcup/env" # ghcup-env
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/nabeel/mambaforge/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
+## Guix
+#export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
+export GUIX_PROFILE="$HOME/.guix-profile"
+source "$GUIX_PROFILE/etc/profile"
+export GUIX_CHECKOUT="$HOME/src/guix"
+#
+export PKG_CONFIG_PATH=$GUIX_PROFILE/lib/pkgconfig
+# SSL certificate
+export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
+export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
+export GIT_SSL_CAINFO="$SSL_CERT_FILE"
+
+# zoxide
+eval "$(zoxide init --cmd cd bash)"
+# Direnv
+eval "$(direnv hook bash)"
+# starship
+eval "$(starship init bash)"
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='emacs'
 else
-    if [ -f "/home/nabeel/mambaforge/etc/profile.d/conda.sh" ]; then
-        . "/home/nabeel/mambaforge/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/nabeel/mambaforge/bin:$PATH"
-    fi
+  export EDITOR='emacs'
 fi
-unset __conda_setup
-# <<< conda initialize <<<
 
-. "$HOME/.cargo/env"
+# nvm
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+##############################################################################
+## ble.sh
+# Add this line at the end of .bashrc:
+[[ ${BLE_VERSION-} ]] && ble-attach

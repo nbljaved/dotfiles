@@ -1,0 +1,25 @@
+# -*- mode: sh -*-
+
+# When this option has a non-empty value, the history is synchronized
+# to $HISTFILE every time a command is executed.
+bleopt history_share=1
+
+# This option specifies the cursor position after the move between the
+# history entries. If a non-empty value is specified, ble.sh tries to
+# preserve the position. When the string after the move is shorter
+# than the original position, the cursor position is moved to the end
+# of text. If the value is empty, the cursor position is moved to the
+# end of text when it moved to the older history entry, or the
+# beginning of text when it moved to the recent history entry.
+bleopt history_preserve_point=1
+
+# This option controls the target range in the command history for
+# erasedups, which is performed when it is specified in
+# HISTCONTROL. When this option has an empty value, the target range
+# is the entire history as in the plain Bash. When this option
+# evaluates to a positive integer count, the target range is the last
+# count entries in the command history. When this option evaluates to
+# a non-positive integer offset, offset specifies the beginning of the
+# target range relative to the history count at the session start. The
+# end of the target range is always the end of the command history.
+bleopt history_erasedups_limit=
