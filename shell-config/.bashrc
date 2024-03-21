@@ -96,7 +96,7 @@ alias grun='java org.antlr.v4.gui.TestRig'
 export MOUSETRAP_HOME="$HOME/natsoft/repos/kml/CodeGen"
 #
 alias python='python3'
-=======
+
 # nvm
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
