@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -euo pipefail
-
 ##############################################################################
 ## ble.sh
 BLESH=$( guix package -I blesh | awk '{print $4}')
