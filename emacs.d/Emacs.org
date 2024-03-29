@@ -1730,6 +1730,15 @@ Interactive Emacs functions that create URLs for files and commits in GitHub/Bit
 (use-package git-link)
 #+end_src
 
+** rg
+https://github.com/dajva/rg.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package rg
+  :config
+  (rg-enable-default-bindings))
+#+end_src
+
 ** COMMENT weblorg
 
 #+begin_src emacs-lisp 
@@ -2932,6 +2941,24 @@ https://github.com/mooz/js2-mode
   (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
 #+end_src
 
+*** nodejs-repl
+
+#+begin_src emacs-lisp
+(use-package nodejs-repl
+  :config
+  ;; (defun nvm-which ()
+  ;;   (let* ((shell (concat (getenv "SHELL") " -l -c 'nvm which'"))
+  ;;          (output (shell-command-to-string shell)))
+  ;;     (cadr (split-string output "[\n]+" t))))
+  (setq nodejs-repl-command "node"))
+#+end_src
+
+*** nvm
+
+#+begin_src emacs-lisp
+(use-package nvm)
+#+end_src
+
 *** COMMENT js-comint
 https://github.com/redguardtoo/js-comint
 #+begin_src emacs-lisp :lexical no
@@ -2945,12 +2972,6 @@ https://github.com/redguardtoo/js-comint
 (defun inferior-js-mode-hook-setup ()
   (add-hook 'comint-output-filter-functions 'js-comint-process-output))
 (add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
-#+end_src
-
-*** nvm.el
-
-#+begin_src emacs-lisp :lexical no
-(use-package nvm)
 #+end_src
 
 *** COMMENT skewer-mode
@@ -3341,8 +3362,7 @@ Emacs frontend to python package manager pip
 
 **** yapfify
 
-
-~$ pip install yapf~
+~$ guix install yapf~
 
 #+begin_src emacs-lisp :lexical no
 (use-package yapfify
@@ -3350,7 +3370,7 @@ Emacs frontend to python package manager pip
 #+end_src
 
 **** python-cell
-https://github.com/thisch/python-cell.el/tree/master
+https://github.com/thisch/python-cell.el
 
 #+begin_src emacs-lisp :lexical no
 (use-package python-cell)
