@@ -921,9 +921,21 @@ https://github.com/minad/consult
          ;; ("C-s" . consult-line)
          ;; Switch to another buffer, or bookmarked file, or recently
          ;; opened file.
-         ("C-x C-b" . consult-buffer))
+         ("C-x C-b" . consult-recent-file)
+         ("C-x b" . consult-buffer))
   :config
   (setq consult-line-start-from-top nil))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
+  :config
+  (global-set-key (kbd "C-x C-d") 'consult-dir))
 #+end_src
 
 ** embark
@@ -1264,9 +1276,9 @@ https://github.com/meow-edit/meow
 #+begin_src emacs-lisp 
 (setq recentf-max-saved-items 5000
       recentf-max-menu-items 100)
-(setq-default recentf-save-file "~/.emacs.d/recentf")
-;; save recentf-list every 5 minutes
-(run-at-time nil (* 5 60) 'recentf-save-list)
+(setq recentf-save-file "~/.emacs.d/recentf")
+;; save recentf-list every 1 minutes
+(run-at-time nil (* 1 60) 'recentf-save-list)
 (recentf-mode 1)
 #+end_src
 
@@ -1454,8 +1466,8 @@ https://github.com/alexluigit/dirvish
                 ("C-u C-y" . dired-ranger-move)))
 #+end_src
 
-*** dired-recent
-
+*** COMMENT dired-recent
+Replaced with consult-dir
 #+begin_src emacs-lisp
   (use-package dired-recent
     :config
@@ -2867,6 +2879,12 @@ https://github.com/jingtaozf/literate-lisp
       (add-to-list 'geiser-guile-load-path guix-checkout-path))))
 #+end_src
 
+When evaluation scheme using =lispy-eval= I get the error 'lispy--eval-scheme: Symbol’s function definition is void: geiser-racket--language'
+
+#+begin_src emacs-lisp
+(defun geiser-racket--language () '())
+#+end_src
+
 
 **** racket
 Install =racket=.
@@ -3001,6 +3019,17 @@ Gopls is the official language server protocol (lsp) implementation provided by 
 
 #+begin_src shell
 go install golang.org/x/tools/gopls@latest
+#+end_src
+
+*** ob-go
+https://github.com/pope/ob-go
+
+#+begin_src emacs-lisp :lexical no
+(use-package ob-go
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((go . t))))
 #+end_src
 
 ** HTML
@@ -3690,11 +3719,13 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((latex . t)
+   (sqlite . t)
    (python . t)
    (java . t)
    (C . t)
    (lisp . t)
    (emacs-lisp . t)
+   (scheme . t)
    (octave . t)
    (maxima . t)
    ;;(racket . t)
