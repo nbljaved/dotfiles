@@ -1153,11 +1153,8 @@ https://github.com/abo-abo/avy
 #+begin_src emacs-lisp
 (use-package avy
   :demand t
-  :bind (("C-j" . avy-goto-char-timer)
-         ("C-c SPC" . avy-goto-char-2)
-         ("M-g w" . avy-goto-word-1)
-         ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)))
+  :config
+  (global-set-key (kbd "<menu>") #'avy-goto-char))
 #+end_src
 
 *** ace-isearch
@@ -2346,6 +2343,17 @@ https://github.com/k-talo/volatile-highlights.el
                undo-tree-undo undo-tree-redo)))
 #+end_src
 
+*** emacs-camera
+https://codeberg.org/akib/emacs-camera
+
+- needs software 'ffmpeg'
+  
+#+begin_src emacs-lisp :lexical no
+(use-package camera
+  :elpaca (camera :type git
+                  :repo "https://codeberg.org/akib/emacs-camera.git"))
+#+end_src
+
 * Languages
 ** lsp
 
@@ -2860,7 +2868,10 @@ https://github.com/jingtaozf/literate-lisp
 #+begin_src emacs-lisp
 (use-package geiser
   :config
-  (setq geiser-active-implementations '(guile)))
+  (setq geiser-active-implementations '(guile))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((scheme . t))))
 #+end_src
 
 **** COMMENT geiser eros
@@ -2911,7 +2922,10 @@ Use =C-c C-.= /racket-describe/.
   ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
   ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
   ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
-  )
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((racket . t))))
 #+end_src
     
 **** sicp-info
@@ -3725,10 +3739,8 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
    (C . t)
    (lisp . t)
    (emacs-lisp . t)
-   (scheme . t)
    (octave . t)
    (maxima . t)
-   ;;(racket . t)
    (shell . t)
    ;;(julia . t)
    ;; (julia-vterm . t)
@@ -4153,17 +4165,20 @@ Github Flavored Markdown exporter for Org Mode
 (use-package ox-gfm)
 #+end_src
 
-*** COMMENT org-transclusion
+*** org-transclusion
+https://github.com/nobiot/org-transclusion
+
+- transclude src block with custom search string and lines :
+#+transclude: [[file:~/Documents/leetcode/books/lisp/sicp/code/ch1/test.rkt::f 4]] :lines 1-2 :src racket
 
 #+begin_src emacs-lisp
-  (use-package org-transclusion
-    :elpaca (org-transclusion
-               :type git
-               :host github
-               :repo "nobiot/org-transclusion"
-               :branch "main"
-               :files ("*.el"))
-    :bind (("<f12>" . org-transclusion-add-at-point)))
+(use-package org-transclusion
+  :bind (("<f12>" . org-transclusion-add))
+  :config
+  (set-face-attribute
+   'org-transclusion-fringe nil
+   :foreground "white smoke"
+   :background "white smoke"))
 #+end_src
 
 *** org-pandoc-import
