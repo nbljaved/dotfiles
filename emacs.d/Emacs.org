@@ -1033,7 +1033,7 @@ https://github.com/minad/consult
   (define-key yas-minor-mode-map (kbd "TAB") yas-maybe-expand)
   ;; Bind `SPC' to `yas-expand' when snippet expansion available (it
   ;; will still call `self-insert-command' otherwise).
-  ;; (define-key yas-minor-mode-map (kbd "SPC") yas-maybe-expand)
+  (define-key yas-minor-mode-map (kbd "SPC") yas-maybe-expand)
   (add-hook 'yas-before-expand-snippet-hook (lambda () (smartparens-mode -1)))
   (add-hook 'yas-after-exit-snippet-hook (lambda () (smartparens-mode 1)))
   (yas-global-mode 1))
@@ -1135,14 +1135,14 @@ https://github.com/noctuid/general.el#about
     (general-auto-unbind-keys 1))
 #+end_src
 
-*** key-chord
+*** COMMENT key-chord
 https://github.com/emacsorphanage/key-chord
 
 #+begin_src emacs-lisp :lexical no
 (use-package key-chord
   :after avy
   :config
-  (key-chord-define-global "fj" 'avy-goto-char-2)
+  ;; (key-chord-define-global "fj" 'avy-goto-char-2)
   (key-chord-mode 1))
 #+end_src
 
@@ -1154,7 +1154,7 @@ https://github.com/abo-abo/avy
 (use-package avy
   :demand t
   :config
-  (global-set-key (kbd "<menu>") #'avy-goto-char))
+  (global-set-key (kbd "<menu>") #'avy-goto-char-timer))
 #+end_src
 
 *** ace-isearch
@@ -1479,6 +1479,15 @@ Replaced with consult-dir
                 ("J" . dired-open-xdg)))
 #+end_src
 
+*** dired-open-with
+https://github.com/FrostyX/dired-open-with
+
+#+begin_src emacs-lisp :lexical no
+(use-package dired-open-with
+  :bind (:map dired-mode-map
+              ("C-u J" . dired-open-with)))
+#+end_src
+
 *** dired-filer
 
 #+begin_src emacs-lisp
@@ -1519,6 +1528,10 @@ Replaced with consult-dir
 
 *** diredf avfs
 just install =avfsd= as system package.
+
+AVFS is a FUSE-based filesystem that allows browsing of compressed files.
+It provides the `mountavfs' command that starts a small `avfsd' daemon.
+When a specially formatted path under `~/.avfs' is accessed, the daemon provides listings and content access on the fly
 
 *** diredfl
 
@@ -3749,6 +3762,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
    ))
 
 (setq org-babel-lisp-eval-fn 'sly-eval)
+(setq org-babel-python-command "python3")
 #+end_src
 
  
@@ -4173,7 +4187,9 @@ https://github.com/nobiot/org-transclusion
 
 #+begin_src emacs-lisp
 (use-package org-transclusion
-  :bind (("<f12>" . org-transclusion-add))
+  :bind (("<f12>" . org-transclusion-add)
+         (:map org-transclusion-map
+               ("<f12>". org-transclusion-remove)))
   :config
   (set-face-attribute
    'org-transclusion-fringe nil
@@ -4204,6 +4220,13 @@ https://github.com/alphapapa/org-sticky-header
     :hook (org-mode . org-sticky-header-mode)
     :config
     (setq org-sticky-header-full-path 'reversed))
+#+end_src
+
+*** orglink
+https://github.com/tarsius/orglink
+
+#+begin_src emacs-lisp :lexical no
+
 #+end_src
 
 *** COMMENT org-noter
@@ -4355,3 +4378,27 @@ https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs
 - https://gitlab.com/skybert/my-little-friends/blob/master/emacs/.emacs#L780 ::
   - for his Java configuration
   - git-gutter
+
+** How to unarchive files painlessly
+*** atool
+https://www.nongnu.org/atool/
+
++ The main command is =aunpack= which extracts files from an archive.
+  Did you ever extract files from an archive, not checking whether the files were located in a subdirectory or in the top directory of the archive, resulting in files scattered all over the place? aunpack overcomes this problem by first extracting to a new directory. If there was only a single file in the archive, that file is moved to the original directory. =aunpack= also prevents local files from being overwritten by mistake.
+
++ The other commands provided are =apack= (to create archives),
+
++ =als= (to list files in archives), and
+
++ =acat= (to extract files to standard out).
+
++ NOTE :: As atool invokes external programs to handle the archives, not all commands may be supported for a certain type of archives.
+
+The other commands provided are apack (to create archives), als (to list files in archives), and acat (to extract files to standard out). As atool invokes external programs to handle the archives, not all commands may be supported for a certain type of archives.
+- atool [OPTION]... ARCHIVE [FILE]...
+- aunpack [OPTION]... ARCHIVE [FILE]...
+- apack [OPTION]... ARCHIVE [FILE]...
+- als [OPTION]... ARCHIVE [FILE]...
+- acat [OPTION]... ARCHIVE [FILE]...
+- adiff [OPTION]... ARCHIVE ARCHIVE
+- arepack [OPTION]... OLD-ARCHIVE NEW-ARCHIVE
