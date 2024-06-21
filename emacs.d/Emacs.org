@@ -418,7 +418,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 *** Basic
 
 #+begin_src emacs-lisp
-(global-prettify-symbols-mode 1)
+(global-prettify-symbols-mode 1) ;; lambda -> λ
 
 (global-font-lock-mode 1)
 
@@ -1082,6 +1082,7 @@ https://github.com/apchamberlain/undo-tree.el
     :config
     (global-undo-tree-mode 1))
 #+end_src
+
 *** hungry-delete
 https://github.com/nflath/hungry-delete
 
@@ -4026,6 +4027,37 @@ https://github.com/dandavison/xenops
       (interactive)
       (or (xenops-math-handle-paste)))
     ) 
+#+end_src
+
+*** easy draw
+https://github.com/misohena/el-easydraw
+
+Just do a [[edraw:]] and plus enter on it. (SVG data will be embedded inside org file, though you can also define a normal path.)
+
+For eg:  [[edraw:data=H4sIACJndWYAA3WQ3U7EIBCFX4WM1y10dzXppvRK38AXwPKbUtgALq1P77Qa44VmGAiZfHNOzpDvhlQni+Xw+MSAWOWMLRwuJ/ysiw+Zgy3ldqW01trWcxuToSfGGEUUyF2l7GLg0LXdN3BdvQvzX1jX9z09pjAOSU2FrBxQZzvuf204yUHJJGrzJqbZpPgeJJBcUpwVhxCDAqKd9xwetNZA6DiY31CUG+oVtRaiYyhNdh/IndkP1bG94GuqxeI8Osoi5Car5HDjzjYiTDYmDouT0qvDdcf2lPC9MBhfrcsEz4vIG3lG5YHu3DhQg41pjZ/uhnZsbgEAAA==][This embedded svg has some text inside it.]] 
+
+- To toggle the inline display mode, type =M-x edraw-org-link-image-mode=
+- To edit the image, do one of the following on the link:
+  - M-x edraw-org-edit-link
+  - C-c C-o
+  - Right click on image (The right-click menu also provides some
+    other useful functions for links)
+
+#+begin_src emacs-lisp :lexical no
+(use-package edraw-org
+  :ensure t
+  :after org
+  :elpaca (edraw-org :host github :repo "misohena/el-easydraw")
+  :config
+  (edraw-org-setup-default)
+  ;; When using the org-export-in-background option (when using the
+  ;; asynchronous export function), the following settings are
+  ;; required. This is because Emacs started in a separate process does
+  ;; not load org.el but only ox.el.
+  (with-eval-after-load "ox"
+    (require 'edraw-org)
+    (edraw-org-setup-exporter)))
+
 #+end_src
 
 ** org-roam
