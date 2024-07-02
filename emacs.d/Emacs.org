@@ -21,6 +21,29 @@ Make startup faster by reducing the frequency of garbage collection and then use
 #+end_src
 
 ** Operating system and distribution
+*** exec-path-from-shell
+https://github.com/purcell/exec-path-from-shell
+
+A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
+
+- Motivation ::
+  Ever find that a command works in your shell, but not in Emacs?
+  
+  This happens a lot on OS X, where an Emacs instance launched as a GUI app inherits a default minimal set of environment variables that are probably not the ones you see in a terminal window.
+
+  Similarly, if you start Emacs as a daemon from systemd or launchd, it will run with a default set of environment variables.
+  
+  This library solves this problem by copying important environment variables from the user's shell: it works by asking your shell to print out the variables of interest, then copying them into the Emacs environment.
+
+#+begin_src emacs-lisp :lexical no
+(use-package exec-path-from-shell
+  :config
+  (when (or (memq window-system '(mac ns x))
+            (daemonp))
+    (exec-path-from-shell-initialize)))
+#+end_src
+
+*** Guix
 
 #+begin_src emacs-lisp :lexical no
 (defvar guix? (executable-find "guix")
@@ -451,6 +474,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 (global-set-key (kbd "C-x C-f") 'find-file-at-point)
 
 #+end_src
+
 *** COMMENT face-remap+
 
 #+begin_src emacs-lisp
@@ -940,6 +964,12 @@ https://github.com/minad/consult
   (global-set-key (kbd "C-x C-d") 'consult-dir))
 #+end_src
 
+#+begin_src emacs-lisp :lexical no :results 
+(use-package consult-company
+  :config
+  (define-key company-mode-map [remap completion-at-point] #'consult-company))
+#+end_src
+
 ** embark
 
 #+begin_src emacs-lisp :lexical no
@@ -1040,11 +1070,11 @@ https://github.com/minad/consult
   (add-hook 'yas-after-exit-snippet-hook (lambda () (smartparens-mode 1)))
   (yas-global-mode 1))
 
-(use-package helm-c-yasnippet
-  :after yasnippet
-  :bind (("C-c y" . helm-yas-complete))
-  :config
-  (setq helm-yas-space-match-any-greedy t))
+;; (use-package helm-c-yasnippet
+;;   :after yasnippet
+;;   :bind (("C-c y" . helm-yas-complete))
+;;   :config
+;;   (setq helm-yas-space-match-any-greedy t))
 #+end_src
 
 *** auto-activating-snippets
@@ -1106,7 +1136,7 @@ https://github.com/nflath/hungry-delete
 
 (global-set-key (kbd "s-k") 'kill-this-buffer)
 (global-set-key (kbd "s-K") 'kill-buffer-and-window)
-(global-set-key (kbd "C-o") 'other-window)
+(bind-key* (kbd "C-o") 'other-window)
 (define-key prog-mode-map (kbd "C-o") 'other-window)
 (require 'dired)
 (define-key dired-mode-map (kbd "C-o") 'other-window)
@@ -1181,93 +1211,17 @@ If (ace-isearch-jump-based-on-one-char nil), L=2 characters are required to invo
   (global-ace-isearch-mode 1))
 #+end_src
 
-*** COMMENT frog-jump-buffer
-https://github.com/waymondo/frog-jump-buffer
-
-Use 0 to toggle between opening in the same window or (other-window).
-
-The numbers 1 through 6 will cycle through the default buffer filters:
-
-    1: show all buffers in the (buffer-list)
-    2: filter buffers to the same mode as current-buffer
-    3: filter buffers to only buffers represented by files
-    4: show buffers from recentf, which can include killed buffers
-    5: filter buffers to the same project as current-buffer (requires projectiile to be installed)
-    6: filter buffers to similarly named buffers. (i.e. if (current-buffer) is frog.html, show frog.css, *magit: frog*, etc.)
-
-
+*** buffer-move
+https://github.com/lukhas/buffer-move
+This file is for lazy people wanting to swap buffers without typing C-x b on each window.
 
 #+begin_src emacs-lisp :lexical no
-(use-package frog-jump-buffer
-  :after all-the-icons
-  :bind (("C-x C-b" . frog-jump-buffer))
+(use-package buffer-move
   :config
-  (setq frog-jump-buffer-use-all-the-icons-ivy t))
-#+end_src
-
-** COMMENT meow
-https://github.com/meow-edit/meow
-
-#+begin_src emacs-lisp 
-  (use-package meow)
-#+end_src
-
-** COMMENT xah-fly-keys
-
-#+begin_src emacs-lisp
-;; Some additional code to resolve the command-mode on minibuffer-exit  hook problem for users of helm/ivy with xah-fly keys:
-(use-package xah-fly-keys
-  :defer 0.1
-  :init
-  (setq xah-fly-use-control-key nil)
-  (setq  xah-fly-use-meta-key nil )
-  :bind (("<menu>" . xah-fly-mode-toggle)
-         :map xah-fly-command-map
-         ("<menu>" . xah-fly-mode-toggle))
-  :config
-  (xah-fly-keys-set-layout "qwerty")
-
-  (setq in-xah-command nil)
-
-  (xah-fly-keys 1)
-  ;; the previous statement adds certain hooks,
-  ;; which I want to remove.
-  
-  (defun nbl/xah-minibuffer-setup ()
-    "See if in command mode or not when entering minibuffer"
-    (if xah-fly-insert-state-q
-        (setq in-xah-command nil)
-      (setq in-xah-command t)))
-
-  (defun nbl/xah-minibuffer-exit ()
-    "Exit minibuffer into the mode with which you entered"
-    (if in-xah-command
-        (xah-fly-command-mode-activate)
-      (xah-fly-insert-mode-activate)))
-
-  ;; (add-hook 'minibuffer-setup-hook 'xah-fly-insert-mode-activate)
-  ;; (add-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
-  ;; (add-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
-  
-  (add-hook 'minibuffer-setup-hook 'nbl/xah-minibuffer-setup)
-
-  (remove-hook 'minibuffer-exit-hook 'xah-fly-command-mode-activate)
-  (add-hook 'minibuffer-exit-hook 'nbl/xah-minibuffer-exit)
-
-  (remove-hook 'isearch-mode-end-hook 'xah-fly-command-mode-activate)
-
-  (defun nbl/xah-mode-on ()
-    (set-cursor-color "#00ff00"))
-  (defun nbl/xah-mode-off ()
-    (set-cursor-color "#00bfff"))
-
-  (add-hook 'xah-fly-command-mode-activate-hook 'nbl/xah-mode-on)
-  (add-hook 'xah-fly-insert-mode-activate-hook  'nbl/xah-mode-off)
-
-  (xah-fly-insert-mode-activate)
-  (setq-default cursor-type 'box) ;; to override xah cursor stuff 
-  )
-
+  (bind-key* (kbd "<C-S-up>")     'buf-move-up)
+  (bind-key* (kbd "<C-S-down>")   'buf-move-down)
+  (bind-key* (kbd "<C-S-left>")   'buf-move-left)
+  (bind-key* (kbd "<C-S-right>")  'buf-move-right))
 #+end_src
 
 ** recent
@@ -1299,7 +1253,6 @@ https://github.com/rubikitch/recentf-ext
 ;; Further reading: https://protesilaos.com/emacs/dotemacs#h:25765797-27a5-431e-8aa4-cc890a6a913a
 (savehist-mode 1)
 #+end_src
-
 
 ** hydra
 
@@ -1871,7 +1824,7 @@ Version 2017-11-10"
 #+end_src
 
 ** git
-**** magit
+*** magit
 
 #+begin_src emacs-lisp 
   (use-package magit
@@ -1883,7 +1836,7 @@ Version 2017-11-10"
                 ("M-4" . nil)))
 #+end_src
 
-**** magit-todos
+*** magit-todos
 https://github.com/alphapapa/magit-todos/tree/master
 
 #+begin_src emacs-lisp :lexical no
@@ -1893,7 +1846,7 @@ https://github.com/alphapapa/magit-todos/tree/master
         magit-todos-group-by '(magit-todos-item-filename magit-todos-item-keyword)))
 #+end_src
 
-**** forge
+*** forge
 
 #+begin_src emacs-lisp :lexical no
 (use-package forge
@@ -1902,14 +1855,43 @@ https://github.com/alphapapa/magit-todos/tree/master
   (setq  forge-topic-list-limit '(100 . -10)))
 #+end_src
 
-**** COMMENT magit-delta
+*** COMMENT magit-delta
 
 #+begin_src emacs-lisp :lexical no
 (use-package magit-delta
   :hook (magit-mode . magit-delta-mode))
 #+end_src
 
-**** git-link
+*** diff-hl
+https://github.com/dgutov/diff-hl
+
+The package also contains auxiliary modes:
+
+- =diff-hl-dired-mode= provides similar functionality in Dired.
+- =diff-hl-margin-mode= changes the highlighting function to use the margin instead of the fringe.
+- =diff-hl-amend-mode= sets the reference revision to the one before recent one. Also, you could use diff-hl-set-reference-rev to set it to any revision, see its docstring for details.
+- =diff-hl-flydiff-mode= implements highlighting changes on the fly.
+- =diff-hl-show-hunk-mouse-mode= makes fringe and margin react to mouse clicks to show the corresponding hunk. That's the alternative to using diff-hl-show-hunk and friends.
+
+
+#+begin_src emacs-lisp :lexical no
+(use-package diff-hl
+  :config
+  (global-diff-hl-mode 1)
+  (global-diff-hl-show-hunk-mouse-mode 1)
+  ;; When using Magit 2.4 or newer, add this to your init script:
+  (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  ;; diff-hl should just work with Tramp. But slow or high latency
+  ;; connections can cause performance problems. If you experience
+  ;; such issues, customize diff-hl-disable-on-remote to t. This will
+  ;; change the behavior of both turn-on-diff-hl-mode and
+  ;; global-diff-hl-mode (whichever you prefer to use).
+  (setq diff-hl-disable-on-remote t))
+#+end_src
+
+
+*** git-link
 https://github.com/sshaw/git-link
 Interactive Emacs functions that create URLs for files and commits in GitHub/Bitbucket/GitLab/... repositories.
 
@@ -2387,9 +2369,9 @@ https://codeberg.org/akib/emacs-camera
 
 (use-package lsp-ui :commands lsp-ui-mode)
 ;; if you are helm user
-(use-package helm-lsp :commands helm-lsp-workspace-symbol
-  :config
-  (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
+;; (use-package helm-lsp :commands helm-lsp-workspace-symbol
+;;   :config
+;;   (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
 
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
@@ -3163,8 +3145,12 @@ https://github.com/mooz/js2-mode
   (add-hook 'js-mode-hook 'js2-minor-mode))
 
 
-  ;; You may also want to hook it in for shell scripts running via node.js:
-  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+;; You may also want to hook it in for shell scripts running via node.js:
+(add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((js . t)))
 #+end_src
 
 *** nodejs-repl
@@ -3401,7 +3387,7 @@ https://github.com/non-Jedi/eglot-jl
 #+end_src
     
 ** Python
-**** python
+**** COMMENT python
 
 #+begin_src emacs-lisp :lexical no
 (use-package python-mode
@@ -3947,7 +3933,7 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 #+begin_src emacs-lisp
   (use-package org-ref
     :bind (:map org-mode-map
-                ("C-c ]" . org-ref-helm-insert-cite-link)))
+                ("C-c ]" . org-ref-insert-cite-link)))
 
   (require 'reftex)
 
@@ -3985,12 +3971,12 @@ https://github.com/kawabata/ox-pandoc
 
 *** company-org-block
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp 
   (use-package company-org-block
     :after company
     :config
     (add-to-list 'company-backends 'company-org-block)
-    (setq company-org-block-edit-style 'auto))
+    (setq company-org-block-edit-style 'inline))
 #+end_src
 
 *** unicode-math-input
@@ -4174,7 +4160,7 @@ install
 
 #+RESULTS:
 
-*** org-appear
+*** COMMENT org-appear
 auto-toggle org elements
 
 #+begin_src emacs-lisp
@@ -4392,6 +4378,9 @@ Requirements
 #+end_src
 
 * Learn
+** Global keybinding in emacs
+Use the =bind-key*= function provided by =use-package=
+
 ** best-features-for-text-editing-in-emacs
 https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs/#built-in
 - C-t transpose-chars and its companion M-t transpose word
