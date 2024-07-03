@@ -118,12 +118,12 @@
 (defcommand backlight-up () ()
   "Up backlight by 20"
   (run-shell-command "brightnessctl s +50" )
-  (run-shell-command "notify-send \"Brightness\" $(brightnessctl | awk -F\" \" '/Current/ {print $4}')"))
+  (run-shell-command "dunstify  -h string:x-dunst-stack-tag:brightness \"Brightness\" $(brightnessctl | awk -F\" \" '/Current/ {print $4}')"))
 
 (defcommand backlight-down () ()
   "Up backlight by 20"
   (run-shell-command "brightnessctl s 50-")
-  (stumpwm:run-shell-command " notify-send \"Brightness\" $(brightnessctl | awk -F\" \" '/Current/ {print $4}') "))
+  (stumpwm:run-shell-command " dunstify -h string:x-dunst-stack-tag:brightness \"Brightness\" $(brightnessctl | awk -F\" \" '/Current/ {print $4}') "))
 
 (defcommand mic-mute () ()
   "Mute / Unmute microphone"
@@ -133,22 +133,24 @@
 (defcommand volume-mute () ()
   "Mute / Unmute volume"
   (run-shell-command "pactl set-sink-mute @DEFAULT_SINK@ toggle")
-  (run-shell-command  "notify-send \"Volume\" $(pamixer --get-volume-human) " t))
+  (run-shell-command  "dunstify -h string:x-dunst-stack-tag:volume \"Volume\" $(pamixer --get-volume-human) " t))
 
 (defcommand volume-up () ()
   "Mute / Unmute volume"
   (run-shell-command "pactl -- set-sink-volume @DEFAULT_SINK@ +5%")
-  (run-shell-command  "notify-send \"Volume\" $(pamixer --get-volume-human) " t))
+  (run-shell-command  "dunstify -h string:x-dunst-stack-tag:volume \"Volume\" $(pamixer --get-volume-human) " t))
 
 (defcommand volume-down () ()
   "Mute / Unmute volume"
   (run-shell-command "pactl -- set-sink-volume @DEFAULT_SINK@ -5%" )
-  (run-shell-command  "notify-send \"Volume\" $(pamixer --get-volume-human) " t))
+  (run-shell-command  "dunstify -h string:x-dunst-stack-tag:volume \"Volume\" $(pamixer --get-volume-human) " t))
 
+(defcommand clear-notifications () ()
+  (run-shell-command "dunstctl close-all"))
 
 (defcommand lock-screen () ()
-  "Uses ~/bin/lockscreen.sh to lock the screen"
-  (run-shell-command "i3lock -c 2e2e2e")) 
+  "Uses i3lock to lock the screen"
+  (run-shell-command "i3lock -c 2e2e2e"))
 
 (defcommand flameshot () ()
   "Launch flameshot for screenshot"
@@ -178,6 +180,7 @@
   '(
     ("Emacs" . 0)
     ("firefox" . 2)
+    ("firefox-default" . 2)
     ("kitty" . 3)
     ("Pavucontrol" . 8)
     )

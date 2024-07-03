@@ -42,6 +42,7 @@
 
 (define-key *top-map* (kbd "s-0") "fclear")
 (define-key *top-map* (kbd "Print") "flameshot")
+(define-key *top-map* (kbd "s-P") "flameshot")
 (define-key *top-map* (kbd "s-Print") "flameshot-launcher")
 (define-key *top-map* (kbd "s-SPC") "emacs-everywhere")
 (define-key *top-map* (kbd "s-B") "blueman-manager")
@@ -69,11 +70,11 @@
 
 
 ;; polybar manipulation
-(defvar *polybar-map* (make-sparse-keymap))
-(define-key *top-map* (kbd "s-P") '*polybar-map*)
-(define-key *polybar-map* (kbd "p") "launch-polybar")
-(define-key *polybar-map* (kbd "k") "kill-polybar")
-(define-key *polybar-map* (kbd "r") "refresh-polybar")
+;; (defvar *polybar-map* (make-sparse-keymap))
+;; (define-key *top-map* (kbd "s-P") '*polybar-map*)
+;; (define-key *polybar-map* (kbd "p") "launch-polybar")
+;; (define-key *polybar-map* (kbd "k") "kill-polybar")
+;; (define-key *polybar-map* (kbd "r") "refresh-polybar")
 
 ;; xrandr
 (defvar *xrandr-map* (make-sparse-keymap))
@@ -177,6 +178,8 @@
 (define-key *top-map* (kbd "XF86AudioLowerVolume") "volume-down")
 (define-key *top-map* (kbd "XF86AudioMicMute") "mic-mute")
 
+;; dunst
+(define-key *top-map* (kbd "C-S-SPC") "clear-notifications")
 ;; winner-mode
 (defvar *winner-map* (make-sparse-keymap))
 
