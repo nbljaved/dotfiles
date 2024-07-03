@@ -1,3 +1,4 @@
+
 #+PROPERTY: header-args:emacs-lisp :results silent :tangle ./init.el
 #+startup: contents
 #+auto_tangle: t
@@ -75,6 +76,12 @@ This will clone Elpaca into your user-emacs-directory under the elpaca
 subdirectory.
 It then builds and activates Elpaca.
 
+To update things like Melpa do =M-x elpaca-update-menus=
+
+#+begin_src  emacs-lisp
+(setq elpaca--core-date "20230730")
+#+end_src
+
 #+begin_src emacs-lisp
   (defvar elpaca-installer-version 0.6)
   (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -115,38 +122,46 @@ It then builds and activates Elpaca.
 #+end_src
 
 #+begin_src emacs-lisp
-;; Install a package via the elpaca macro
-;; See the "recipes" section of the manual for more details.
+  ;; Install a package via the elpaca macro
+  ;; See the "recipes" section of the manual for more details.
 
-;; (elpaca example-package)
+  ;; (elpaca example-package)
 
-;; Install use-package support
-(elpaca elpaca-use-package
-  ;; Enable :elpaca use-package keyword.
-  (elpaca-use-package-mode)
-  ;; Assume :elpaca t unless otherwise specified.
-  (setq elpaca-use-package-by-default t))
+  ;; Install use-package support
+  (elpaca elpaca-use-package
+    ;; Enable :elpaca use-package keyword.
+    (elpaca-use-package-mode)
+    ;; Assume :elpaca t unless otherwise specified.
+    (setq elpaca-use-package-by-default t))
 
-;; Block until current queue processed.
-(elpaca-wait)
+  ;; Block until current queue processed.
+  (elpaca-wait)
 
-;;When installing a package which modifies a form used at the top-level
-;;(e.g. a package which adds a use-package key word),
-;;use `elpaca-wait' to block until that package has been installed/configured.
-;;For example:
-;;(use-package general :demand t)
-;;(elpaca-wait)
+  ;;When installing a package which modifies a form used at the top-level
+  ;;(e.g. a package which adds a use-package key word),
+  ;;use `elpaca-wait' to block until that package has been installed/configured.
+  ;;For example:
+  ;;(use-package general :demand t)
+  ;;(elpaca-wait)
 
-;; Expands to: (elpaca evil (use-package evil :demand t))
-;; (use-package evil :demand t)
+  ;; Expands to: (elpaca evil (use-package evil :demand t))
+  ;; (use-package evil :demand t)
 
-;;Turns off elpaca-use-package-mode current declaration
-;;Note this will cause the declaration to be interpreted immediately (not deferred).
-;;Useful for configuring built-in emacs features.
-(use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
+  ;;Turns off elpaca-use-package-mode current declaration
+  ;;Note this will cause the declaration to be interpreted immediately (not deferred).
+  ;;Useful for configuring built-in emacs features.
+  (use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
 
-;; Don't install anything. Defer execution of BODY
-(elpaca nil (message "deferred"))
+  ;; Don't install anything. Defer execution of BODY
+  (elpaca nil (message "deferred"))
+#+end_src
+
+#+begin_src emacs-lisp
+  ;; Melpulls implements an Elpaca menu for outstanding MELPA pull
+  ;; requests. This makes it easy for Elpaca users to view, install, and
+  ;; contribute to those packages.
+  (elpaca-queue (elpaca '(melpulls :host github :repo "progfolio/melpulls")
+                  (add-to-list 'elpaca-menu-functions #'melpulls)))
 #+end_src
 
 ** COMMENT use-package
@@ -196,19 +211,31 @@ It then builds and activates Elpaca.
 ** Keep emacs.d clean
 
 #+begin_src emacs-lisp
-  ;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
-  (setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
-        url-history-file (expand-file-name "url/history" user-emacs-directory))
+;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
+(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
+      url-history-file (expand-file-name "url/history" user-emacs-directory))
 
-  ;; Use no-littering to automatically set common paths to the new user-emacs-directory
-  (use-package no-littering)
+;; Use no-littering to automatically set common paths to the new user-emacs-directory
+(use-package no-littering
+  :after (recentf undo-tree)
+  :config
+  ;; don't save backups, undo-tree meta-data in the same directory as
+  ;; the original file
+  (no-littering-theme-backups)
+  ;; If you use recentf then you might find it convenient to exclude
+  ;; all of the files in the no-littering directories using something
+  ;; like the following.
+  (add-to-list 'recentf-exclude
+               (recentf-expand-file-name no-littering-var-directory))
+  (add-to-list 'recentf-exclude
+               (recentf-expand-file-name no-littering-etc-directory)))
 
-  ;; Keep customization settings in a temporary file (thanks Ambrevar!)
-  (setq custom-file
-        (if (boundp 'server-socket-dir)
-            (expand-file-name "custom.el" server-socket-dir)
-          (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
-  (load custom-file t)
+;; Keep customization settings in a temporary file (thanks Ambrevar!)
+(setq custom-file
+      (if (boundp 'server-socket-dir)
+          (expand-file-name "custom.el" server-socket-dir)
+        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
+(load custom-file t)
 #+end_src
    
 ** Default coding system
@@ -286,13 +313,18 @@ It then builds and activates Elpaca.
 #+end_src
     
 *** emojify
+[[https://github.com/iqbalansari/emacs-emojify]]
+
+Install emoji, emojione, openemoji, using =M-x emojify-download-emoji=
 
 #+begin_src emacs-lisp
-  (use-package emojify
-    :bind ("C-M-e" . emojify-insert-emoji)
-    :config
-    (setq-default company-emojify-emoji-styles '(unicode github))
-    (global-emojify-mode))
+(use-package emojify
+  :bind ("C-M-e" . emojify-insert-emoji)
+  :config
+  (setq company-emojify-emoji-styles '(ascii unicode github)
+        emojify-emoji-styles '(ascii github)
+        emojify-emoji-set "emojione-v2-22")
+  (global-emojify-mode))
 #+end_src
     
 *** COMMENT company-emojify
@@ -1073,10 +1105,11 @@ https://github.com/ymarco/auto-activating-snippets
 https://github.com/tecosaur/LaTeX-auto-activating-snippets
 
 #+begin_src emacs-lisp
-  (use-package laas
-    :hook ((org-mode . laas-mode)
-           (LaTeX-mode . laas-mode))
-    :config )
+(use-package laas
+  :when (require 'auctex)
+  :hook ((org-mode . laas-mode)
+         (LaTeX-mode . laas-mode))
+  :config )
 #+end_src
 
 *** undo-tree
@@ -1273,15 +1306,26 @@ https://github.com/meow-edit/meow
 #+end_src
 
 ** recent
-*** recentf
+*** recentf-sync
+https://github.com/ffevotte/sync-recentf
+
+This package helps synchronizing the recent files list between emacs instances. Without it, each emacs instance manages its own recent files list. The last one to close persistently saves its list into recentf-save-file; all files recently opened by other instances are overwritten.
+
+With /sync-recentf/, all running emacs instances periodically synchronize their local recent files list with /recentf-save-file/. This ensures that all instances share the same list, which is persistently saved across sessions.
 
 #+begin_src emacs-lisp 
-(setq recentf-max-saved-items 5000
-      recentf-max-menu-items 100)
-(setq recentf-save-file "~/.emacs.d/recentf")
-;; save recentf-list every 1 minutes
-(run-at-time nil (* 1 60) 'recentf-save-list)
-(recentf-mode 1)
+(use-package sync-recentf
+  :after recentf
+  :config
+  (setq recentf-max-saved-items 5001
+        recentf-max-menu-items 100
+        recentf-save-file "~/.emacs.d/recentf")
+  ;; save recentf-list every 1 minutes
+  ;; (run-at-time nil (* 1 60) 'recentf-save-list)
+  ;; Cleanup the recent files list and synchronize it every 60 seconds.
+  (setq recentf-auto-cleanup 60)
+  ;; Activate recentf
+  (recentf-mode 1))
 #+end_src
 
 *** recentf-ext
@@ -1302,6 +1346,60 @@ https://github.com/rubikitch/recentf-ext
 (savehist-mode 1)
 #+end_src
 
+** casual
+*** casual-info
+https://github.com/kickingvegas/casual-info
+
+#+begin_src emacs-lisp :lexical no
+(use-package casual-info
+  :bind (:map Info-mode-map ("?" . #'casual-info-tmenu))
+  :config
+  ;; # Info
+  ;; Use web-browser history navigation bindings
+  (keymap-set Info-mode-map "M-[" #'Info-history-back)
+  (keymap-set Info-mode-map "M-]" #'Info-history-forward)
+  ;; Bind p and n to paragraph navigation
+  (keymap-set Info-mode-map "p" #'casual-info-browse-backward-paragraph)
+  (keymap-set Info-mode-map "n" #'casual-info-browse-forward-paragraph)
+  ;; Bind h and l to navigate to previous and next nodes
+  ;; Bind j and k to navigate to next and previous references
+  (keymap-set Info-mode-map "h" #'Info-prev)
+  (keymap-set Info-mode-map "j" #'Info-next-reference)
+  (keymap-set Info-mode-map "k" #'Info-prev-reference)
+  (keymap-set Info-mode-map "l" #'Info-next)
+  ;; Bind / to search
+  (keymap-set Info-mode-map "/" #'Info-search)
+  ;; Set Bookmark
+  (keymap-set Info-mode-map "B" #'bookmark-set)
+  (add-hook 'Info-mode-hook #'scroll-lock-mode))
+#+end_src
+
+*** casual-dired
+https://github.com/kickingvegas/casual-dired
+
+#+begin_src emacs-lisp :lexical no
+(use-package casual-dired
+  :bind (:map dired-mode-map ("?" . #'casual-dired-tmenu)))
+#+end_src
+
+* restart-emacs
+https://github.com/iqbalansari/restart-emacs
+
+It offers a command =restart-emacs= which kills current Emacs session and starts a new session.
+
+Additional arguments to be passed to the new instance can be specified using prefix arguments
+
+    with a single universal-argument (C-u) Emacs is restarted with /--debug-init/ flag
+    with two universal-argument (C-u C-u) Emacs is restarted with /-Q/ flag
+    with three universal-argument (C-u C-u C-u) the user is prompted for the arguments
+
+=restart-emacs= can restore frames on restart, right this is experimental and disabled by default to enable it set =restart-emacs-restore-frames= to =t=.
+
+There is also a second command =restart-emacs-start-new-emacs= which starts a new session of Emacs without killing the current one. It takes the same arguments as =restart-emacs=.
+
+#+begin_src emacs-lisp :lexical no
+(use-package restart-emacs)
+#+end_src
 
 ** hydra
 
@@ -1439,6 +1537,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 
 (define-key dired-mode-map (kbd "R") 'dired-async-do-rename)
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
+(add-hook 'dired-mode-hook #'dired-omit-mode)
 #+end_src
 
 *** COMMENT Dirvish
@@ -1673,8 +1772,9 @@ See https://github.com/alezost/guix.el
 =guix install emacs-guix=
 
 #+begin_src emacs-lisp
-(when guix?
-  (require 'guix-autoloads))
+  (when guix?
+    (require 'guix)
+    (guix-emacs-autoload-packages))
 #+end_src
 
 ** gptel
@@ -2127,9 +2227,7 @@ codeium-install
   (use-package nov
     ;;:hook (nov-mode . olivetti-mode)
     :config
-    (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-    (setq nov-unzip-program "/usr/bin/unzip")
-    )
+    (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
 #+end_src
 
 #+RESULTS:
@@ -2452,7 +2550,7 @@ Uses lsp-mode
            (lambda () (require 'ccls) (lsp-deferred))))
 #+end_src
 
-*** ninja
+*** COMMENT ninja
 
 #+begin_src emacs-lisp
 (use-package ninja-mode)
@@ -2914,7 +3012,7 @@ https://github.com/jingtaozf/literate-lisp
 #+begin_src emacs-lisp
 (use-package geiser-guile
   :config
-  (setq geiser-guile-binary (concat guix-profile-path "/bin/guile"))
+  (setq geiser-guile-binary "guile")
   (when guix?
     (with-eval-after-load 'geiser-guile
       (add-to-list 'geiser-guile-load-path guix-checkout-path))))
@@ -3892,13 +3990,14 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
   ;;                      ("convert -density %D -trim -antialias %f -quality 100 %O"))))
 #+end_src
 
-*** texfrag
+*** COMMENT texfrag
 https://github.com/TobiasZawada/texfrag
 previewing LaTeX fragments such as in doxygen comments. Other use-cases are MathJax snippets in html pages and LaTeX equations in stackexchange questions.
 
 
 #+begin_src emacs-lisp
 (use-package texfrag
+  :when (require 'auctex)
   :bind ((:map texfrag-mode-map
                ("C-c C-p" . org-previous-visible-heading)))
   :config
@@ -3932,28 +4031,37 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 *** Auctex
 
 #+begin_src emacs-lisp :lexical yes
+(when guix? 
+  (let* ((texlive-path (or (car (last (split-string
+                                       (shell-command-to-string
+                                        "guix package -I texlive"))))
+                           (error "install 'texlive' using 'guix install texlive'")))
+         (texlive-bin (concat texlive-path "/bin")))
+    (cl-pushnew texlive-bin exec-path)
+    texlive-bin))
+
 (use-package auctex
-  :elpaca  (auctex
-            :pre-build (("./autogen.sh")
-                        ("./configure"
-                         "--without-texmf-dir"
-                         "--with-packagelispdir=./"
-                         "--with-packagedatadir=./")
-                        ("make"))
-            :build (:not elpaca--compile-info) ;; Make will take care of this step
-            :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-            :version (lambda (_) (require 'tex-site) AUCTeX-version))
+  :elpaca nil
+  ;; :elpaca (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+  ;;                 :pre-build (("make" "elpa"))
+  ;;                 :build (:not elpaca--compile-info) ;; Make will take care of this step
+  ;;                 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+  ;;                 :version (lambda (_) (require 'tex-site) AUCTeX-version))
+  ;; :elpaca  (auctex
+  ;;           :pre-build (("./autogen.sh")
+  ;;                       ("./configure"
+  ;;                        "--without-texmf-dir"
+  ;;                        "--with-packagelispdir=./"
+  ;;                        "--with-packagedatadir=./")
+  ;;                       ("make"))
+  ;;           :build (:not elpaca--compile-info) ;; Make will take care of this step
+  ;;           :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+  ;;           :version (lambda (_) (require 'tex-site) AUCTeX-version))
   ;; :mode (("\\.tex\\'" . LaTeX-mode))
   :config
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
-(when guix?
-  (let* ((texlive-path (string-trim
-                        (shell-command-to-string
-                         "guix build --dry-run texlive")))
-         (texlive-bin (concat texlive-path "/bin")))
-    (cl-pushnew texlive-bin exec-path)
-    texlive-bin))
+
 #+end_src
 
 *** org-ref
@@ -4404,7 +4512,7 @@ https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs
 https://www.nongnu.org/atool/
 
 + The main command is =aunpack= which extracts files from an archive.
-  Did you ever extract files from an archive, not checking whether the files were located in a subdirectory or in the top directory of the archive, resulting in files scattered all over the place? aunpack overcomes this problem by first extracting to a new directory. If there was only a single file in the archive, that file is moved to the original directory. =aunpack= also prevents local files from being overwritten by mistake.
+  Did you ever extract files from an archive, not checking whether the files were located in a subdirectory or in the top directory of the archive, resulting in files scattered all over the place? aunpack overcomes this pr     oblem by first extracting to a new directory. If there was only a single file in the archive, that file is moved to the original directory. =aunpack= also prevents local files from being overwritten by mistake.
 
 + The other commands provided are =apack= (to create archives),
 
