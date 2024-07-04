@@ -154,7 +154,7 @@
 
 (defcommand flameshot () ()
   "Launch flameshot for screenshot"
-  (run-shell-command "flameshot gui"))
+  (run-shell-command "flameshot gui -c"))
 
 (defcommand flameshot-launcher () ()
   (run-shell-command "flameshot launcher"))
