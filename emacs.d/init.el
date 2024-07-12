@@ -10,6 +10,25 @@
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
+(defvar guix? (executable-find "guix")
+  "Boolean to check if guix exists on current system")
+
+(when guix?
+  (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
+			        (concat (getenv "HOME")
+				        "/.guix-profile"))
+    "Value of environment variable $GUIX_PROFILE.")
+
+  (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")
+                                 (concat (getenv "HOME")
+                                         "/src/guix"))
+    "Value of environment variable $GUIX_CHECKOUT, i.e. the location
+of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
+
+  (let ((default-directory (concat guix-profile-path
+                                   "/share/emacs/site-lisp/")))
+    (normal-top-level-add-subdirs-to-load-path)))
+
 (defvar elpaca-installer-version 0.6)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -70,7 +89,7 @@
 ;;(elpaca-wait)
 
 ;; Expands to: (elpaca evil (use-package evil :demand t))
-(use-package evil :demand t)
+;; (use-package evil :demand t)
 
 ;;Turns off elpaca-use-package-mode current declaration
 ;;Note this will cause the declaration to be interpreted immediately (not deferred).
@@ -321,6 +340,8 @@
          ("C-<" . mc/mark-previous-like-this)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 
+(use-package treemacs)
+
 (use-package company
   ;; :init
   ;; (add-hook 'after-init-hook 'global-company-mode)
@@ -347,143 +368,135 @@
 (use-package company-quickhelp
   :hook ((company-mode . company-quickhelp-mode)))
 
-(use-package helm
-  :bind (("C-x b" . helm-mini)
-         ("M-x" . helm-M-x)
-         ("C-x C-f" . helm-find-files) ;;  C-s to search in files
-         ("M-y" . helm-show-kill-ring)
-         ("C-c h" . helm-command-prefix)
-         :map helm-map
-         ("<tab>" . helm-execute-persistent-action )
-         ("C-z" . helm-select-action))
+(use-package counsel)
 
+(use-package swiper
+  :init
+  (defun nbl/swiper ()
+    ;; if some text is selected, use
+    ;; that as the search string.
+    (interactive)
+    (if (use-region-p)
+        (swiper-thing-at-point)
+      (swiper)))
+  :bind (("C-s" . nbl/swiper)
+         ("C-M-s" . swiper-isearch)))
+
+;; The `vertico' package applies a vertical layout to the minibuffer.
+;; It also pops up the minibuffer eagerly so we can see the available
+;; options without further interactions.  This package is very fast
+;; and "just works", though it also is highly customisable in case we
+;; need to modify its behaviour.
+;;
+(use-package vertico
+  :ensure t
   :config
-  (setq    helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-           helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-           helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-           helm-ff-file-name-history-use-recentf t
-           helm-echo-input-in-header-line t)
+  (setq vertico-cycle nil)
+  (setq vertico-resize nil)
+  (vertico-mode 1))
 
-  ;; (setq helm-display-function 'helm-display-buffer-in-own-frame
-  ;; helm-display-buffer-reuse-frame t
-  ;; helm-use-undecorated-frame-option t)
-
-  (setq helm-input-idle-delay                     0.01
-        helm-reuse-last-window-split-state        t
-        helm-always-two-windows                   t
-        helm-split-window-inside-p                t
-        helm-commands-using-frame                 '(completion-at-point
-                                                    helm-apropos
-                                                    helm-eshell-prompts helm-imenu
-                                                    helm-imenu-in-all-buffers)
-        helm-actions-inherit-frame-settings       t
-        helm-use-frame-when-more-than-two-windows nil
-        helm-use-frame-when-dedicated-window      nil
-        helm-show-action-window-other-window      'left
-        helm-allow-mouse                          t
-        ;; C-n can move to next source.
-        helm-move-to-line-cycle-in-source         nil
-        helm-autoresize-max-height                60 ; it is %.
-        helm-autoresize-min-height                20 ; it is %.
-        helm-follow-mode-persistent               t
-        helm-candidate-number-limit               500
-        helm-visible-mark-prefix                  "✓")
-
-
-  (helm-autoresize-mode 1)
-
-  (setq helm-buffers-fuzzy-matching t
-        helm-recentf-fuzzy-match    t
-        helm-locate-fuzzy-match     t
-        helm-semantic-fuzzy-search  t
-        helm-imenu-fuzzy-match      t)
-
-  ;; helm-man-woman
-  (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages)
-
-  ;; helm-locate <prefix> l
-  ;; helm-resume <prefix> b
-  (helm-mode 1))
-
-(use-package helm-descbinds
+;; The `marginalia' package provides helpful annotations next to
+;; completion candidates in the minibuffer.  The information on
+;; display depends on the type of content.  If it is about files, it
+;; shows file permissions and the last modified date.  If it is a
+;; buffer, it shows the buffer's size, major mode, and the like.
+;;
+(use-package marginalia
+  :ensure t
   :config
-  (helm-descbinds-mode 1))
+  (marginalia-mode 1))
 
-(use-package helm-company
-  :after company
-  :bind (:map company-mode-map
-              ("C-'" . helm-company)))
-
-(use-package helm-rg)
-
-(use-package helm-dired-history
-  :after dired
-  :bind (:map dired-mode-map
-              ("," . dired))
+;; The `orderless' package lets the minibuffer use an out-of-order
+;; pattern matching algorithm.  It matches space-separated words or
+;; regular expressions in any order.  In its simplest form, something
+;; like "ins pac" matches `package-menu-mark-install' as well as
+;; `package-install'.  This is a powerful tool because we no longer
+;; need to remember exactly how something is named.
+;;
+;; Note that Emacs has lots of "completion styles" (pattern matching
+;; algorithms), but let us keep things simple.
+;;
+(use-package orderless
+  :ensure t
   :config
-  (require 'savehist)
-  (add-to-list 'savehist-additional-variables 'helm-dired-history-variable)
-  (savehist-mode 1)
+  (setq completion-styles '(orderless basic)))
 
-  (with-eval-after-load 'dired
-
-    ;; if you are using ido,you'd better disable ido for dired
-    ;; (define-key (cdr ido-minor-mode-map-entry) [remap dired] nil) ;in ido-setup-hook
-    ))
-
-(use-package swiper-helm
-  :after helm
-  :bind (("C-s" . swiper-helm)))
-
-(defun nbl/+default/search-buffer ()
-  "Conduct a text search on the current buffer.
-If a selection is active, pre-fill the prompt with it."
-  (interactive)
-  (call-interactively
-   (if (region-active-p)
-       #'helm-swoop
-     #'swiper-helm)))
-
-(use-package helm-swoop
-  :bind (("C-s" . nbl/+default/search-buffer))
+;; The `consult' package provides lots of commands that are enhanced
+;; variants of basic, built-in functionality.  One of the headline
+;; features of `consult' is its preview facility, where it shows in
+;; another Emacs window the context of what is currently matched in
+;; the minibuffer.  Here I define key bindings for some commands you
+;; may find useful.  The mnemonic for their prefix is "alternative
+;; search" (as opposed to the basic C-s or C-r keys).
+;;
+;; Further reading: https://protesilaos.com/emacs/dotemacs#h:22e97b4c-d88d-4deb-9ab3-f80631f9ff1d
+(use-package consult
+  :ensure t
+  :bind (;; A recursive grep
+         ("M-s M-g" . consult-grep)
+         ;; Search for files names recursively
+         ("M-s M-f" . consult-find)
+         ;; Search through the outline (headings) of the file
+         ("M-s M-o" . consult-outline)
+         ;; Search the current buffer
+         ;; ("C-s" . consult-line)
+         ;; Switch to another buffer, or bookmarked file, or recently
+         ;; opened file.
+         ("C-x C-b" . consult-recent-file)
+         ("C-x b" . consult-buffer))
   :config
-  (setq helm-swoop-speed-or-color t ;; sacrifice colour for speed
-        helm-swoop-use-fuzzy-match t
-        ;; Save buffer when helm-multi-swoop-edit complete
-        helm-multi-swoop-edit-save t
-        ;; If this value is t, split window inside the current window
-        helm-swoop-split-with-multiple-windows nil
-        ;; Split direcion. 'split-window-vertically or 'split-window-horizontally
-        helm-swoop-split-direction 'split-window-vertically
-        ;; If nil, you can slightly boost invoke speed in exchange for text color
-        helm-swoop-speed-or-color nil
-        ;; ;; Go to the opposite side of line from the end or beginning of line
-        helm-swoop-move-to-line-cycle t
-        ;; Optional face for line numbers
-        ;; Face name is `helm-swoop-line-number-face`
-        helm-swoop-use-line-number-face t))
+  (setq consult-line-start-from-top nil))
 
-(use-package helm-icons
-  :after (helm all-the-icons)
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
   :config
-  (setq helm-icons-provider 'treemacs)
-  (helm-icons-enable))
+  (global-set-key (kbd "C-x C-d") 'consult-dir))
 
-(use-package ace-jump-helm-line
-  :bind (:map helm-map
-              ("C-'" . ace-jump-helm-line))
-  :config
-  (setq ace-jump-helm-line-style 'post)
-  (setq ace-jump-helm-line-idle-delay 0.5)
-  ;; (ace-jump-helm-line-idle-exec-remove 'helm-mini)
-  ;; (ace-jump-helm-line-idle-exec-add 'helm-company)
+;; The `embark' package lets you target the thing or context at point
+;; and select an action to perform on it.  Use the `embark-act'
+;; command while over something to find relevant commands.
+;;
+;; When inside the minibuffer, `embark' can collect/export the
+;; contents to a fully fledged Emacs buffer.  The `embark-collect'
+;; command retains the original behaviour of the minibuffer, meaning
+;; that if you navigate over the candidate at hit RET, it will do what
+;; the minibuffer would have done.  In contrast, the `embark-export'
+;; command reads the metadata to figure out what category this is and
+;; places them in a buffer whose major mode is specialised for that
+;; type of content.  For example, when we are completing against
+;; files, the export will take us to a `dired-mode' buffer; when we
+;; preview the results of a grep, the export will put us in a
+;; `grep-mode' buffer.
+;;
+;; Further reading: https://protesilaos.com/emacs/dotemacs#h:61863da4-8739-42ae-a30f-6e9d686e1995
+(use-package embark
+  :ensure t
+  :bind (("C-." . embark-act)
+         :map minibuffer-local-map
+         ("C-c C-c" . embark-collect)
+         ("C-c C-e" . embark-export)))
 
-  ;; select
-  (setq ace-jump-helm-line-default-action 'select)
-  ;; (setq ace-jump-helm-line-select-key ?e)
-  ;; Set the move-only and persistent keys
-  (setq ace-jump-helm-line-move-only-key ?m)
-  (setq ace-jump-helm-line-persistent-key ?p))
+;; The `embark-consult' package is glue code to tie together `embark'
+;; and `consult'.
+(use-package embark-consult
+  :ensure t)
+
+;; The `wgrep' packages lets us edit the results of a grep search
+;; while inside a `grep-mode' buffer.  All we need is to toggle the
+;; editable mode, make the changes, and then type C-c C-c to confirm
+;; or C-c C-k to abort.
+;;
+;; Further reading: https://protesilaos.com/emacs/dotemacs#h:9a3581df-ab18-4266-815e-2edd7f7e4852
+(use-package wgrep
+  :ensure t
+  :bind ( :map grep-mode-map
+          ("e" . wgrep-change-to-wgrep-mode)
+          ("C-x C-q" . wgrep-change-to-wgrep-mode)
+          ("C-c C-c" . wgrep-finish-edit)))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -518,7 +531,7 @@ If a selection is active, pre-fill the prompt with it."
   (define-key yas-minor-mode-map (kbd "TAB") yas-maybe-expand)
   ;; Bind `SPC' to `yas-expand' when snippet expansion available (it
   ;; will still call `self-insert-command' otherwise).
-  ;; (define-key yas-minor-mode-map (kbd "SPC") yas-maybe-expand)
+  (define-key yas-minor-mode-map (kbd "SPC") yas-maybe-expand)
   (add-hook 'yas-before-expand-snippet-hook (lambda () (smartparens-mode -1)))
   (add-hook 'yas-after-exit-snippet-hook (lambda () (smartparens-mode 1)))
   (yas-global-mode 1))
@@ -556,10 +569,10 @@ If a selection is active, pre-fill the prompt with it."
   (setf hungry-delete-join-reluctantly t)
   (global-hungry-delete-mode))
 
-(global-set-key (kbd "C-`") 'delete-window)
-(global-set-key (kbd "C-1") 'delete-other-windows)
-(global-set-key (kbd "C-2") 'split-window-below)
-(global-set-key (kbd "C-3") 'split-window-right)
+;; (global-set-key (kbd "C-`") 'delete-window)
+;; (global-set-key (kbd "C-1") 'delete-other-windows)
+;; (global-set-key (kbd "C-2") 'split-window-below)
+;; (global-set-key (kbd "C-3") 'split-window-right)
 
 (global-set-key (kbd "s-k") 'kill-this-buffer)
 (global-set-key (kbd "s-K") 'kill-buffer-and-window)
@@ -588,19 +601,10 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (general-auto-unbind-keys 1))
 
-(use-package key-chord
-  :after avy
-  :config
-  (key-chord-define-global "fj" 'avy-goto-char-2)
-  (key-chord-mode 1))
-
 (use-package avy
   :demand t
-  :bind (("C-j" . avy-goto-char-timer)
-         ("C-c SPC" . avy-goto-char-2)
-         ("M-g w" . avy-goto-word-1)
-         ("M-g e" . avy-goto-word-0)
-         ("M-g l" . avy-goto-line)))
+  :config
+  (global-set-key (kbd "<menu>") #'avy-goto-char-timer))
 
 (use-package ace-isearch
   :config
@@ -608,12 +612,19 @@ If a selection is active, pre-fill the prompt with it."
 
 (setq recentf-max-saved-items 5000
       recentf-max-menu-items 100)
-(setq-default recentf-save-file "~/.emacs.d/recentf")
-;; save recentf-list every 5 minutes
-(run-at-time nil (* 5 60) 'recentf-save-list)
+(setq recentf-save-file "~/.emacs.d/recentf")
+;; save recentf-list every 1 minutes
+(run-at-time nil (* 1 60) 'recentf-save-list)
 (recentf-mode 1)
 
 (use-package recentf-ext)
+
+;; The built-in `savehist-mode' saves minibuffer histories.  Vertico
+;; can then use that information to put recently selected options at
+;; the top.
+;;
+;; Further reading: https://protesilaos.com/emacs/dotemacs#h:25765797-27a5-431e-8aa4-cc890a6a913a
+(savehist-mode 1)
 
 (use-package hydra
   :ensure t)
@@ -663,13 +674,13 @@ If a selection is active, pre-fill the prompt with it."
               ("C-y" . dired-ranger-paste)
               ("C-u C-y" . dired-ranger-move)))
 
-(use-package dired-recent
-  :config
-  (dired-recent-mode 1))
-
 (use-package dired-open
   :bind (:map dired-mode-map
               ("J" . dired-open-xdg)))
+
+(use-package dired-open-with
+  :bind (:map dired-mode-map
+              ("C-u J" . dired-open-with)))
 
 (use-package dired-filter
   :hook ((dired-mode . dired-filter-group-mode))
@@ -724,6 +735,12 @@ If a selection is active, pre-fill the prompt with it."
   :config
   (add-hook 'pdf-view-mode-hook 'pdf-view-restore-mode))
 
+(require 'info)
+(when guix?
+  (add-to-list 'Info-additional-directory-list
+	       (concat guix-profile-path
+		       "/share/info/")))
+
 (use-package which-key
   :config
   (which-key-mode 1))
@@ -743,6 +760,24 @@ If a selection is active, pre-fill the prompt with it."
   :ensure t
   :config
   (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode)))
+
+(when guix?
+  (require 'guix-autoloads))
+
+(use-package gptel
+  :config
+  ;; Register a backend
+  ;; Together.ai offers an OpenAI compatible API
+  (setq-default gptel-backend (gptel-make-openai "TogetherAI" ;Any name you want
+                                :host "api.together.xyz"
+                                :key (gptel-api-key-from-auth-source "api.together.xyz")
+                                :stream t
+                                :models '(;; has many more, check together.ai
+                                          "mistralai/Mixtral-8x7B-Instruct-v0.1"
+                                          "codellama/CodeLlama-13b-Instruct-hf"
+                                          "codellama/CodeLlama-34b-Instruct-hf")))
+  (global-set-key (kbd "C-x C-l") 'gptel-send)
+  (global-set-key (kbd "C-x l") 'gptel-abort))
 
 (use-package session
   :config
@@ -794,7 +829,6 @@ Version 2017-11-10"
   (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
 
 (use-package magit
-  :ensure t
   :bind (:map magit-mode-map
               ("M-1" . nil)
               ("M-2" . nil)
@@ -812,6 +846,10 @@ Version 2017-11-10"
   (setq  forge-topic-list-limit '(100 . -10)))
 
 (use-package git-link)
+
+(use-package rg
+  :config
+  (rg-enable-default-bindings))
 
 (use-package topsy
   :hook (prog-mode . topsy-mode))
@@ -850,10 +888,6 @@ Version 2017-11-10"
 (defun nbl/org-toggle-inline-images () (interactive)
        (org-toggle-inline-images 1))
 
-(add-to-list 'tramp-connection-properties
-             (list (regexp-quote "/sshx:user@host:")
-                   "remote-shell" "/usr/bin/zsh"))
-
 (use-package ssh-config-mode)
 
 (setq auth-sources '("~/.authinfo"))
@@ -877,15 +911,7 @@ Version 2017-11-10"
         crdt-use-tuntox t
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 
-(use-package copilot
-  :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
-  :ensure t
-  :config
-  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-  ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
-
-  )
+(use-package pfuture)
 
 (use-package nov
   ;;:hook (nov-mode . olivetti-mode)
@@ -919,6 +945,10 @@ Version 2017-11-10"
   :commands (info-colors-fontify-node))
 
 (add-hook 'Info-selection-hook 'info-colors-fontify-node)
+
+(use-package camera
+  :elpaca (camera :type git
+                  :repo "https://codeberg.org/akib/emacs-camera.git"))
 
 (use-package lsp-mode
   :init
@@ -973,11 +1003,14 @@ Version 2017-11-10"
 
 (use-package ninja-mode)
 
-(setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
+;; (setq inferior-lisp-program "ros -Q run -- --dynamic-space-size 32000 --control-stack-size 4096")
+(setq inferior-lisp-program "sbcl --dynamic-space-size 32000 --control-stack-size 4096")
 (setq max-lisp-eval-depth 8000)
 
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
+
+(make-directory "~/.roswell" :parents)
 
 (use-package sly
   :hook ((sly-mode . rainbow-delimiters-mode)
@@ -990,7 +1023,8 @@ Version 2017-11-10"
         sly-net-coding-system 'utf-8-unix
         sly-common-lisp-style-default 'sbcl)
   (setq sly-lisp-implementations
-        '((sbcl ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
+        '((sbcl ;; ("ros" "-Q" "run" "--" "--dynamic-space-size" "32000" "--control-stack-size" "4096")
+           ("sbcl" "--dynamic-space-size" "32000" "--control-stack-size" "4096"))
           (lispworks ("ros" "-Q" "-L" "lispworks" "run"))))
 
   ;;(require 'sly-cl-indent (concat (getenv "HOME") "/.emacs.d/straight/repos/sly/lib/sly-cl-indent.el"))
@@ -1040,16 +1074,23 @@ Version 2017-11-10"
 ;; (setq browse-url-browser-function 'browse-url-generic)
 ;; (setq browse-url-generic-program "google-chrome")
 
+(use-package eros)
+
 (use-package geiser
   :config
-  (setq geiser-active-implementations '(guile)))
+  (setq geiser-active-implementations '(guile))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((scheme . t))))
 
 (use-package geiser-guile
   :config
-  ;;(setq geiser-guile-binary "~/.guix-profile/bin/guile")
-  )
+  (setq geiser-guile-binary (concat guix-profile-path "/bin/guile"))
+  (when guix?
+    (with-eval-after-load 'geiser-guile
+      (add-to-list 'geiser-guile-load-path guix-checkout-path))))
 
-;; (use-package geiser-racket)
+(defun geiser-racket--language () '())
 
 (use-package racket-mode
   :mode ("\\.rkt\\'" . racket-mode)
@@ -1059,7 +1100,10 @@ Version 2017-11-10"
   ;; the below RACKET-UNICODE-INPUT-METHOD-ENABLE caused problems with LISPY
   ;; (add-hook 'racket-mode-hook      #'racket-unicode-input-method-enable)
   ;; (add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
-  )
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((racket . t))))
 
 (use-package sicp)
 
@@ -1086,6 +1130,12 @@ Version 2017-11-10"
 (use-package go-mode
   :config
   (add-hook 'before-save-hook 'gofmt-before-save))
+
+(use-package ob-go
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((go . t))))
 
 (use-package web-mode
   :config
@@ -1130,56 +1180,30 @@ Version 2017-11-10"
   ;; You may also want to hook it in for shell scripts running via node.js:
   (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
 
-(use-package js-comint
+(use-package nodejs-repl
   :config
-  (js-do-use-nvm)
-  ;; Remap Elisp's eval-last-sexp (C-x C-e) to eval JavaScript
-  (define-key js-mode-map [remap eval-last-sexp] #'js-comint-send-last-sexp)
-  (define-key js-mode-map (kbd "C-c C-l") 'js-send-buffer))
-
-(defun inferior-js-mode-hook-setup ()
-  (add-hook 'comint-output-filter-functions 'js-comint-process-output))
-(add-hook 'inferior-js-mode-hook 'inferior-js-mode-hook-setup t)
+  ;; (defun nvm-which ()
+  ;;   (let* ((shell (concat (getenv "SHELL") " -l -c 'nvm which'"))
+  ;;          (output (shell-command-to-string shell)))
+  ;;     (cadr (split-string output "[\n]+" t))))
+  (setq nodejs-repl-command "node"))
 
 (use-package nvm)
 
-(use-package python
+(use-package python-mode
   :mode ("[./]flake8\\'" . conf-mode)
   :mode ("/Pipfile\\'" . conf-mode)
   :config
+  (add-to-list 'exec-path "/home/nabeel/.local/bin")
   )
 
-(add-to-list 'exec-path "/home/nabeel/.local/bin")
-(require 'eglot nil t)
+
 ;; (add-hook 'python-mode-hook 'eglot-ensure)
 ;; (add-to-list 'eglot-server-programs '(foo-mode . ("foo-language-server" "--args")))
 ;; (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
 
-;; Keybinding 	Description
-;; C-M-i 	anaconda-mode-complete
-;; M-. 	anaconda-mode-find-definitions
-;; C-x 4 . 	anaconda-mode-find-definitions-other-window
-;; C-x 5 . 	anaconda-mode-find-definitions-other-frame
-;; M-= 	anaconda-mode-find-assignments
-;; C-x 4 = 	anaconda-mode-find-assignments-other-window
-;; C-x 5 = 	anaconda-mode-find-assignments-other-frame
-;; M-r 	anaconda-mode-find-references
-;; C-x 4 r 	anaconda-mode-find-references-other-window
-;; C-x 5 r 	anaconda-mode-find-references-other-frame
-;; M-, 	xref-pop-marker-stack
-;; M-? 	anaconda-mode-show-doc
-
-(use-package anaconda-mode
-  :hook ((python-mode . anaconda-mode)
-         (python-mode . anaconda-eldoc-mode))
-  :bind (("C-c C-d" . anaconda-mode-show-doc)))
-
-(use-package company-anaconda
-  :config
-  (eval-after-load "company"
-    '(add-to-list 'company-backends 'company-anaconda)))
-
 (use-package lpy
+  :after counsel
   :hook ((python-mode . lpy-mode))
   :bind (:map lpy-mode-map
               ("M-." . nil)
@@ -1214,8 +1238,6 @@ Version 2017-11-10"
       (pyenv-mode-unset))))
 
 (add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
-
-(use-package live-py-mode)
 
 ;; To use it call M-x pippel-list-packages.
 
@@ -1294,6 +1316,7 @@ Version 2017-11-10"
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((latex . t)
+   (sqlite . t)
    (python . t)
    (java . t)
    (C . t)
@@ -1301,7 +1324,6 @@ Version 2017-11-10"
    (emacs-lisp . t)
    (octave . t)
    (maxima . t)
-   ;;(racket . t)
    (shell . t)
    ;;(julia . t)
    ;; (julia-vterm . t)
@@ -1310,6 +1332,7 @@ Version 2017-11-10"
    ))
 
 (setq org-babel-lisp-eval-fn 'sly-eval)
+(setq org-babel-python-command "python3")
 
 ;; This is needed as of Org 9.2
 (require 'org-tempo)
@@ -1406,6 +1429,13 @@ Version 2017-11-10"
 ;;                      :image-converter
 ;;                      ("convert -density %D -trim -antialias %f -quality 100 %O"))))
 
+(use-package texfrag
+  :bind ((:map texfrag-mode-map
+               ("C-c C-p" . org-previous-visible-heading)))
+  :config
+  (setq-default texfrag-scale 0.7
+                texfrag-preview-buffer-at-start nil))
+
 (use-package cdlatex
   :bind (:map org-mode-map
               ("C-c e" . cdlatex-environment))
@@ -1426,13 +1456,27 @@ Version 2017-11-10"
 \\end{tikzpicture}" nil))))
 
 (use-package auctex
-  ;;:ensure auctex
-  :elpaca  (auctex :pre-build (("./autogen.sh")
-                               ("./configure" "--without-texmf-dir" "--with-lispdir=.")
-                               ("make")))
-  :mode (("\\.tex\\'" . LaTeX-mode))
+  :elpaca  (auctex
+            :pre-build (("./autogen.sh")
+                        ("./configure"
+                         "--without-texmf-dir"
+                         "--with-packagelispdir=./"
+                         "--with-packagedatadir=./")
+                        ("make"))
+            :build (:not elpaca--compile-info) ;; Make will take care of this step
+            :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+            :version (lambda (_) (require 'tex-site) AUCTeX-version))
+  ;; :mode (("\\.tex\\'" . LaTeX-mode))
   :config
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+
+(when guix?
+  (let* ((texlive-path (string-trim
+                        (shell-command-to-string
+                         "guix build --dry-run texlive")))
+         (texlive-bin (concat texlive-path "/bin")))
+    (cl-pushnew texlive-bin exec-path)
+    texlive-bin))
 
 (use-package org-ref
   :bind (:map org-mode-map
@@ -1464,12 +1508,14 @@ Version 2017-11-10"
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode))
 
+(make-directory "~/org/roam" :parents)
+
 (use-package org-roam
   :demand t
   :init
   (setq org-roam-v2-ack t)
   :custom
-  (org-roam-directory (file-truename "/home/nabeel/org/roam/"))
+  (org-roam-directory (file-truename "~/org/roam/"))
   :config
   (org-roam-db-autosync-mode 1))
 
@@ -1575,6 +1621,16 @@ Version 2017-11-10"
 
 (use-package ox-gfm)
 
+(use-package org-transclusion
+  :bind (("<f12>" . org-transclusion-add)
+         (:map org-transclusion-map
+               ("<f12>". org-transclusion-remove)))
+  :config
+  (set-face-attribute
+   'org-transclusion-fringe nil
+   :foreground "white smoke"
+   :background "white smoke"))
+
 (use-package org-pandoc-import
   :elpaca (org-pandoc-import
              :host github
@@ -1588,6 +1644,8 @@ Version 2017-11-10"
   :hook (org-mode . org-sticky-header-mode)
   :config
   (setq org-sticky-header-full-path 'reversed))
+
+
 
 (use-package org-web-tools)
 
@@ -1603,11 +1661,4 @@ Version 2017-11-10"
   (setq org-tree-slide-skip-done t)
   (org-tree-slide-simple-profile))
 
-(use-package ox-reveal
-  :config
-  (setq org-reveal-root (concat "file://"
-                                (getenv "HOME")
-                                "/.emacs.d/manual/reveal.js")
-        org-reveal-hlevel 1
-        ;; to make src blocks executable
-        org-reveal-klipsify-src nil))
+(use-package anki-editor)
