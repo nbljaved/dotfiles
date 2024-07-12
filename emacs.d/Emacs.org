@@ -441,7 +441,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 *** Basic
 
 #+begin_src emacs-lisp
-(global-prettify-symbols-mode 1) ;; lambda -> λ
+(global-prettify-symbols-mode -1) ;; lambda -> λ
 
 (global-font-lock-mode 1)
 
@@ -473,9 +473,12 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 
 (global-set-key (kbd "C-x C-f") 'find-file-at-point)
 
+;; Use hippie instead of dabbrev
+(global-set-key [remap dabbrev-expand] 'hippie-expand)
+
 #+end_src
 
-*** COMMENT face-remap+
+* COMMENT face-remap+
 
 #+begin_src emacs-lisp
 (use-package face-remap+)
@@ -1390,6 +1393,9 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 
 (define-key dired-mode-map (kbd "R") 'dired-async-do-rename)
 (define-key dired-mode-map (kbd "C") 'dired-async-do-copy)
+
+(setq dired-create-destination-dirs 'ask
+      dired-create-destination-dirs-on-trailing-dirsep t)
 #+end_src
 
 *** COMMENT Dirvish
@@ -2350,6 +2356,18 @@ https://codeberg.org/akib/emacs-camera
 (use-package camera
   :elpaca (camera :type git
                   :repo "https://codeberg.org/akib/emacs-camera.git"))
+#+end_src
+
+*** memento-mori
+https://github.com/gvol/emacs-memento-mori
+
+#+begin_src emacs-lisp :lexical no
+(use-package memento-mori
+  :ensure t
+  :custom (memento-mori-mementos
+           '(("%.5Y years old" :since "1997-06-16")))
+  :config
+  (memento-mori-mode))
 #+end_src
 
 * Languages
@@ -4387,6 +4405,8 @@ https://tech.toryanderson.com/2021/02/27/best-features-for-text-editing-in-emacs
 - C-x i (insert-file) to stick stuff straight into my document
 - M-q (fill-paragraph) since my “paragraphs” have unlimited line length, this removes line breaks
 - M-/ (dabbrev-expand) which replaces the word at point with the nearest thing in some open buffer. Repeating it cycles through replacement options. Great as a super-quick spell-check or completion when you’ve just started some annoyingly long word. Great for code variables as well as natural language prefixes.
+  - Use =hippie-expand= instead.
+    https://www.masteringemacs.org/article/text-expansion-hippie-expand
 - ispell and its family for spell-checking, which can be super-powered by extra libs
 - Multiple kill-ring, meaning you can copy three chunks of text from somewhere and paste them in the places you want, instead of having to go back to copy the second, then paste, then third, then paste, you’ve got it all in one go. I frequently wish for a kill ring when I’m in my browser or libre calc.
 - replace-regexp which, along with plain old regexp replacement, lets you replace with the results of a function. I’ve used this to implement transliterations, to fix mis-sectioned documents when line-breaks were mistaken for new sections, etc.
