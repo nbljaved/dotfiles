@@ -4308,16 +4308,18 @@ install
 
 #+RESULTS:
 
-*** COMMENT org-appear
+*** org-appear
 auto-toggle org elements
 
 #+begin_src emacs-lisp
-  (use-package org-appear
-    :hook (org-mode . org-appear-mode)
-    :config
-    (setq org-appear-autoentities t
-          org-appear-autolinks nil
-          org-appear-autosubmarkers t))
+(use-package org-appear
+  :after org
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autoentities t
+        org-appear-autolinks nil
+        org-appear-autosubmarkers t)
+  (format "hello"))
 #+end_src
 
 *** org-download
