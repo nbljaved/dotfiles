@@ -1,4 +1,3 @@
-
 #+PROPERTY: header-args:emacs-lisp :results silent :tangle ./init.el
 #+startup: contents
 #+auto_tangle: t
@@ -1004,7 +1003,7 @@ https://github.com/minad/consult
   (global-set-key (kbd "C-x C-d") 'consult-dir))
 #+end_src
 
-#+begin_src emacs-lisp :lexical no :results 
+#+begin_src emacs-lisp :lexical no
 (use-package consult-company
   :config
   (define-key company-mode-map [remap completion-at-point] #'consult-company))
