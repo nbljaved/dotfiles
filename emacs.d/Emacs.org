@@ -305,6 +305,8 @@ To update things like Melpa do =M-x elpaca-update-menus=
 
 (column-number-mode 1)
 
+(setq-default fill-column 80)
+
 #+end_src
 
 ** Font
@@ -2117,6 +2119,16 @@ https://gitlab.com/emacs-stuff/indent-tools
 #+begin_src emacs-lisp
   (defun nbl/org-toggle-inline-images () (interactive)
          (org-toggle-inline-images 1))
+#+end_src
+
+#+begin_src emacs-lisp
+(defun nbl/fill-paragraph-or-region ()
+  (interactive)
+  (if (region-active-p)
+      (fill-region-as-paragraph)
+    (fill-paragraph)))
+
+(bind-key* (kbd "M-q") 'nbl/fill-paragraph-or-region)
 #+end_src
 
 ** ssh
