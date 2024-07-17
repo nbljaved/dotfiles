@@ -2125,7 +2125,7 @@ https://gitlab.com/emacs-stuff/indent-tools
 (defun nbl/fill-paragraph-or-region ()
   (interactive)
   (if (region-active-p)
-      (fill-region-as-paragraph)
+      (fill-region-as-paragraph (region-beginning) (region-end))
     (fill-paragraph)))
 
 (bind-key* (kbd "M-q") 'nbl/fill-paragraph-or-region)
