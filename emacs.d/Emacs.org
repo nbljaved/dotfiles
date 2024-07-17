@@ -509,7 +509,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 
 #+end_src
 
-* COMMENT face-remap+
+*** COMMENT face-remap+
 
 #+begin_src emacs-lisp
 (use-package face-remap+)
@@ -1140,7 +1140,8 @@ https://github.com/tecosaur/LaTeX-auto-activating-snippets
 
 #+begin_src emacs-lisp
 (use-package laas
-  :when (require 'auctex)
+  :when (require 'auctex nil :no-error)
+
   :hook ((org-mode . laas-mode)
          (LaTeX-mode . laas-mode))
   :config )
@@ -4005,7 +4006,7 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 
 #+begin_src emacs-lisp
 (use-package texfrag
-  :when (require 'auctex)
+  :when (require 'auctex nil :no-error)
   :bind ((:map texfrag-mode-map
                ("C-c C-p" . org-previous-visible-heading)))
   :config
