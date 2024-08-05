@@ -1637,9 +1637,10 @@ From =Guix=.
   (use-package pdf-tools
     :bind (:map pdf-view-mode-map
                 ("C-s" . isearch-forward))
-    :config)
+    :config
+    (pdf-tools-install t))
 
-  (pdf-tools-install t)
+
 #+end_src
 
 ** pdf-view-restore
