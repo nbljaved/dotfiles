@@ -20,53 +20,6 @@ Make startup faster by reducing the frequency of garbage collection and then use
                      gcs-done)))
 #+end_src
 
-** Operating system and distribution
-*** exec-path-from-shell
-https://github.com/purcell/exec-path-from-shell
-
-A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
-
-- Motivation ::
-  Ever find that a command works in your shell, but not in Emacs?
-  
-  This happens a lot on OS X, where an Emacs instance launched as a GUI app inherits a default minimal set of environment variables that are probably not the ones you see in a terminal window.
-
-  Similarly, if you start Emacs as a daemon from systemd or launchd, it will run with a default set of environment variables.
-  
-  This library solves this problem by copying important environment variables from the user's shell: it works by asking your shell to print out the variables of interest, then copying them into the Emacs environment.
-
-#+begin_src emacs-lisp :lexical no
-(use-package exec-path-from-shell
-  :config
-  (when (or (memq window-system '(mac ns x))
-            (daemonp))
-    (exec-path-from-shell-initialize)))
-#+end_src
-
-*** Guix
-
-#+begin_src emacs-lisp :lexical no
-(defvar guix? (executable-find "guix")
-  "Boolean to check if guix exists on current system")
-
-(when guix?
-  (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
-			        (concat (getenv "HOME")
-				        "/.guix-profile"))
-    "Value of environment variable $GUIX_PROFILE.")
-
-  (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")
-                                 (concat (getenv "HOME")
-                                         "/src/guix"))
-    "Value of environment variable $GUIX_CHECKOUT, i.e. the location
-of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
-  
-  (let ((default-directory (concat guix-profile-path
-                                   "/share/emacs/site-lisp/")))
-    (normal-top-level-add-subdirs-to-load-path)))
-
-#+end_src
-
 ** Package Management 
 Install =emacs-use-package= from Guix
 
@@ -184,6 +137,53 @@ To update things like Melpa do =M-x elpaca-update-menus=
   ;; contribute to those packages.
   (elpaca-queue (elpaca '(melpulls :host github :repo "progfolio/melpulls")
                   (add-to-list 'elpaca-menu-functions #'melpulls)))
+#+end_src
+
+** Operating system and distribution
+*** exec-path-from-shell
+https://github.com/purcell/exec-path-from-shell
+
+A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
+
+- Motivation ::
+  Ever find that a command works in your shell, but not in Emacs?
+  
+  This happens a lot on OS X, where an Emacs instance launched as a GUI app inherits a default minimal set of environment variables that are probably not the ones you see in a terminal window.
+
+  Similarly, if you start Emacs as a daemon from systemd or launchd, it will run with a default set of environment variables.
+  
+  This library solves this problem by copying important environment variables from the user's shell: it works by asking your shell to print out the variables of interest, then copying them into the Emacs environment.
+
+#+begin_src emacs-lisp :lexical no
+(use-package exec-path-from-shell
+  :config
+  (when (or (memq window-system '(mac ns x))
+            (daemonp))
+    (exec-path-from-shell-initialize)))
+#+end_src
+
+*** Guix
+
+#+begin_src emacs-lisp :lexical no
+(defvar guix? (executable-find "guix")
+  "Boolean to check if guix exists on current system")
+
+(when guix?
+  (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
+			        (concat (getenv "HOME")
+				        "/.guix-profile"))
+    "Value of environment variable $GUIX_PROFILE.")
+
+  (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")
+                                 (concat (getenv "HOME")
+                                         "/src/guix"))
+    "Value of environment variable $GUIX_CHECKOUT, i.e. the location
+of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
+  
+  (let ((default-directory (concat guix-profile-path
+                                   "/share/emacs/site-lisp/")))
+    (normal-top-level-add-subdirs-to-load-path)))
+
 #+end_src
 
 ** COMMENT use-package
@@ -1637,10 +1637,9 @@ From =Guix=.
   (use-package pdf-tools
     :bind (:map pdf-view-mode-map
                 ("C-s" . isearch-forward))
-    :config
-    )
+    :config)
 
-  ;;(pdf-tools-install t)
+  (pdf-tools-install t)
 #+end_src
 
 ** pdf-view-restore
