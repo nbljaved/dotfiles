@@ -39,6 +39,7 @@ Install =emacs-use-package= from Guix
 ;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")
 ;; ;; Initializes the package infrastructure
 ;; ;; (package-initialize)
+
 ;; ;; to prevent package.el loading packages prior to their init-file loading.
 (setq package-enable-at-startup nil)
 ;; ;; (setq package-enable-at-startup t)
@@ -54,46 +55,48 @@ It then builds and activates Elpaca.
 To update things like Melpa do =M-x elpaca-update-menus=
 
 #+begin_src  emacs-lisp
-(setq elpaca--core-date "20230730")
+;;(setq elpaca--core-date "20230730")
 #+end_src
 
 #+begin_src emacs-lisp
-  (defvar elpaca-installer-version 0.6)
-  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                                :ref nil
-                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                                :build (:not elpaca--activate-package)))
-  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-         (build (expand-file-name "elpaca/" elpaca-builds-directory))
-         (order (cdr elpaca-order))
-         (default-directory repo))
-    (add-to-list 'load-path (if (file-exists-p build) build repo))
-    (unless (file-exists-p repo)
-      (make-directory repo t)
-      (when (< emacs-major-version 28) (require 'subr-x))
-      (condition-case-unless-debug err
-          (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                   ((zerop (call-process "git" nil buffer t "clone"
-                                         (plist-get order :repo) repo)))
-                   ((zerop (call-process "git" nil buffer t "checkout"
-                                         (or (plist-get order :ref) "--"))))
-                   (emacs (concat invocation-directory invocation-name))
-                   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                         "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                   ((require 'elpaca))
-                   ((elpaca-generate-autoloads "elpaca" repo)))
-              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-            (error "%s" (with-current-buffer buffer (buffer-string))))
-        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-    (unless (require 'elpaca-autoloads nil t)
-      (require 'elpaca)
-      (elpaca-generate-autoloads "elpaca" repo)
-      (load "./elpaca-autoloads")))
-  (add-hook 'after-init-hook #'elpaca-process-queues)
-  (elpaca `(,@elpaca-order))
+(defvar elpaca-installer-version 0.7)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                 ,(plist-get order :repo) ,repo))))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -125,10 +128,7 @@ To update things like Melpa do =M-x elpaca-update-menus=
   ;;Turns off elpaca-use-package-mode current declaration
   ;;Note this will cause the declaration to be interpreted immediately (not deferred).
   ;;Useful for configuring built-in emacs features.
-  (use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
-
-  ;; Don't install anything. Defer execution of BODY
-  (elpaca nil (message "deferred"))
+  (use-package emacs :ensure nil :config (setq ring-bell-function #'ignore))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1960,7 +1960,7 @@ https://github.com/alphapapa/magit-todos/tree/master
         magit-todos-group-by '(magit-todos-item-filename magit-todos-item-keyword)))
 #+end_src
 
-*** forge
+*** COMMENT forge
 
 #+begin_src emacs-lisp :lexical no
 (use-package forge
@@ -2218,7 +2218,7 @@ Highlights:
 codeium-install
 #+begin_src emacs-lisp :lexical no
 (use-package codeium
-  :elpaca (codeium :type git :host github :repo "Exafunction/codeium.el"))
+  :ensure (:type git :host github :repo "Exafunction/codeium.el"))
 #+end_src
 
 ** pfuture
@@ -2454,11 +2454,10 @@ https://github.com/k-talo/volatile-highlights.el
 
 #+begin_src emacs-lisp :lexical no
 (use-package undo-hl
-  :elpaca (undo-hl
-             :type git
-             :host github
-             :repo "casouri/undo-hl"
-             :branch "master")
+  :ensure (:type git
+           :host github
+           :repo "casouri/undo-hl"
+           :branch "master")
   :hook ((prog-mode . undo-hl-mode)
          (org-mode . undo-hl-mode))
   :config
@@ -2475,8 +2474,8 @@ https://codeberg.org/akib/emacs-camera
   
 #+begin_src emacs-lisp :lexical no
 (use-package camera
-  :elpaca (camera :type git
-                  :repo "https://codeberg.org/akib/emacs-camera.git"))
+  :ensure (:type git
+           :repo "https://codeberg.org/akib/emacs-camera.git"))
 #+end_src
 
 *** memento-mori
@@ -2542,7 +2541,7 @@ https://github.com/joaotavora/eglot
 
 #+begin_src emacs-lisp
 (use-package eglot
-  :elpaca nil
+  :ensure nil
   :bind (:map eglot-mode-map
               ("C-c h" . eldoc)
               ("C-c r" . eglot-rename)
@@ -2808,11 +2807,10 @@ https://github.com/joaotavora/sly-stepper
 #+begin_src emacs-lisp 
 (use-package sly-stepper
   :after sly
-  :elpaca (sly-stepper
-             :type git
-             :host github
-             :repo "joaotavora/sly-stepper"
-             :branch "master"))
+  :ensure (:type git
+           :host github
+           :repo "joaotavora/sly-stepper"
+           :branch "master"))
 #+end_src
 
 ***** sly-named-readtables
@@ -2826,14 +2824,13 @@ https://github.com/joaotavora/sly-named-readtables
 - Warning! :: This system works with SLY version installed from [[https://github.com/svetlyak40wt/sly/tree/patches][here]]. Because it contains patch joaotavora/sly#417 which is not merged yet to upstream.
 
   #+begin_src emacs-lisp :lexical no
-    (use-package sly-package-inferred
-      :elpaca (sly-package-inferred
-                 :type git
-                 :host github
-                 :repo "40ants/sly-package-inferred"
-                 :branch "master")
-      :config
-      (require 'sly-package-inferred-autoloads))
+  (use-package sly-package-inferred
+    :ensure (:type git
+             :host github
+             :repo "40ants/sly-package-inferred"
+             :branch "master")
+    :config
+    (require 'sly-package-inferred-autoloads))
   #+end_src
 
 **** COMMENT stumpwm-mode
@@ -3829,7 +3826,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 
 #+begin_src emacs-lisp
   (use-package org
-    :elpaca nil
+    :ensure nil
     :hook ((org-mode . variable-pitch-mode)
            (org-mode . org-indent-mode))
     :bind (("C-c l" . org-store-link)
@@ -4052,35 +4049,35 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 *** Auctex
 
 #+begin_src emacs-lisp :lexical yes
-(when guix? 
-  (let* ((texlive-path (or (car (last (split-string
-                                       (shell-command-to-string
-                                        "guix package -I texlive"))))
-                           (error "install 'texlive' using 'guix install texlive'")))
-         (texlive-bin (concat texlive-path "/bin")))
-    (cl-pushnew texlive-bin exec-path)
-    texlive-bin))
+  (when guix? 
+    (let* ((texlive-path (or (car (last (split-string
+					 (shell-command-to-string
+					  "guix package -I texlive"))))
+			     (error "install 'texlive' using 'guix install texlive'")))
+	   (texlive-bin (concat texlive-path "/bin")))
+      (cl-pushnew texlive-bin exec-path)
+      texlive-bin))
 
-(use-package auctex
-  :elpaca nil
-  ;; :elpaca (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-  ;;                 :pre-build (("make" "elpa"))
-  ;;                 :build (:not elpaca--compile-info) ;; Make will take care of this step
-  ;;                 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-  ;;                 :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  ;; :elpaca  (auctex
-  ;;           :pre-build (("./autogen.sh")
-  ;;                       ("./configure"
-  ;;                        "--without-texmf-dir"
-  ;;                        "--with-packagelispdir=./"
-  ;;                        "--with-packagedatadir=./")
-  ;;                       ("make"))
-  ;;           :build (:not elpaca--compile-info) ;; Make will take care of this step
-  ;;           :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-  ;;           :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  ;; :mode (("\\.tex\\'" . LaTeX-mode))
-  :config
-  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+  (use-package auctex
+    :ensure t
+    ;; :ensure (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+    ;; 		  :pre-build (("make" "elpa"))
+    ;; 		  :build (:not elpaca--compile-info) ;; Make will take care of this step
+    ;; 		  :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+    ;; 		  :version (lambda (_) (require 'tex-site) AUCTeX-version))
+    ;; :elpaca  (auctex
+    ;;           :pre-build (("./autogen.sh")
+    ;;                       ("./configure"
+    ;;                        "--without-texmf-dir"
+    ;;                        "--with-packagelispdir=./"
+    ;;                        "--with-packagedatadir=./")
+    ;;                       ("make"))
+    ;;           :build (:not elpaca--compile-info) ;; Make will take care of this step
+    ;;           :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+    ;;           :version (lambda (_) (require 'tex-site) AUCTeX-version))
+    ;; :mode (("\\.tex\\'" . LaTeX-mode))
+    :config
+    (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
 
 #+end_src
@@ -4190,9 +4187,8 @@ For eg:  [[edraw:data=H4sIACJndWYAA3WQ3U7EIBCFX4WM1y10dzXppvRK38AXwPKbUtgALq1P77
 
 #+begin_src emacs-lisp :lexical no
 (use-package edraw-org
-  :ensure t
   :after org
-  :elpaca (edraw-org :host github :repo "misohena/el-easydraw")
+  :ensure (:host github :repo "misohena/el-easydraw")
   :config
   (edraw-org-setup-default)
   ;; When using the org-export-in-background option (when using the
@@ -4384,10 +4380,9 @@ https://github.com/tecosaur/org-pandoc-import
 
 #+begin_src emacs-lisp
   (use-package org-pandoc-import
-    :elpaca (org-pandoc-import
-               :host github
-               :repo "tecosaur/org-pandoc-import"
-               :files ("*.el" "filters" "preprocessors"))
+    :ensure (:host github
+             :repo "tecosaur/org-pandoc-import"
+             :files ("*.el" "filters" "preprocessors"))
     :after org
     :config
     (org-pandoc-import-transient-mode -1))
@@ -4528,7 +4523,7 @@ npm install
         org-reveal-klipsify-src nil))
 #+end_src
 
-*** anki-editor
+*** COMMENT anki-editor
 https://github.com/louietan/anki-editor
 Requirements
 - anki-connect, an Anki add-on required by this package to interact with Anki.
