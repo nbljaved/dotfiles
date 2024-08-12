@@ -1558,7 +1558,7 @@ https://github.com/FrostyX/dired-open-with
               ("C-u J" . dired-open-with)))
 #+end_src
 
-*** dired-filer
+*** dired-filter
 
 #+begin_src emacs-lisp
 (use-package dired-filter
@@ -1569,7 +1569,7 @@ https://github.com/FrostyX/dired-open-with
   :config
   (setq dired-filter-group-saved-groups '(("default"
                                            ("PDF"
-                                            (extension . "pdf"))
+                                            (extension "pdf" "PDF"))
                                            ("LaTeX"
                                             (extension "tex" "bib"))
                                            ("Org"
@@ -2018,6 +2018,54 @@ Interactive Emacs functions that create URLs for files and commits in GitHub/Bit
 (use-package git-link)
 #+end_src
 
+*** gitleaks
+https://github.com/gitleaks/gitleaks
+
+#+begin_src emacs-lisp :lexical yes
+(when (not (executable-find "gitleaks"))
+  (warn "gitleaks not found, install it with `go install github.com/zricethezav/gitleaks/v8@latest`"))
+#+end_src
+
+#+begin_src emacs-lisp :lexical yes
+(defvar gitleaks-pre-commit-string
+  "#!/bin/bash
+
+set -xeu -o pipefail
+
+# if gitleaks is installed, then run it else warn the user to install it
+if command -v gitleaks &> /dev/null
+then
+    # Check if secrets are going to be leaked using 'gitleaks'
+    gitleaks protect --staged --verbose
+else
+    echo 'gitleaks is not installed.'
+fi")
+
+(defun nbl/git-insert-gitleaks-pre-commit ()
+  "Insert a pre-commit hook that runs gitleaks"
+  (interactive)
+  (let ((git-directory (vc-root-dir)))
+    (if git-directory
+        ;; add contents of gitleaks-pre-commit-string
+        ;; to vc-root-dir/.git/hooks/pre-commit
+        (let ((pre-commit-file (concat git-directory ".git/hooks/pre-commit"))
+              (continue t))
+          ;; Tell that it will overwrite any pre-existing pre-commit hook and
+          ;; ask for confirmation to continue
+          (if (file-exists-p pre-commit-file)
+              (when (not (y-or-n-p
+                          (format
+                           "Overwrite existing pre-commit hook at %s? "
+                           pre-commit-file)))
+                (setq continue nil)))
+          (when continue
+            (with-temp-file pre-commit-file
+              (insert gitleaks-pre-commit-string))
+            (chmod pre-commit-file 493) ; make it executable
+            (message "gitleaks pre-commit hook added")))
+      (message "No vc root directory found"))))
+
+#+end_src
 ** rg
 https://github.com/dajva/rg.el
 
@@ -2200,18 +2248,24 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
-** COMMENT copilot.el
+** copilot.el
+https://github.com/copilot-emacs/copilot.el
+
+Install the copilot server by =M-x copilot-install-server=.
+
+Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x copilot-diagnose= (NotAuthorized means you don't have a valid subscription).
+
 
 #+begin_src emacs-lisp
 (use-package copilot
-  :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :hook ((prog-mode . copilot-mode))
   :config
   (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
   (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-  (setq copilot-idle-delay 0.1
-        copilot-log-max 4)
   ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
-  )
+  (setq copilot-idle-delay 0.1
+        copilot-log-max 4))
 #+end_src
 
 ** COMMENT codeium
