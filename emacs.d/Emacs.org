@@ -156,6 +156,10 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 
 #+begin_src emacs-lisp :lexical no
 (use-package exec-path-from-shell
+  ;; elpaca waits until this use-package block
+  ;; has finished evaluation
+  ;; i.e. eager evaluation in contrast to elpaca's lazier version
+  :ensure (:wait t)
   :config
   (when (or (memq window-system '(mac ns x))
             (daemonp))
@@ -252,12 +256,12 @@ of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
   (add-to-list 'recentf-exclude
                (recentf-expand-file-name no-littering-etc-directory)))
 
-;; Keep customization settings in a temporary file (thanks Ambrevar!)
+;; Keep customization settings in a temporary file
 (setq custom-file
-      (if (boundp 'server-socket-dir)
-          (expand-file-name "custom.el" server-socket-dir)
-        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
-(load custom-file t)
+      (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
 #+end_src
    
 ** Default coding system
@@ -2265,7 +2269,8 @@ Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x c
   (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
   ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
   (setq copilot-idle-delay 0.1
-        copilot-log-max 4))
+        copilot-log-max 4
+        copilot-indent-offset-warning-disable t))
 #+end_src
 
 ** COMMENT codeium
