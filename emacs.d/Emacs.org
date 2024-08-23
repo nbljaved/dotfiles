@@ -368,7 +368,7 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
     
 ** Modeline
 
-[[file:~/.emacs.d/straight/repos/doom-modeline/doom-modeline.el::(doom-modeline-def-modeline 'pdf)][custom modeline]]
+[[file:elpaca/repos/doom-modeline/doom-modeline.el::doom-modeline-def-modeline 'pdf][custom modeline]]
 For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 #+begin_src emacs-lisp
   (use-package doom-modeline
@@ -379,7 +379,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
           doom-modeline-hud t)
     (setq-default doom-modeline--pdf-pages t
                   doom-modeline--debug-dap t)
-    ;; to get eyerbowse window number in pdf-view mode (=workspace-name= segment)
+    ;; to get eyebrowse window number in pdf-view mode (=workspace-name= segment)
 
     ;; 
     (doom-modeline-def-modeline 'pdf
@@ -1638,13 +1638,12 @@ When a specially formatted path under `~/.avfs' is accessed, the daemon provides
 From =Guix=.
 
 #+begin_src emacs-lisp
-  (use-package pdf-tools
-    :bind (:map pdf-view-mode-map
-                ("C-s" . isearch-forward))
-    :config
-    (pdf-tools-install t))
-
-
+(use-package pdf-tools
+  :ensure nil
+  :bind (:map pdf-view-mode-map
+              ("C-s" . isearch-forward))
+  :config
+  (pdf-tools-install t))
 #+end_src
 
 ** pdf-view-restore
@@ -1955,13 +1954,17 @@ Version 2017-11-10"
 #+end_src
 
 *** magit-todos
-https://github.com/alphapapa/magit-todos/tree/master
+[[https://github.com/alphapapa/magit-todos]]
 
 #+begin_src emacs-lisp :lexical no
 (use-package magit-todos
+  :after magit
   :config
   (setq magit-todos-fontify-org nil
-        magit-todos-group-by '(magit-todos-item-filename magit-todos-item-keyword)))
+        magit-todos-group-by '(magit-todos-item-filename
+                               magit-todos-item-keyword)
+        magit-todos-scanner #'magit-todos--scan-with-git-grep)
+  (magit-todos-mode 1))
 #+end_src
 
 *** COMMENT forge
@@ -3140,6 +3143,9 @@ Do =M-x info= and search for 'SICP'
 
 *** lispy
 
+See reference https://oremacs.com/lispy/
+- To insert square brackets: =}=
+
 #+begin_src emacs-lisp
 (use-package lispy
   :hook ((emacs-lisp-mode . lispy-mode)
@@ -3245,6 +3251,19 @@ https://github.com/pope/ob-go
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((go . t))))
+#+end_src
+
+*** go-repl
+https://github.com/manute/gorepl-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package gorepl-mode
+  :hook (( go-mode . gorepl-mode))
+  :bind (:map gorepl-mode-map
+              ("C-c C-c" . gorepl-eval-region)
+              ("C-c C-l" . nil)
+              ("C-c C-e" . nil)
+              ("C-c C-z" . gorepl-run)))
 #+end_src
 
 ** HTML
@@ -3884,53 +3903,53 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 ** Basic
 
 #+begin_src emacs-lisp
-  (use-package org
-    :ensure nil
-    :hook ((org-mode . variable-pitch-mode)
-           (org-mode . org-indent-mode))
-    :bind (("C-c l" . org-store-link)
-           ("C-c a" . org-agenda)
-           ("C-c c" . org-capture)
-           :map org-mode-map
-           ("C-c C-'" . org-babel-demarcate-block)
-           ("C-<print>" . org-screenshot-take)
-           ("C-c C-x C-v" . nbl/org-toggle-inline-images))
-    :config
-    (setq org-confirm-babel-evaluate nil)
-    (setq org-src-fontify-natively t
-          org-hide-emphasis-markers t
-          org-return-follows-link t
-          org-export-dispatch-use-expert-ui t
-          ;; prettify
-          org-use-sub-superscripts "{}"
-          org-edit-src-content-indentation 0
-          org-use-speed-commands t
-          ;; org links
-          help-at-pt-display-when-idle t
-          )
-    (help-at-pt-set-timer)
-    ;; download images if their link is provided in org link form
-    (set org-display-remote-inline-images 'download))
+(use-package org
+  :ensure nil
+  :hook ((org-mode . variable-pitch-mode)
+         (org-mode . org-indent-mode))
+  :bind (("C-c l" . org-store-link)
+         ("C-c a" . org-agenda)
+         ("C-c c" . org-capture)
+         :map org-mode-map
+         ("C-c C-'" . org-babel-demarcate-block)
+         ("C-<print>" . org-screenshot-take)
+         ("C-c C-x C-v" . nbl/org-toggle-inline-images))
+  :config
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-src-fontify-natively t
+        org-fontify-quote-and-verse-blocks t
+        org-hide-emphasis-markers t
+        org-return-follows-link t
+        org-export-dispatch-use-expert-ui t
+        ;; prettify
+        org-use-sub-superscripts "{}"
+        org-edit-src-content-indentation 0
+        org-use-speed-commands t
+        ;; org links
+        help-at-pt-display-when-idle t)
+  (help-at-pt-set-timer)
+  ;; download images if their link is provided in org link form
+  (set org-display-remote-inline-images 'download))
 
-  ;; C-c C-c also refreshes org-inline-image
+;; C-c C-c also refreshes org-inline-image
 
-  (defun shk-fix-inline-images ()
-    (when org-inline-image-overlays
-      (org-redisplay-inline-images)))
+(defun shk-fix-inline-images ()
+  (when org-inline-image-overlays
+    (org-redisplay-inline-images)))
 
-  ;; https://emacs.stackexchange.com/questions/44664/apply-ansi-color-escape-sequences-for-org-babel-results
-  (defun ek/babel-ansi ()
-    (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
-      (save-excursion
-        (goto-char beg)
-        (when (looking-at org-babel-result-regexp)
-          (let ((end (org-babel-result-end))
-                (ansi-color-context-region nil))
-            (ansi-color-apply-on-region beg end))))))
+;; https://emacs.stackexchange.com/questions/44664/apply-ansi-color-escape-sequences-for-org-babel-results
+(defun ek/babel-ansi ()
+  (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
+    (save-excursion
+      (goto-char beg)
+      (when (looking-at org-babel-result-regexp)
+        (let ((end (org-babel-result-end))
+              (ansi-color-context-region nil))
+          (ansi-color-apply-on-region beg end))))))
 
-  (with-eval-after-load 'org
-    (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
-    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
+(with-eval-after-load 'org
+  (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
+  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -4591,6 +4610,12 @@ Requirements
 
 #+begin_src emacs-lisp :lexical no
 (use-package anki-editor)
+#+end_src
+
+* Finally
+
+#+begin_src emacs-lisp :lexical no
+(toggle-debug-on-error -1)
 #+end_src
 
 * Learn
