@@ -20,53 +20,6 @@ Make startup faster by reducing the frequency of garbage collection and then use
                      gcs-done)))
 #+end_src
 
-** Operating system and distribution
-*** exec-path-from-shell
-https://github.com/purcell/exec-path-from-shell
-
-A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
-
-- Motivation ::
-  Ever find that a command works in your shell, but not in Emacs?
-  
-  This happens a lot on OS X, where an Emacs instance launched as a GUI app inherits a default minimal set of environment variables that are probably not the ones you see in a terminal window.
-
-  Similarly, if you start Emacs as a daemon from systemd or launchd, it will run with a default set of environment variables.
-  
-  This library solves this problem by copying important environment variables from the user's shell: it works by asking your shell to print out the variables of interest, then copying them into the Emacs environment.
-
-#+begin_src emacs-lisp :lexical no
-(use-package exec-path-from-shell
-  :config
-  (when (or (memq window-system '(mac ns x))
-            (daemonp))
-    (exec-path-from-shell-initialize)))
-#+end_src
-
-*** Guix
-
-#+begin_src emacs-lisp :lexical no
-(defvar guix? (executable-find "guix")
-  "Boolean to check if guix exists on current system")
-
-(when guix?
-  (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
-			        (concat (getenv "HOME")
-				        "/.guix-profile"))
-    "Value of environment variable $GUIX_PROFILE.")
-
-  (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")
-                                 (concat (getenv "HOME")
-                                         "/src/guix"))
-    "Value of environment variable $GUIX_CHECKOUT, i.e. the location
-of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
-  
-  (let ((default-directory (concat guix-profile-path
-                                   "/share/emacs/site-lisp/")))
-    (normal-top-level-add-subdirs-to-load-path)))
-
-#+end_src
-
 ** Package Management 
 Install =emacs-use-package= from Guix
 
@@ -86,6 +39,7 @@ Install =emacs-use-package= from Guix
 ;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")
 ;; ;; Initializes the package infrastructure
 ;; ;; (package-initialize)
+
 ;; ;; to prevent package.el loading packages prior to their init-file loading.
 (setq package-enable-at-startup nil)
 ;; ;; (setq package-enable-at-startup t)
@@ -101,46 +55,48 @@ It then builds and activates Elpaca.
 To update things like Melpa do =M-x elpaca-update-menus=
 
 #+begin_src  emacs-lisp
-(setq elpaca--core-date "20230730")
+;;(setq elpaca--core-date "20230730")
 #+end_src
 
 #+begin_src emacs-lisp
-  (defvar elpaca-installer-version 0.6)
-  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                                :ref nil
-                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                                :build (:not elpaca--activate-package)))
-  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-         (build (expand-file-name "elpaca/" elpaca-builds-directory))
-         (order (cdr elpaca-order))
-         (default-directory repo))
-    (add-to-list 'load-path (if (file-exists-p build) build repo))
-    (unless (file-exists-p repo)
-      (make-directory repo t)
-      (when (< emacs-major-version 28) (require 'subr-x))
-      (condition-case-unless-debug err
-          (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                   ((zerop (call-process "git" nil buffer t "clone"
-                                         (plist-get order :repo) repo)))
-                   ((zerop (call-process "git" nil buffer t "checkout"
-                                         (or (plist-get order :ref) "--"))))
-                   (emacs (concat invocation-directory invocation-name))
-                   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                         "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                   ((require 'elpaca))
-                   ((elpaca-generate-autoloads "elpaca" repo)))
-              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-            (error "%s" (with-current-buffer buffer (buffer-string))))
-        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-    (unless (require 'elpaca-autoloads nil t)
-      (require 'elpaca)
-      (elpaca-generate-autoloads "elpaca" repo)
-      (load "./elpaca-autoloads")))
-  (add-hook 'after-init-hook #'elpaca-process-queues)
-  (elpaca `(,@elpaca-order))
+(defvar elpaca-installer-version 0.7)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                 ,(plist-get order :repo) ,repo))))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -172,10 +128,7 @@ To update things like Melpa do =M-x elpaca-update-menus=
   ;;Turns off elpaca-use-package-mode current declaration
   ;;Note this will cause the declaration to be interpreted immediately (not deferred).
   ;;Useful for configuring built-in emacs features.
-  (use-package emacs :elpaca nil :config (setq ring-bell-function #'ignore))
-
-  ;; Don't install anything. Defer execution of BODY
-  (elpaca nil (message "deferred"))
+  (use-package emacs :ensure nil :config (setq ring-bell-function #'ignore))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -184,6 +137,57 @@ To update things like Melpa do =M-x elpaca-update-menus=
   ;; contribute to those packages.
   (elpaca-queue (elpaca '(melpulls :host github :repo "progfolio/melpulls")
                   (add-to-list 'elpaca-menu-functions #'melpulls)))
+#+end_src
+
+** Operating system and distribution
+*** exec-path-from-shell
+https://github.com/purcell/exec-path-from-shell
+
+A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
+
+- Motivation ::
+  Ever find that a command works in your shell, but not in Emacs?
+  
+  This happens a lot on OS X, where an Emacs instance launched as a GUI app inherits a default minimal set of environment variables that are probably not the ones you see in a terminal window.
+
+  Similarly, if you start Emacs as a daemon from systemd or launchd, it will run with a default set of environment variables.
+  
+  This library solves this problem by copying important environment variables from the user's shell: it works by asking your shell to print out the variables of interest, then copying them into the Emacs environment.
+
+#+begin_src emacs-lisp :lexical no
+(use-package exec-path-from-shell
+  ;; elpaca waits until this use-package block
+  ;; has finished evaluation
+  ;; i.e. eager evaluation in contrast to elpaca's lazier version
+  :ensure (:wait t)
+  :config
+  (when (or (memq window-system '(mac ns x))
+            (daemonp))
+    (exec-path-from-shell-initialize)))
+#+end_src
+
+*** Guix
+
+#+begin_src emacs-lisp :lexical no
+(defvar guix? (executable-find "guix")
+  "Boolean to check if guix exists on current system")
+
+(when guix?
+  (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
+			        (concat (getenv "HOME")
+				        "/.guix-profile"))
+    "Value of environment variable $GUIX_PROFILE.")
+
+  (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")
+                                 (concat (getenv "HOME")
+                                         "/src/guix"))
+    "Value of environment variable $GUIX_CHECKOUT, i.e. the location
+of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
+  
+  (let ((default-directory (concat guix-profile-path
+                                   "/share/emacs/site-lisp/")))
+    (normal-top-level-add-subdirs-to-load-path)))
+
 #+end_src
 
 ** COMMENT use-package
@@ -252,12 +256,12 @@ To update things like Melpa do =M-x elpaca-update-menus=
   (add-to-list 'recentf-exclude
                (recentf-expand-file-name no-littering-etc-directory)))
 
-;; Keep customization settings in a temporary file (thanks Ambrevar!)
+;; Keep customization settings in a temporary file
 (setq custom-file
-      (if (boundp 'server-socket-dir)
-          (expand-file-name "custom.el" server-socket-dir)
-        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
-(load custom-file t)
+      (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
 #+end_src
    
 ** Default coding system
@@ -364,7 +368,7 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
     
 ** Modeline
 
-[[file:~/.emacs.d/straight/repos/doom-modeline/doom-modeline.el::(doom-modeline-def-modeline 'pdf)][custom modeline]]
+[[file:elpaca/repos/doom-modeline/doom-modeline.el::doom-modeline-def-modeline 'pdf][custom modeline]]
 For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 #+begin_src emacs-lisp
   (use-package doom-modeline
@@ -375,7 +379,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
           doom-modeline-hud t)
     (setq-default doom-modeline--pdf-pages t
                   doom-modeline--debug-dap t)
-    ;; to get eyerbowse window number in pdf-view mode (=workspace-name= segment)
+    ;; to get eyebrowse window number in pdf-view mode (=workspace-name= segment)
 
     ;; 
     (doom-modeline-def-modeline 'pdf
@@ -1558,7 +1562,7 @@ https://github.com/FrostyX/dired-open-with
               ("C-u J" . dired-open-with)))
 #+end_src
 
-*** dired-filer
+*** dired-filter
 
 #+begin_src emacs-lisp
 (use-package dired-filter
@@ -1569,7 +1573,7 @@ https://github.com/FrostyX/dired-open-with
   :config
   (setq dired-filter-group-saved-groups '(("default"
                                            ("PDF"
-                                            (extension . "pdf"))
+                                            (extension "pdf" "PDF"))
                                            ("LaTeX"
                                             (extension "tex" "bib"))
                                            ("Org"
@@ -1634,13 +1638,12 @@ When a specially formatted path under `~/.avfs' is accessed, the daemon provides
 From =Guix=.
 
 #+begin_src emacs-lisp
-  (use-package pdf-tools
-    :bind (:map pdf-view-mode-map
-                ("C-s" . isearch-forward))
-    :config
-    )
-
-  ;;(pdf-tools-install t)
+(use-package pdf-tools
+  :ensure nil
+  :bind (:map pdf-view-mode-map
+              ("C-s" . isearch-forward))
+  :config
+  (pdf-tools-install t))
 #+end_src
 
 ** pdf-view-restore
@@ -1951,16 +1954,20 @@ Version 2017-11-10"
 #+end_src
 
 *** magit-todos
-https://github.com/alphapapa/magit-todos/tree/master
+[[https://github.com/alphapapa/magit-todos]]
 
 #+begin_src emacs-lisp :lexical no
 (use-package magit-todos
+  :after magit
   :config
   (setq magit-todos-fontify-org nil
-        magit-todos-group-by '(magit-todos-item-filename magit-todos-item-keyword)))
+        magit-todos-group-by '(magit-todos-item-filename
+                               magit-todos-item-keyword)
+        magit-todos-scanner #'magit-todos--scan-with-git-grep)
+  (magit-todos-mode 1))
 #+end_src
 
-*** forge
+*** COMMENT forge
 
 #+begin_src emacs-lisp :lexical no
 (use-package forge
@@ -2018,6 +2025,54 @@ Interactive Emacs functions that create URLs for files and commits in GitHub/Bit
 (use-package git-link)
 #+end_src
 
+*** gitleaks
+https://github.com/gitleaks/gitleaks
+
+#+begin_src emacs-lisp :lexical yes
+(when (not (executable-find "gitleaks"))
+  (warn "gitleaks not found, install it with `go install github.com/zricethezav/gitleaks/v8@latest`"))
+#+end_src
+
+#+begin_src emacs-lisp :lexical yes
+(defvar gitleaks-pre-commit-string
+  "#!/bin/bash
+
+set -xeu -o pipefail
+
+# if gitleaks is installed, then run it else warn the user to install it
+if command -v gitleaks &> /dev/null
+then
+    # Check if secrets are going to be leaked using 'gitleaks'
+    gitleaks protect --staged --verbose
+else
+    echo 'gitleaks is not installed.'
+fi")
+
+(defun nbl/git-insert-gitleaks-pre-commit ()
+  "Insert a pre-commit hook that runs gitleaks"
+  (interactive)
+  (let ((git-directory (vc-root-dir)))
+    (if git-directory
+        ;; add contents of gitleaks-pre-commit-string
+        ;; to vc-root-dir/.git/hooks/pre-commit
+        (let ((pre-commit-file (concat git-directory ".git/hooks/pre-commit"))
+              (continue t))
+          ;; Tell that it will overwrite any pre-existing pre-commit hook and
+          ;; ask for confirmation to continue
+          (if (file-exists-p pre-commit-file)
+              (when (not (y-or-n-p
+                          (format
+                           "Overwrite existing pre-commit hook at %s? "
+                           pre-commit-file)))
+                (setq continue nil)))
+          (when continue
+            (with-temp-file pre-commit-file
+              (insert gitleaks-pre-commit-string))
+            (chmod pre-commit-file 493) ; make it executable
+            (message "gitleaks pre-commit hook added")))
+      (message "No vc root directory found"))))
+
+#+end_src
 ** rg
 https://github.com/dajva/rg.el
 
@@ -2200,25 +2255,32 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
-** COMMENT copilot.el
+** copilot.el
+https://github.com/copilot-emacs/copilot.el
+
+Install the copilot server by =M-x copilot-install-server=.
+
+Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x copilot-diagnose= (NotAuthorized means you don't have a valid subscription).
+
 
 #+begin_src emacs-lisp
 (use-package copilot
-  :elpaca (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :hook ((prog-mode . copilot-mode))
   :config
   (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
   (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-  (setq copilot-idle-delay 0.1
-        copilot-log-max 4)
   ;; (add-to-list 'copilot-major-mode-alist '("enh-ruby" . "ruby"))
-  )
+  (setq copilot-idle-delay 0.1
+        copilot-log-max 4
+        copilot-indent-offset-warning-disable t))
 #+end_src
 
 ** COMMENT codeium
 codeium-install
 #+begin_src emacs-lisp :lexical no
 (use-package codeium
-  :elpaca (codeium :type git :host github :repo "Exafunction/codeium.el"))
+  :ensure (:type git :host github :repo "Exafunction/codeium.el"))
 #+end_src
 
 ** pfuture
@@ -2454,11 +2516,10 @@ https://github.com/k-talo/volatile-highlights.el
 
 #+begin_src emacs-lisp :lexical no
 (use-package undo-hl
-  :elpaca (undo-hl
-             :type git
-             :host github
-             :repo "casouri/undo-hl"
-             :branch "master")
+  :ensure (:type git
+           :host github
+           :repo "casouri/undo-hl"
+           :branch "master")
   :hook ((prog-mode . undo-hl-mode)
          (org-mode . undo-hl-mode))
   :config
@@ -2475,8 +2536,8 @@ https://codeberg.org/akib/emacs-camera
   
 #+begin_src emacs-lisp :lexical no
 (use-package camera
-  :elpaca (camera :type git
-                  :repo "https://codeberg.org/akib/emacs-camera.git"))
+  :ensure (:type git
+           :repo "https://codeberg.org/akib/emacs-camera.git"))
 #+end_src
 
 *** memento-mori
@@ -2542,7 +2603,7 @@ https://github.com/joaotavora/eglot
 
 #+begin_src emacs-lisp
 (use-package eglot
-  :elpaca nil
+  :ensure nil
   :bind (:map eglot-mode-map
               ("C-c h" . eldoc)
               ("C-c r" . eglot-rename)
@@ -2808,11 +2869,10 @@ https://github.com/joaotavora/sly-stepper
 #+begin_src emacs-lisp 
 (use-package sly-stepper
   :after sly
-  :elpaca (sly-stepper
-             :type git
-             :host github
-             :repo "joaotavora/sly-stepper"
-             :branch "master"))
+  :ensure (:type git
+           :host github
+           :repo "joaotavora/sly-stepper"
+           :branch "master"))
 #+end_src
 
 ***** sly-named-readtables
@@ -2826,14 +2886,13 @@ https://github.com/joaotavora/sly-named-readtables
 - Warning! :: This system works with SLY version installed from [[https://github.com/svetlyak40wt/sly/tree/patches][here]]. Because it contains patch joaotavora/sly#417 which is not merged yet to upstream.
 
   #+begin_src emacs-lisp :lexical no
-    (use-package sly-package-inferred
-      :elpaca (sly-package-inferred
-                 :type git
-                 :host github
-                 :repo "40ants/sly-package-inferred"
-                 :branch "master")
-      :config
-      (require 'sly-package-inferred-autoloads))
+  (use-package sly-package-inferred
+    :ensure (:type git
+             :host github
+             :repo "40ants/sly-package-inferred"
+             :branch "master")
+    :config
+    (require 'sly-package-inferred-autoloads))
   #+end_src
 
 **** COMMENT stumpwm-mode
@@ -3084,6 +3143,9 @@ Do =M-x info= and search for 'SICP'
 
 *** lispy
 
+See reference https://oremacs.com/lispy/
+- To insert square brackets: =}=
+
 #+begin_src emacs-lisp
 (use-package lispy
   :hook ((emacs-lisp-mode . lispy-mode)
@@ -3189,6 +3251,19 @@ https://github.com/pope/ob-go
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((go . t))))
+#+end_src
+
+*** go-repl
+https://github.com/manute/gorepl-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package gorepl-mode
+  :hook (( go-mode . gorepl-mode))
+  :bind (:map gorepl-mode-map
+              ("C-c C-c" . gorepl-eval-region)
+              ("C-c C-l" . nil)
+              ("C-c C-e" . nil)
+              ("C-c C-z" . gorepl-run)))
 #+end_src
 
 ** HTML
@@ -3828,53 +3903,53 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 ** Basic
 
 #+begin_src emacs-lisp
-  (use-package org
-    :elpaca nil
-    :hook ((org-mode . variable-pitch-mode)
-           (org-mode . org-indent-mode))
-    :bind (("C-c l" . org-store-link)
-           ("C-c a" . org-agenda)
-           ("C-c c" . org-capture)
-           :map org-mode-map
-           ("C-c C-'" . org-babel-demarcate-block)
-           ("C-<print>" . org-screenshot-take)
-           ("C-c C-x C-v" . nbl/org-toggle-inline-images))
-    :config
-    (setq org-confirm-babel-evaluate nil)
-    (setq org-src-fontify-natively t
-          org-hide-emphasis-markers t
-          org-return-follows-link t
-          org-export-dispatch-use-expert-ui t
-          ;; prettify
-          org-use-sub-superscripts "{}"
-          org-edit-src-content-indentation 0
-          org-use-speed-commands t
-          ;; org links
-          help-at-pt-display-when-idle t
-          )
-    (help-at-pt-set-timer)
-    ;; download images if their link is provided in org link form
-    (set org-display-remote-inline-images 'download))
+(use-package org
+  :ensure nil
+  :hook ((org-mode . variable-pitch-mode)
+         (org-mode . org-indent-mode))
+  :bind (("C-c l" . org-store-link)
+         ("C-c a" . org-agenda)
+         ("C-c c" . org-capture)
+         :map org-mode-map
+         ("C-c C-'" . org-babel-demarcate-block)
+         ("C-<print>" . org-screenshot-take)
+         ("C-c C-x C-v" . nbl/org-toggle-inline-images))
+  :config
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-src-fontify-natively t
+        org-fontify-quote-and-verse-blocks t
+        org-hide-emphasis-markers t
+        org-return-follows-link t
+        org-export-dispatch-use-expert-ui t
+        ;; prettify
+        org-use-sub-superscripts "{}"
+        org-edit-src-content-indentation 0
+        org-use-speed-commands t
+        ;; org links
+        help-at-pt-display-when-idle t)
+  (help-at-pt-set-timer)
+  ;; download images if their link is provided in org link form
+  (set org-display-remote-inline-images 'download))
 
-  ;; C-c C-c also refreshes org-inline-image
+;; C-c C-c also refreshes org-inline-image
 
-  (defun shk-fix-inline-images ()
-    (when org-inline-image-overlays
-      (org-redisplay-inline-images)))
+(defun shk-fix-inline-images ()
+  (when org-inline-image-overlays
+    (org-redisplay-inline-images)))
 
-  ;; https://emacs.stackexchange.com/questions/44664/apply-ansi-color-escape-sequences-for-org-babel-results
-  (defun ek/babel-ansi ()
-    (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
-      (save-excursion
-        (goto-char beg)
-        (when (looking-at org-babel-result-regexp)
-          (let ((end (org-babel-result-end))
-                (ansi-color-context-region nil))
-            (ansi-color-apply-on-region beg end))))))
+;; https://emacs.stackexchange.com/questions/44664/apply-ansi-color-escape-sequences-for-org-babel-results
+(defun ek/babel-ansi ()
+  (when-let ((beg (org-babel-where-is-src-block-result nil nil)))
+    (save-excursion
+      (goto-char beg)
+      (when (looking-at org-babel-result-regexp)
+        (let ((end (org-babel-result-end))
+              (ansi-color-context-region nil))
+          (ansi-color-apply-on-region beg end))))))
 
-  (with-eval-after-load 'org
-    (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
-    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
+(with-eval-after-load 'org
+  (add-hook 'org-babel-after-execute-hook 'ek/babel-ansi)
+  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -4052,35 +4127,35 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 *** Auctex
 
 #+begin_src emacs-lisp :lexical yes
-(when guix? 
-  (let* ((texlive-path (or (car (last (split-string
-                                       (shell-command-to-string
-                                        "guix package -I texlive"))))
-                           (error "install 'texlive' using 'guix install texlive'")))
-         (texlive-bin (concat texlive-path "/bin")))
-    (cl-pushnew texlive-bin exec-path)
-    texlive-bin))
+  (when guix? 
+    (let* ((texlive-path (or (car (last (split-string
+					 (shell-command-to-string
+					  "guix package -I texlive"))))
+			     (error "install 'texlive' using 'guix install texlive'")))
+	   (texlive-bin (concat texlive-path "/bin")))
+      (cl-pushnew texlive-bin exec-path)
+      texlive-bin))
 
-(use-package auctex
-  :elpaca nil
-  ;; :elpaca (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-  ;;                 :pre-build (("make" "elpa"))
-  ;;                 :build (:not elpaca--compile-info) ;; Make will take care of this step
-  ;;                 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-  ;;                 :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  ;; :elpaca  (auctex
-  ;;           :pre-build (("./autogen.sh")
-  ;;                       ("./configure"
-  ;;                        "--without-texmf-dir"
-  ;;                        "--with-packagelispdir=./"
-  ;;                        "--with-packagedatadir=./")
-  ;;                       ("make"))
-  ;;           :build (:not elpaca--compile-info) ;; Make will take care of this step
-  ;;           :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-  ;;           :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  ;; :mode (("\\.tex\\'" . LaTeX-mode))
-  :config
-  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+  (use-package auctex
+    :ensure t
+    ;; :ensure (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+    ;; 		  :pre-build (("make" "elpa"))
+    ;; 		  :build (:not elpaca--compile-info) ;; Make will take care of this step
+    ;; 		  :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+    ;; 		  :version (lambda (_) (require 'tex-site) AUCTeX-version))
+    ;; :elpaca  (auctex
+    ;;           :pre-build (("./autogen.sh")
+    ;;                       ("./configure"
+    ;;                        "--without-texmf-dir"
+    ;;                        "--with-packagelispdir=./"
+    ;;                        "--with-packagedatadir=./")
+    ;;                       ("make"))
+    ;;           :build (:not elpaca--compile-info) ;; Make will take care of this step
+    ;;           :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+    ;;           :version (lambda (_) (require 'tex-site) AUCTeX-version))
+    ;; :mode (("\\.tex\\'" . LaTeX-mode))
+    :config
+    (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
 
 #+end_src
@@ -4190,9 +4265,8 @@ For eg:  [[edraw:data=H4sIACJndWYAA3WQ3U7EIBCFX4WM1y10dzXppvRK38AXwPKbUtgALq1P77
 
 #+begin_src emacs-lisp :lexical no
 (use-package edraw-org
-  :ensure t
   :after org
-  :elpaca (edraw-org :host github :repo "misohena/el-easydraw")
+  :ensure (:host github :repo "misohena/el-easydraw")
   :config
   (edraw-org-setup-default)
   ;; When using the org-export-in-background option (when using the
@@ -4384,10 +4458,9 @@ https://github.com/tecosaur/org-pandoc-import
 
 #+begin_src emacs-lisp
   (use-package org-pandoc-import
-    :elpaca (org-pandoc-import
-               :host github
-               :repo "tecosaur/org-pandoc-import"
-               :files ("*.el" "filters" "preprocessors"))
+    :ensure (:host github
+             :repo "tecosaur/org-pandoc-import"
+             :files ("*.el" "filters" "preprocessors"))
     :after org
     :config
     (org-pandoc-import-transient-mode -1))
@@ -4528,7 +4601,7 @@ npm install
         org-reveal-klipsify-src nil))
 #+end_src
 
-*** anki-editor
+*** COMMENT anki-editor
 https://github.com/louietan/anki-editor
 Requirements
 - anki-connect, an Anki add-on required by this package to interact with Anki.
@@ -4537,6 +4610,12 @@ Requirements
 
 #+begin_src emacs-lisp :lexical no
 (use-package anki-editor)
+#+end_src
+
+* Finally
+
+#+begin_src emacs-lisp :lexical no
+(toggle-debug-on-error -1)
 #+end_src
 
 * Learn

@@ -13,6 +13,7 @@
 ;; ;;(add-to-list 'load-path "~/.emacs.d/straight/build/")
 ;; ;; Initializes the package infrastructure
 ;; ;; (package-initialize)
+
 ;; ;; to prevent package.el loading packages prior to their init-file loading.
 (setq package-enable-at-startup nil)
 ;; ;; (setq package-enable-at-startup t)
