@@ -2896,6 +2896,12 @@ https://github.com/joaotavora/sly-named-readtables
   #+end_src
 
 **** COMMENT stumpwm-mode
+- Stumpwm things I keep forgetting:
+  - =<prefix> ;= :: can run stumpwm commands
+  - =<prefix> := :: can run common lisp eval
+  - some key combo =?= :: show valid key combos with 'some key combo' as their prefix
+    For eg: =<prefix> h ?= Nice.
+
 load this file, set stumpwm-shell-program to point to stumpish and
 run =M-x stumpwm-mode= in your stumpwm lisp files.
 Now, you can easily eval code into a running stumpwm using the regular bindings.
