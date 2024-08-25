@@ -51,7 +51,7 @@
 (defcommand firefox () ()
   "Run-or-Raise Firefox"
   ;; --sync makes the X calls synchronous
-  (run-or-raise "firefox" '(:class "firefox")))
+  (run-or-raise "firefox" '(:class "Firefox")))
 
 (defcommand chromium () ()
   "Run-or-Raise Chromium"
