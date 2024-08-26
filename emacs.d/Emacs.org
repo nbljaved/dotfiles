@@ -1348,7 +1348,7 @@ https://github.com/kickingvegas/casual-dired
   :bind (:map dired-mode-map ("?" . #'casual-dired-tmenu)))
 #+end_src
 
-* restart-emacs
+** restart-emacs
 https://github.com/iqbalansari/restart-emacs
 
 It offers a command =restart-emacs= which kills current Emacs session and starts a new session.
@@ -1491,6 +1491,24 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
     (setq eterm-256color-disable-bold t
                                           ;eterm-256color-bright-blue "#00bfff"
           ))
+#+end_src
+
+** envrc
+https://github.com/purcell/envrc
+envrc.el - buffer-local direnv integration for Emacs
+
+- Regarding interaction with the mode :: see ~envrc-mode-map~, and the commands ~envrc-reload~, ~envrc-allow~ and ~envrc-deny~. (There's also ~envrc-reload-all~ as a "nuclear" reset, for now!)
+
+- Troubleshooting ::
+  If you find that a particular Emacs command isn't picking up the environment of your current buffer, and you're sure that envrc-mode is active in that buffer, then it's possible you've found code that runs a process in a temp buffer and neglects to propagate your environment to that buffer before doing so.
+
+  A couple of common Emacs commands that suffer from this defect are also patched directly via advice in envrc.el — shell-command-to-string is a prominent example!
+
+  The =inheritenv= package was designed to handle this case in general.
+
+#+begin_src emacs-lisp
+(use-package envrc)
+(add-hook 'elpaca-after-init-hook (lambda () (envrc-global-mode 1)))
 #+end_src
 
 ** Dired
