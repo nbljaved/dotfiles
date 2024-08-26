@@ -1959,6 +1959,16 @@ Version 2017-11-10"
   (add-hook 'eww-after-render-hook 'xah-rename-eww-buffer))
 #+end_src
 
+** In built emacs packages
+Might need to use newer version of inbuilt emacs packages.
+
+*** transient
+
+#+begin_src emacs-lisp :lexical no
+;; Magit needed transient to be >= 0.5.0
+(use-package transient)
+#+end_src
+
 ** git
 *** magit
 
