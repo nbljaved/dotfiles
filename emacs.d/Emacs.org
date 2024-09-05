@@ -1653,11 +1653,9 @@ When a specially formatted path under `~/.avfs' is accessed, the daemon provides
 
 ** pdf-tools
 
-From =Guix=.
-
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :ensure nil
+  :ensure nil ;; installed via Guix.
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward))
   :config
@@ -4311,6 +4309,13 @@ For eg:  [[edraw:data=H4sIACJndWYAA3WQ3U7EIBCFX4WM1y10dzXppvRK38AXwPKbUtgALq1P77
     (require 'edraw-org)
     (edraw-org-setup-exporter)))
 
+#+end_src
+
+** org-drill
+https://gitlab.com/phillord/org-drill
+
+#+begin_src emacs-lisp
+(use-package org-drill)
 #+end_src
 
 ** org-roam
