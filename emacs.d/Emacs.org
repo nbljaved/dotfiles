@@ -1964,6 +1964,7 @@ Might need to use newer version of inbuilt emacs packages.
 
 #+begin_src emacs-lisp :lexical no
 ;; Magit needed transient to be >= 0.5.0
+;; do =M-x magit-version= to know transient version
 (use-package transient)
 #+end_src
 
