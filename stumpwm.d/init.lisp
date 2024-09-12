@@ -65,6 +65,12 @@
 ;;     ))
 
 (load "/home/nabeel/.stumpwm.d/startup.lisp")
+(when *initializing*
+  (progn
+    (load "/home/nabeel/.stumpwm.d/startup.lisp")
+    ;; (launch-polybar)
+    ))
+;; (load "/home/nabeel/.stumpwm.d/startup.lisp")
 
 ;; Load mode-line configuration 
 (load "/home/nabeel/.stumpwm.d/modeline.lisp")

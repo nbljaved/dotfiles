@@ -17,7 +17,7 @@
 (load-module "winner-mode")
 
 ;; stuff that should be in the module but isn't
-;; (load-module "undocumented")
+(load-module "undocumented")
 
 ;; summon mouse to your current window
 ;; (load-module "beckon")
@@ -30,6 +30,7 @@
 (define-key *root-map* (kbd "M-y") "show-clipboard-history")
 ;; start the polling timer process
 (clipboard-history:start-clipboard-manager)
+(setf clipboard-history:*clipboard-history-max-length* 100)
 
 
 ;; (load-module "productivity")
@@ -57,3 +58,10 @@
 ;;   ((kbd "RET") "ratclick 1")
 ;;   ((kbd "SPC") "ratclick 3"))
 ;; (define-key *top-map* (kbd "s-SPC") "nbl/binwarp-mode")
+
+;; urgent windows
+;; [[file:modules/util/urgentwindows/README.org]]
+(load-module "urgentwindows")
+(setf urgentwindows:*urgent-window-message*
+ "application ~a has just finished its business!")
+(urgentwindows:raise-urgent)
