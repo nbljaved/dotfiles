@@ -41,12 +41,15 @@ alias ld='lazydocker'
 alias lg='lazygit'
 alias ls='ls -alh'
 alias cat='bat'
-alias l='exa --color automatic --icons -l'
+alias l='eza --color=auto --icons -l'
 alias rgi='rg --no-ignore --hidden -i'
 
+#safety
+alias rm='echo "Use trash-cli instead of: rm"'
 
 # Golang
 export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:"$HOME/go/bin"
 
 
 # Automatically added by the Guix install script.
@@ -57,7 +60,7 @@ if [ -n "$GUIX_ENVIRONMENT" ]; then
 fi
 
 ## Guix
-#export GUIX_LOCPATH=$HOME/.guix-profile/lib/locale
+export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 export GUIX_PROFILE="$HOME/.guix-profile"
 source "$GUIX_PROFILE/etc/profile"
 export GUIX_CHECKOUT="$HOME/src/guix"
