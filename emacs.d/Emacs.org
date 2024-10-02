@@ -2063,7 +2063,7 @@ https://github.com/gitleaks/gitleaks
 
 #+begin_src emacs-lisp :lexical yes
 (defvar gitleaks-pre-commit-string
-  "#!/bin/bash
+  "#!/bin/sh
 
 set -xeu -o pipefail
 
@@ -2230,6 +2230,26 @@ https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 
 #+begin_src emacs-lisp :lexical no
 (use-package ssh-config-mode)
+#+end_src
+
+**** ssh-agent
+
+#+CAPTION: This is what people do
+#+begin_src shell :eval no
+eval "$(ssh-agent)"
+ssh-add
+#+end_src
+
+https://emacs.stackexchange.com/questions/17866/magit-how-to-use-systems-ssh-agent-and-dont-ask-for-password
+We will load the env variables "SSH_AGENT_PID" and "SSH_AUTH_SOCK" and then do an 'ssh-add'.
+#+begin_src emacs-lisp
+(defun nbl/ssh-add () (interactive)
+       (if (require 'exec-path-from-shell nil :no-error)
+           (progn
+             (exec-path-from-shell-copy-env "SSH_AGENT_PID")
+             (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
+             (async-shell-command "ssh-add"))
+         (warn "emacs package 'exec-path-from-shell' not installed.")))
 #+end_src
 
 ** auth
