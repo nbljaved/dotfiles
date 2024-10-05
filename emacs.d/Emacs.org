@@ -2246,12 +2246,28 @@ https://emacs.stackexchange.com/questions/17866/magit-how-to-use-systems-ssh-age
 We will load the env variables "SSH_AGENT_PID" and "SSH_AUTH_SOCK" and then do an 'ssh-add'.
 #+begin_src emacs-lisp
 (defun nbl/ssh-add () (interactive)
-       (if (require 'exec-path-from-shell nil :no-error)
-           (progn
-             (exec-path-from-shell-copy-env "SSH_AGENT_PID")
-             (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
-             (async-shell-command "ssh-add"))
-         (warn "emacs package 'exec-path-from-shell' not installed.")))
+       (cond ((not (require 'exec-path-from-shell nil :no-error))
+              (warn "emacs package 'exec-path-from-shell' not installed."))
+             ((exec-path-from-shell-copy-env "SSH_AGENT_PID")
+              ;; ssh-agent is running
+              (exec-path-from-shell-copy-env "SSH_AGENT_PID")
+              (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
+              (async-shell-command "ssh-add"))
+             (t
+              (message "Looking for existing $XDG_RUNTIME_DIR/ssh-agent.env")
+              (let* ((xdg-runtime-dir (getenv "XDG_RUNTIME_DIR"))
+                     (ssh-agent-env (format "%s/%s" xdg-runtime-dir "ssh-agent.env")))
+                (unless (file-exists-p ssh-agent-env)
+                  (error (format "No such file: %s, expecting $XDG_RUNTIME_DIR/ssh-agent.env" ssh-agent-env)))
+                (with-temp-buffer
+                  (insert-file-contents ssh-agent-env)
+                  (goto-char (point-min))
+                  (while (re-search-forward "^\\(SSH_[^=]+\\)=\\([^;]+\\)" nil t)
+                    (message (format "Setting $SSH_%s to %s"
+                                     (match-string 1)
+                                     (match-string 2)))
+                    (setenv (match-string 1) (match-string 2)))))
+              (async-shell-command "ssh-add"))))
 #+end_src
 
 ** auth
@@ -2305,7 +2321,7 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
-** copilot.el
+** COMMENT copilot.el
 https://github.com/copilot-emacs/copilot.el
 
 Install the copilot server by =M-x copilot-install-server=.
