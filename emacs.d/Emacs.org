@@ -1653,11 +1653,9 @@ When a specially formatted path under `~/.avfs' is accessed, the daemon provides
 
 ** pdf-tools
 
-From =Guix=.
-
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :ensure nil
+  :ensure nil ;; installed via Guix.
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward))
   :config
@@ -1966,6 +1964,7 @@ Might need to use newer version of inbuilt emacs packages.
 
 #+begin_src emacs-lisp :lexical no
 ;; Magit needed transient to be >= 0.5.0
+;; do =M-x magit-version= to know transient version
 (use-package transient)
 #+end_src
 
@@ -3992,7 +3991,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
         org-fontify-quote-and-verse-blocks t
         org-hide-emphasis-markers t
         org-return-follows-link t
-        org-export-dispatch-use-expert-ui t
+        org-export-dispatch-use-expert-ui nil
         ;; prettify
         org-use-sub-superscripts "{}"
         org-edit-src-content-indentation 0
@@ -4351,6 +4350,13 @@ For eg:  [[edraw:data=H4sIACJndWYAA3WQ3U7EIBCFX4WM1y10dzXppvRK38AXwPKbUtgALq1P77
 
 #+end_src
 
+** org-drill
+https://gitlab.com/phillord/org-drill
+
+#+begin_src emacs-lisp
+(use-package org-drill)
+#+end_src
+
 ** org-roam
 https://www.orgroam.com/manual.html#Installation
 
@@ -4569,7 +4575,7 @@ https://github.com/weirdNox/org-noter
           org-noter-auto-save-last-location1 t))
 #+end_src
 
-*** COMMENT org-pdftools & org-noter-pdftools
+*** org-pdftools
 a custom org link type for pdf-tools
 https://github.com/fuxialexander/org-pdftools
 
@@ -4577,6 +4583,8 @@ https://github.com/fuxialexander/org-pdftools
 (use-package org-pdftools
   :hook (org-mode . org-pdftools-setup-link))
 #+end_src
+
+*** COMMENT org-noter-pdftools
 
 #+begin_src emacs-lisp
   (use-package org-noter-pdftools
