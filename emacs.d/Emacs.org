@@ -3991,7 +3991,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
         org-fontify-quote-and-verse-blocks t
         org-hide-emphasis-markers t
         org-return-follows-link t
-        org-export-dispatch-use-expert-ui t
+        org-export-dispatch-use-expert-ui nil
         ;; prettify
         org-use-sub-superscripts "{}"
         org-edit-src-content-indentation 0
@@ -4575,7 +4575,7 @@ https://github.com/weirdNox/org-noter
           org-noter-auto-save-last-location1 t))
 #+end_src
 
-*** COMMENT org-pdftools & org-noter-pdftools
+*** org-pdftools
 a custom org link type for pdf-tools
 https://github.com/fuxialexander/org-pdftools
 
@@ -4583,6 +4583,8 @@ https://github.com/fuxialexander/org-pdftools
 (use-package org-pdftools
   :hook (org-mode . org-pdftools-setup-link))
 #+end_src
+
+*** COMMENT org-noter-pdftools
 
 #+begin_src emacs-lisp
   (use-package org-noter-pdftools
