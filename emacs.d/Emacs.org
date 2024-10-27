@@ -1203,6 +1203,8 @@ https://github.com/nflath/hungry-delete
 (define-key dired-mode-map (kbd "<f4>") #'dired-up-directory)
 (define-key dired-mode-map (kbd "l") #'dired-up-directory)
 
+;; enable keybindings
+(put 'narrow-to-region 'disabled nil)
 #+end_src
 
 *** General
@@ -2245,7 +2247,9 @@ https://emacs.stackexchange.com/questions/17866/magit-how-to-use-systems-ssh-age
 We will load the env variables "SSH_AGENT_PID" and "SSH_AUTH_SOCK" and then do an 'ssh-add'.
 #+begin_src emacs-lisp
 (defun nbl/ssh-add () (interactive)
-       (let ((time (number-to-string (read-number "Life (in seconds):" (* 24 60 60)))))
+       (let ((time (eval (car (read-from-string
+                               (read-string "Life (in seconds): "
+                                            (format "(* %s 1)" (* 24 60 60))))))))
          (cond ((not (require 'exec-path-from-shell nil :no-error))
                 (warn "emacs package 'exec-path-from-shell' not installed."))
                ((exec-path-from-shell-copy-env "SSH_AGENT_PID")
