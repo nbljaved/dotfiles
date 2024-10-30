@@ -2061,16 +2061,22 @@ https://github.com/gitleaks/gitleaks
 #+end_src
 
 #+begin_src emacs-lisp :lexical yes
+;; Gitleaks v8.19.0 command translations 
+;; https://gist.github.com/zricethezav/b325bb93ebf41b9c0b0507acf12810d2
+
 (defvar gitleaks-pre-commit-string
   "#!/bin/sh
 
-set -xeu -o pipefail
+set -xeu -o
 
 # if gitleaks is installed, then run it else warn the user to install it
-if command -v gitleaks &> /dev/null
+if command -v gitleaks > /dev/null 2>&1
 then
     # Check if secrets are going to be leaked using 'gitleaks'
-    gitleaks protect --staged --verbose
+    gitleaks git --pre-commit --staged
+    if [ $? -eq 126 ]; then
+        echo 'Gitleaks error: Unknown flag'
+    fi
 else
     echo 'gitleaks is not installed.'
 fi")
@@ -2099,6 +2105,30 @@ fi")
             (message "gitleaks pre-commit hook added")))
       (message "No vc root directory found"))))
 
+(defun nbl/install-gitleaks ()
+  "Clone, build and install gitleaks from source on Linux.
+The binary will be installed to $HOME/go/bin/gitleaks"
+  (interactive)
+  (let* ((temp-dir (make-temp-file "gitleaks-build-" t))
+         (home-dir (getenv "HOME"))
+         (go-bin-dir (expand-file-name "go/bin" home-dir))
+         (default-directory temp-dir))
+    
+    ;; Ensure the go/bin directory exists
+    (unless (file-exists-p go-bin-dir)
+      (make-directory go-bin-dir t))
+    
+    (message "Building gitleaks in temporary directory: %s" temp-dir)
+    
+    (async-shell-command
+     (format "git clone https://github.com/gitleaks/gitleaks.git . && \
+              make build && \
+              mv ./gitleaks %s && \
+              trash %s && \
+              echo 'gitleaks installed at %s'"
+             (shell-quote-argument (expand-file-name "gitleaks" go-bin-dir))
+             (shell-quote-argument temp-dir)
+             (shell-quote-argument (expand-file-name "gitleaks" go-bin-dir))))))
 #+end_src
 ** rg
 https://github.com/dajva/rg.el
