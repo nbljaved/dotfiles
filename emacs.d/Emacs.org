@@ -1683,13 +1683,14 @@ When a specially formatted path under `~/.avfs' is accessed, the daemon provides
 			 "/share/info/")))
 #+end_src
 
-** COMMENT telega
+** telega
+https://zevlg.github.io/telega.el/
 From AUR, install =libtgvoip=, =libtd=
    
 #+begin_src emacs-lisp
-(use-package telega
-  :config
-  )
+(when guix?
+  ;; On guix: guix package -i emacs-telega font-gnu-{unifont,freefont}
+  (require 'telega nil :no-error))
 #+end_src
 
 ** which-key
@@ -1759,9 +1760,9 @@ See https://github.com/alezost/guix.el
 =guix install emacs-guix=
 
 #+begin_src emacs-lisp
-  (when guix?
-    (require 'guix)
-    (guix-emacs-autoload-packages))
+(when guix?
+  (require 'guix)
+  (guix-emacs-autoload-packages))
 #+end_src
 
 ** gptel
@@ -2286,7 +2287,7 @@ We will load the env variables "SSH_AGENT_PID" and "SSH_AUTH_SOCK" and then do a
                 ;; ssh-agent is running
                 (exec-path-from-shell-copy-env "SSH_AGENT_PID")
                 (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
-                (async-shell-command (format "ssh-add -t %s" time))                )
+                (async-shell-command (format "ssh-add -t %s" time)))
                (t
                 (message "Looking for existing $XDG_RUNTIME_DIR/ssh-agent.env")
                 (let* ((xdg-runtime-dir (getenv "XDG_RUNTIME_DIR"))
@@ -2381,6 +2382,23 @@ codeium-install
 #+begin_src emacs-lisp :lexical no
 (use-package codeium
   :ensure (:type git :host github :repo "Exafunction/codeium.el"))
+#+end_src
+
+** security
+*** age
+https://github.com/anticomputer/age.el
+
+Identities (private keys) and recipients (public keys) are maintained via the customizable age-default-identity and age-default-recipient variables. By default they are set to ~/.ssh/id_rsa and ~/.ssh/id_rsa.pub respectively.
+
+#+begin_src emacs-lisp :lexical no
+(use-package age
+  :ensure t
+  :demand t
+  :custom
+  (age-default-identity "~/.age/key")
+  (age-default-recipient "~/.age/key.pub")
+  :config
+  (age-file-enable))
 #+end_src
 
 ** pfuture
