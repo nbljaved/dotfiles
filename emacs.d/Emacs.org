@@ -1881,7 +1881,7 @@ Session restores various variables (e.g., input histories) from your last sessio
     )
 #+end_src
 
-** real-auto-save
+** COMMENT real-auto-save
 https://github.com/chillaranand/real-auto-save
 automatically save the files (you want) at regular intervals
 
@@ -1893,7 +1893,7 @@ automatically save the files (you want) at regular intervals
     (setq real-auto-save-interval 5))
 #+end_src
 
-** polybar
+** COMMENT polybar
 *** ini-mode
 
 #+begin_src emacs-lisp
@@ -1901,7 +1901,7 @@ automatically save the files (you want) at regular intervals
     :mode ("\\.ini\\'" . ini-mode))
 #+end_src
 
-** smart-compile
+** COMMENT smart-compile
 https://www.emacswiki.org/emacs/SmartCompile
 %F  absolute pathname            ( /usr/local/bin/netscape.bin )
 %f  file name without directory  ( netscape.bin )
@@ -2157,7 +2157,7 @@ Like [[*org-sticky-header]]
     :hook (prog-mode . topsy-mode))
 #+end_src
 
-** emacs-everywhere
+** COMMENT emacs-everywhere
 https://github.com/tecosaur/emacs-everywhere
 
 - To exit :: =C-x 5 0= or =C-c C-c=
@@ -2192,7 +2192,7 @@ https://github.com/pashky/restclient.el
    '((restclient . t))))
 #+end_src
 
-** virtual-comment
+** COMMENT virtual-comment
 https://github.com/thanhvg/emacs-virtual-comment
 A virtual comment is an overlay and it is added above the line it comments on and has the same indentation. The virtual comment can be single line or multiline. Each line can have one comment.
 
@@ -2206,7 +2206,7 @@ A virtual comment is an overlay and it is added above the line it comments on an
 (use-package virtual-comment)
 #+end_src
 
-** go-translate
+** COMMENT go-translate
 https://github.com/lorniu/go-translate/tree/master
 
 https://ag91.github.io/blog/2022/01/16/moldable-emacs-translate-string-at-point-in-multiple-languages/
@@ -2224,8 +2224,6 @@ https://gitlab.com/emacs-stuff/indent-tools
 (use-package indent-tools
   :config
   (global-set-key (kbd "C-c >") 'indent-tools-hydra/body))
-
-
 #+end_src
 
 ** Custom functions
@@ -2276,6 +2274,7 @@ ssh-add
 
 https://emacs.stackexchange.com/questions/17866/magit-how-to-use-systems-ssh-agent-and-dont-ask-for-password
 We will load the env variables "SSH_AGENT_PID" and "SSH_AUTH_SOCK" and then do an 'ssh-add'.
+
 #+begin_src emacs-lisp
 (defun nbl/ssh-add () (interactive)
        (let ((time (eval (car (read-from-string
@@ -2329,7 +2328,7 @@ https://github.com/astoff/devdocs.el
             (lambda () (setq-local devdocs-current-docs '("openjdk~18")))))
 #+end_src
 
-** crdt
+** COMMENT crdt
 https://elpa.gnu.org/packages/crdt.html#org74bb356
 
 crdt.el is a real-time collaborative editing environment for Emacs using Conflict-free Replicated Data Types.
@@ -2376,14 +2375,6 @@ Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x c
         copilot-log-max 4
         copilot-indent-offset-warning-disable t))
 #+end_src
-
-** COMMENT codeium
-codeium-install
-#+begin_src emacs-lisp :lexical no
-(use-package codeium
-  :ensure (:type git :host github :repo "Exafunction/codeium.el"))
-#+end_src
-
 ** security
 *** age
 https://github.com/anticomputer/age.el
@@ -2448,7 +2439,7 @@ Identities (private keys) and recipients (public keys) are maintained via the cu
     (setq-default poke-line-pokemon "squirtle"))
 #+end_src
 
-*** mlscroll
+*** COMMENT mlscroll
 
 #+begin_src emacs-lisp
   (use-package mlscroll
@@ -3747,15 +3738,14 @@ If you need to configure a package that pet doesn't support, or only want to con
   (add-hook 'python-base-mode-hook 'pet-mode -10))
 #+end_src
 
-**** COMMENT python
+**** python
 
 #+begin_src emacs-lisp :lexical no
 (use-package python-mode
   :mode ("[./]flake8\\'" . conf-mode)
   :mode ("/Pipfile\\'" . conf-mode)
   :config
-  (add-to-list 'exec-path "/home/nabeel/.local/bin")
-  )
+  (add-to-list 'exec-path "/home/nabeel/.local/bin"))
 
 
 ;; (add-hook 'python-mode-hook 'eglot-ensure)
@@ -3796,7 +3786,7 @@ To use this package you need to install =setuptools=.
     '(add-to-list 'company-backends 'company-anaconda)))
 #+end_src
 
-**** lpy
+**** COMMENT lpy
 https://github.com/abo-abo/lpy/tree/master
 
 #+begin_src emacs-lisp :lexical no
@@ -3808,7 +3798,7 @@ https://github.com/abo-abo/lpy/tree/master
               ("E" . lispy-eval-and-comment)))
 #+end_src
 
-**** pyimport
+**** COMMENT pyimport
 https://github.com/Wilfred/pyimport
 
 Requires =pyflakes= to be installed.
@@ -3825,7 +3815,7 @@ I like to bind this to a key:
 (use-package pyimport)
 #+end_src
 
-**** py-isort
+**** COMMENT py-isort
 https://github.com/paetzke/py-isort.el/tree/master
 
 Install =isort=
@@ -3836,7 +3826,7 @@ Install =isort=
 ;; py-isort-region
 #+end_src
 
-**** python-pytest
+**** COMMENT python-pytest
 https://github.com/wbolster/emacs-python-pytest
 
 popup menu, named =python-pytest-dispatch=.
@@ -3845,7 +3835,7 @@ popup menu, named =python-pytest-dispatch=.
 (use-package python-pytest)
 #+end_src
 
-**** pyvenv
+**** COMMENT pyvenv
 https://github.com/jorgenschaefer/pyvenv/tree/master
 
 This is a simple global minor mode which will replicate the changes done by virtualenv activation inside Emacs.
@@ -3856,7 +3846,7 @@ The main entry points are =pyvenv-activate=, which queries the user for a virtua
 (use-package pyvenv)
 #+end_src
 
-**** pipenv
+**** COMMENT pipenv
 https://github.com/pwalsh/pipenv.el/tree/master
 A Pipenv porcelain inside Emacs.
 
@@ -3871,7 +3861,7 @@ pipenv.el relies on pyvenv to switch between different virtual environments (pip
    #'pipenv-projectile-after-switch-extended))
 #+end_src
 
-**** pyenv-mode
+**** COMMENT pyenv-mode
 https://github.com/pythonic-emacs/pyenv-mode/tree/master
 Add following block to your Emacs configuration:
 (pyenv-mode)
@@ -3912,7 +3902,7 @@ https://donkirkby.github.io/live-py-plugin/starting_emacs.html
 (use-package live-py-mode)
 #+end_src
 
-**** pippel
+**** COMMENT pippel
 https://github.com/arifer612/pippel/tree/master
 Emacs frontend to python package manager pip 
 
@@ -3933,7 +3923,7 @@ Emacs frontend to python package manager pip
 (use-package pippel)
 #+end_src
 
-**** yapfify
+**** COMMENT yapfify
 
 ~$ guix install yapf~
 
@@ -3942,7 +3932,7 @@ Emacs frontend to python package manager pip
   :hook ((python-mode . yapf-mode)))
 #+end_src
 
-**** python-cell
+**** COMMENT python-cell
 https://github.com/thisch/python-cell.el
 
 #+begin_src emacs-lisp :lexical no
@@ -4417,7 +4407,7 @@ For eg:  [[edraw:data=H4sIACJndWYAA3WQ3U7EIBCFX4WM1y10dzXppvRK38AXwPKbUtgALq1P77
 
 #+end_src
 
-** org-drill
+** COMMENT org-drill
 https://gitlab.com/phillord/org-drill
 
 #+begin_src emacs-lisp
@@ -4704,7 +4694,7 @@ https://github.com/alphapapa/org-web-tools
   (use-package org-web-tools)
 #+end_src
 
-*** org-tree-slide
+*** COMMENT org-tree-slide
 https://github.com/takaxp/org-tree-slide
 
 #+begin_src emacs-lisp
