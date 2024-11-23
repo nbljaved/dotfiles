@@ -2389,7 +2389,7 @@ Identities (private keys) and recipients (public keys) are maintained via the cu
   (age-default-identity "~/.age/key")
   (age-default-recipient "~/.age/key.pub")
   :config
-  (age-file-enable))
+  (age-file-disable))
 #+end_src
 
 ** pfuture
