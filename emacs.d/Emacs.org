@@ -1079,6 +1079,22 @@ https://github.com/minad/consult
 ** Text editing
 *** flycheck
 
+#+CAPTION: To avoid arbitrary code execution in emacs
+#+begin_src emacs-lisp :lexical no
+;; https://eshelyaron.com/posts/2024-11-27-emacs-aritrary-code-execution-and-how-to-avoid-it.html
+
+(with-eval-after-load 'flycheck
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda ()
+              (flycheck-mode -1))))
+
+(with-eval-after-load 'flymake
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda ()
+              (flymake-mode -1))))
+
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package flycheck
     :init
@@ -3786,13 +3802,13 @@ To use this package you need to install =setuptools=.
     '(add-to-list 'company-backends 'company-anaconda)))
 #+end_src
 
-**** COMMENT lpy
+**** lpy
 https://github.com/abo-abo/lpy/tree/master
 
 #+begin_src emacs-lisp :lexical no
 (use-package lpy
   :after counsel
-  :hook ((python-mode . lpy-mode))
+  ;; :hook ((python-mode . lpy-mode))
   :bind (:map lpy-mode-map
               ("M-." . nil)
               ("E" . lispy-eval-and-comment)))
