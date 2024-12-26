@@ -4560,22 +4560,25 @@ auto-toggle org elements
 #+end_src
 
 *** org-download
+https://github.com/abo-abo/org-download
+
 If you have the image stored in the clipboard, use =org-download-clipboard=.
 - need =xclip= program .
 
 #+begin_src emacs-lisp
-  (use-package org-download
-    :after org
-    :bind (:map org-mode-map
-                ("C-M-y" . org-download-clipboard))
-    :config
+(use-package org-download
+  :after org
+  :bind (:map org-mode-map
+              ("C-M-y" . org-download-clipboard))
+  :config
+  (setq org-download-display-inline-images nil
+        ;; to not insert the #+DOWNLOADED ... stuff
+        org-download-annotate-function #'(lambda (link) (format ""))
+        org-download-screenshot-method "flameshot gui")
 
-    (setq org-download-display-inline-images nil
-          ;; to not insert the #+DOWNLOADED ... stuff
-          org-download-annotate-function #'(lambda (link) (format ""))
-          org-download-screenshot-method "flameshot gui")
-    ;; Drag-and-drop to `dired`
-    (add-hook 'dired-mode-hook 'org-download-enable))
+  (setq-default org-download-image-dir "./images")
+  ;; Drag-and-drop to `dired`
+  (add-hook 'dired-mode-hook 'org-download-enable))
 #+end_src
 
 *** org-gfm
