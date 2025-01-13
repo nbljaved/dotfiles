@@ -1613,7 +1613,7 @@ https://github.com/FrostyX/dired-open-with
                                            ("LaTeX"
                                             (extension "tex" "bib"))
                                            ("Org"
-                                            (extension  "org" "org~"))
+                                            (extension "org" "org~"))
                                            ("Archives"
                                             (extension "zip" "rar" "gz" "bz2" "tar"))
                                            ("Media"
@@ -1621,7 +1621,9 @@ https://github.com/FrostyX/dired-open-with
                                            ("epub"
                                             (extension "epub"))
                                            ("Spreadsheet"
-                                            (extension "csv"))))))
+                                            (extension "csv"))
+                                           ("Git"
+                                            (git-ignored))))))
 #+end_src
 
 *** dired-narrow
