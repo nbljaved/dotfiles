@@ -178,12 +178,14 @@
 ;; https://github.com/stumpwm/stumpwm/wiki/Tips-And-Tricks
 (defparameter *window-class-renumber*
   '(
+    ("Google-chrome" . 1)
+    ("google-chrome" . 1)
     ("Emacs" . 0)
     ("firefox" . 2)
+    ("LibreWolf" . 2)
     ("firefox-default" . 2)
     ("kitty" . 3)
-    ("Pavucontrol" . 8)
-    )
+    ("Pavucontrol" . 8))
   "Alist of window classes to be renumbered, and their target numbers.")
 
 (defun renumber-window-by-class (win)

@@ -13,7 +13,7 @@
 (define-key *root-map* (kbd "s-w") "other")
 
 ;; frame manipulation
-(define-key *top-map* (kbd "C-q") "send-raw-key") ;; send raw key
+(define-key *top-map* (kbd "C-Q") "send-raw-key") ;; send raw key
 (define-key *top-map* (kbd "s-:") "eval")
 (define-key *top-map* (kbd "s-F") "fullscreen")
 (define-key *top-map* (kbd "s-q") "delete")
@@ -141,31 +141,34 @@
 ;; 	("M-j" . "C-S-Tab")
 ;; 	("M-l" . "C-Tab"))))
 
-(define-remapped-keys
-    `(("(firefox|Firefox|Chromium|Google-chrome|Zotero|zotero|okular|Okular|slack|Slack)"
-       ("C-n"   . "Down")
-       ("C-p"   . "Up")
-       ("C-f"   . "Right")
-       ("C-b"   . "Left")
-       ("C-s"   . "C-f")
-       ("C-d"   . "Delete")
-       ("C-v"   . "Next")
-       ("M-v"   . "Prior")
-       ("M-w"   . "C-c")
-       ("C-w"   . "C-x")
-       ("C-y"   . "C-v")
-       ("C-/"   . "C-z")
-       ("M-<"   . "Home")
-       ("C-a"   . "Home")
-       ("M->"   . "End")
-       ("C-e"   . "End")
-       ("C-M-b" . "M-Left")
-       ("C-M-f" . "M-Right")
-       ("M-f"   . "C-Right")
-       ("M-b"   . "C-Left")
-       ("C-k"   . ("C-S-End" "C-x"))
-       ("M-j" . "C-S-Tab")
-       ("M-l" . "C-Tab"))))
+(define-remapped-keys nil
+    ;; `(("(LibreWolf|librewolf|firefox|Firefox|Chromium|Google-chrome|Zotero|zotero|okular|Okular|slack|Slack)"
+    ;;    ("C-n"   . "Down")
+    ;;    ("C-p"   . "Up")
+    ;;    ("C-f"   . "Right")
+    ;;    ("C-b"   . "Left")
+    ;;    ("C-s"   . "C-f")
+    ;;    ("C-d"   . "Delete")
+    ;;    ("C-v"   . "Next")
+    ;;    ("M-v"   . "Prior")
+    ;;    ("M-w"   . "C-c")
+    ;;    ("C-w"   . "C-x")
+    ;;    ("C-y"   . "C-v")
+    ;;    ("C-/"   . "C-z")
+    ;;    ("M-<"   . "Home")
+    ;;    ("C-a"   . "Home")
+    ;;    ("M->"   . "End")
+    ;;    ("M-less"   . "Home")
+    ;;    ("M-greater"   . "End")
+    ;;    ("C-e"   . "End")
+    ;;    ("C-M-b" . "M-Left")
+    ;;    ("C-M-f" . "M-Right")
+    ;;    ("M-f"   . "C-Right")
+    ;;    ("M-b"   . "C-Left")
+    ;;    ("C-k"   . ("C-S-End" "C-x"))
+    ;;    ("M-j" . "C-S-Tab")
+    ;;    ("M-l" . "C-Tab")))
+  )
 
 ;;; Desktop Environment
 ;; Brightness
