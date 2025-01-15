@@ -117,12 +117,12 @@
 ;; Brightness control
 (defcommand backlight-up () ()
   "Up backlight by 20"
-  (run-shell-command "brightnessctl s +50" )
+  (run-shell-command "brightnessctl s +2%" )
   (run-shell-command "dunstify  -h string:x-dunst-stack-tag:brightness \"Brightness\" $(brightnessctl | awk -F\" \" '/Current/ {print $4}')"))
 
 (defcommand backlight-down () ()
   "Up backlight by 20"
-  (run-shell-command "brightnessctl s 50-")
+  (run-shell-command "brightnessctl s 2%-")
   (stumpwm:run-shell-command " dunstify -h string:x-dunst-stack-tag:brightness \"Brightness\" $(brightnessctl | awk -F\" \" '/Current/ {print $4}') "))
 
 (defcommand mic-mute () ()

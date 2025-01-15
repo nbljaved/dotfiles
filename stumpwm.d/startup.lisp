@@ -24,7 +24,7 @@ fi
 ;; (ql:quickload :clx-truetype)
 ;; (load-module "ttf-fonts")
 ;; (setf xft:*font-dirs* '("/usr/share/fonts/"))
-;; ;; (setf clx-truetype:+font-cache-filename+ (concat (getenv "HOME") "/.fonts/font-cache.sexp"))
+;; (setf clx-truetype:+font-cache-filename+ (concat (getenv "HOME") "/.fonts/font-cache.sexp"))
 
 ;; (xft:cache-fonts)
 
