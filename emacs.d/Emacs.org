@@ -2244,6 +2244,14 @@ https://gitlab.com/emacs-stuff/indent-tools
   (global-set-key (kbd "C-c >") 'indent-tools-hydra/body))
 #+end_src
 
+** indent-bars
+https://github.com/jdtsmith/indent-bars
+
+#+begin_src emacs-lisp
+(use-package indent-bars
+  :hook ((python-mode yaml-mode) . indent-bars-mode))
+#+end_src
+
 ** Custom functions
 =org-toggle-inline-images= doesn't toggle those with a description
 
@@ -3281,6 +3289,7 @@ See reference https://oremacs.com/lispy/
 
 #+begin_src emacs-lisp
 (use-package lispy
+  :ensure (:host github :repo "enzuru/lispy")
   :hook ((emacs-lisp-mode . lispy-mode)
          (scheme-mode . lispy-mode)
          (lisp-mode . lispy-mode)
