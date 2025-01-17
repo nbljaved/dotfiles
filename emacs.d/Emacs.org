@@ -1252,7 +1252,8 @@ https://github.com/abo-abo/avy
 (use-package avy
   :demand t
   :config
-  (global-set-key (kbd "<menu>") #'avy-goto-char-timer))
+  (global-set-key (kbd "<menu>") #'avy-goto-char-timer)
+  (global-set-key (kbd "<XF86MenuKB>") #'avy-goto-char-timer))
 #+end_src
 
 *** ace-isearch
