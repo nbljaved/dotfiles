@@ -1192,7 +1192,7 @@ https://github.com/nflath/hungry-delete
 *** Basic
 
 #+begin_src emacs-lisp
-;; (global-set-key (kbd "C-`") 'delete-window)
+(global-set-key (kbd "C-x `") 'delete-window)
 ;; (global-set-key (kbd "C-1") 'delete-other-windows)
 ;; (global-set-key (kbd "C-2") 'split-window-below)
 ;; (global-set-key (kbd "C-3") 'split-window-right)
@@ -1544,7 +1544,12 @@ envrc.el - buffer-local direnv integration for Emacs
 (setq dired-create-destination-dirs 'ask
       dired-create-destination-dirs-on-trailing-dirsep t)
 
+;; Toggle omission of uninteresting files in Dired
+;; The default is to omit  ‘.’, ‘..’, auto-save files and lock files.
 (add-hook 'dired-mode-hook #'dired-omit-mode)
+
+;; as with 'i' I can insert subdir, therefore I want 'I' to kill the subdir.
+(define-key dired-mode-map (kbd "I") 'dired-kill-subdir)
 #+end_src
 
 *** COMMENT Dirvish
@@ -2215,7 +2220,7 @@ https://github.com/pashky/restclient.el
 https://github.com/thanhvg/emacs-virtual-comment
 A virtual comment is an overlay and it is added above the line it comments on and has the same indentation. The virtual comment can be single line or multiline. Each line can have one comment.
 
-[[file:Utility/2022-03-11_11-49-07_screenshot.png][commands]]
+[[file:images/Utility/2022-03-11_11-49-07_screenshot.png][commands]]
 
 #+begin_src emacs-lisp :lexical no
 ;; This package allows adding virtual comments to files in buffers.
