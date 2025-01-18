@@ -4,7 +4,13 @@
 (stumpwm:set-prefix-key (stumpwm:kbd "s-w"))
 
 ;; Keyboard
+(define-key *top-map* (kbd "s-!") "exec")
+(define-key *top-map* (kbd "s-:") "eval")
 (define-key *top-map* (kbd "C-s-k") "nbl/keyboard")
+(define-key *top-map* (kbd "s-S-Left") "exchange-direction left")
+(define-key *top-map* (kbd "s-S-Down") "exchange-direction down")
+(define-key *top-map* (kbd "s-S-Right") "exchange-direction right")
+(define-key *top-map* (kbd "s-S-Up") "exchange-direction up")
 
 ;;; Root map
 (define-key *root-map* (kbd "b") "windowlist")
@@ -14,7 +20,6 @@
 
 ;; frame manipulation
 (define-key *top-map* (kbd "C-Q") "send-raw-key") ;; send raw key
-(define-key *top-map* (kbd "s-:") "eval")
 (define-key *top-map* (kbd "s-F") "fullscreen")
 (define-key *top-map* (kbd "s-q") "delete")
 (define-key *top-map* (kbd "s-Q") "kill")
@@ -31,6 +36,7 @@
 (define-key *menu-map* (kbd "C-k" ) 'menu-up)
 
 (define-key *root-map* (kbd "`") "remove-split")
+(define-key *root-map* (kbd "0") "only")
 (define-key *root-map* (kbd "1") "only")
 (define-key *root-map* (kbd "2") "vsplit")
 (define-key *root-map* (kbd "3") "hsplit")
