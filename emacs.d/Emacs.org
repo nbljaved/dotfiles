@@ -2004,7 +2004,9 @@ Might need to use newer version of inbuilt emacs packages.
               ("M-1" . nil)
               ("M-2" . nil)
               ("M-3" . nil)
-              ("M-4" . nil)))
+              ("M-4" . nil))
+  :config
+  (setq magit-diff-refine-hunk t))
 #+end_src
 
 *** magit-todos
