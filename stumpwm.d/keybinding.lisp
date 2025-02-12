@@ -20,6 +20,7 @@
 
 ;; frame manipulation
 (define-key *top-map* (kbd "C-Q") "send-raw-key") ;; send raw key
+(define-key *top-map* (kbd "s-:") "eval")
 (define-key *top-map* (kbd "s-F") "fullscreen")
 (define-key *top-map* (kbd "s-q") "delete")
 (define-key *top-map* (kbd "s-Q") "kill")
@@ -171,6 +172,7 @@
     ;;    ("C-M-f" . "M-Right")
     ;;    ("M-f"   . "C-Right")
     ;;    ("M-b"   . "C-Left")
+    ;;    ("M-d"   . ("C-S-Right" "C-x"))
     ;;    ("C-k"   . ("C-S-End" "C-x"))
     ;;    ("M-j" . "C-S-Tab")
     ;;    ("M-l" . "C-Tab")))
