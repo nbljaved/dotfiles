@@ -57,17 +57,18 @@ if [ -n "$GUIX_ENVIRONMENT" ]; then
 fi
 
 ## Guix
-export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
-export GUIX_PROFILE="$HOME/.guix-profile"
-source "$GUIX_PROFILE/etc/profile"
-export GUIX_CHECKOUT="$HOME/src/guix"
-#
-export PKG_CONFIG_PATH=$GUIX_PROFILE/lib/pkgconfig
-# SSL certificate
-export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
-export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
-export GIT_SSL_CAINFO="$SSL_CERT_FILE"
-
+if [ -e "guix" ]; then
+    export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+    export GUIX_PROFILE="$HOME/.guix-profile"
+    source "$GUIX_PROFILE/etc/profile"
+    export GUIX_CHECKOUT="$HOME/src/guix"
+    #
+    export PKG_CONFIG_PATH=$GUIX_PROFILE/lib/pkgconfig
+    # SSL certificate
+    export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
+    export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
+    export GIT_SSL_CAINFO="$SSL_CERT_FILE"
+fi
 # zoxide
 eval "$(zoxide init --cmd cd bash)"
 # Direnv
@@ -84,19 +85,6 @@ fi
 
 
 . "$HOME/.cargo/env"
-
-## Natsoft
-
-# ANTLR-4
-export CLASSPATH=".:/usr/local/lib/antlr-4.7-complete.jar:$CLASSPATH"
-alias antlr4='java -jar /usr/local/lib/antlr-4.7-complete.jar'
-## for tool TestRig
-alias grun='java org.antlr.v4.gui.TestRig'
-
-# Mousetrap
-export MOUSETRAP_HOME="$HOME/natsoft/repos/kml/CodeGen"
-#
-alias python='python3'
 
 # nvm
 export NVM_DIR="$HOME/.config/nvm"
