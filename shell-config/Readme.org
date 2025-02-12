@@ -8,5 +8,6 @@ My shell setup
   ln -s ~/shell-config/.bashrc ~/.bashrc
   ln -s ~/shell-config/kitty   ~/.config/
   ln -s ~/shell-config/.blerc  ~/.blerc
+  ln -s ~/shell-config/starship/starship.toml ~/.config/
   #+end_src
   

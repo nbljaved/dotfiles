@@ -107,3 +107,12 @@ export NVM_DIR="$HOME/.config/nvm"
 ## ble.sh
 # Add this line at the end of .bashrc:
 [[ ${BLE_VERSION-} ]] && ble-attach
+
+# uv
+source $HOME/.cargo/env
+
+# when facing gdk_pixbuf_errors
+# unset GDK_PIXBUF_MODULE_FILE
+
+# vscode
+# code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
