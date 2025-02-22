@@ -41,6 +41,29 @@ alias cat='bat'
 alias l='eza --color=auto --icons -l'
 alias rgi='rg --no-ignore --hidden -i'
 
+# Set up fzf key bindings and fuzzy completion
+# fuzzy completion using **<TAB>
+# CTRL-T - Paste the selected files and directories onto the command-line
+# CTRL-R - Paste the selected command from history onto the command-line
+if command -v "fzf" >/dev/null 2>&1 ; then
+    eval "$(fzf --bash)"
+    # Print tree structure in the preview window
+    export FZF_ALT_C_OPTS="
+  --walker-skip .git,node_modules,target
+  --preview 'tree -C {}'"
+    # Preview file content using bat (https://github.com/sharkdp/bat)
+    export FZF_CTRL_T_OPTS="
+  --walker-skip .git,node_modules,target
+  --preview 'bat -n --color=always {}'
+  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+    # Options to fzf command
+    export FZF_COMPLETION_OPTS='--border --info=inline'
+    # Options for path completion (e.g. vim **<TAB>)
+    export FZF_COMPLETION_PATH_OPTS='--walker file,dir,follow,hidden'
+    # Options for directory completion (e.g. cd **<TAB>)
+    export FZF_COMPLETION_DIR_OPTS='--walker dir,follow'    
+fi
+
 #safety
 alias rm='echo "Use trash-cli instead of: rm"'
 
@@ -57,7 +80,7 @@ if [ -n "$GUIX_ENVIRONMENT" ]; then
 fi
 
 ## Guix
-if [ -e "guix" ]; then
+if command -v "guix" >/dev/null 2>&1; then
     export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
     export GUIX_PROFILE="$HOME/.guix-profile"
     source "$GUIX_PROFILE/etc/profile"
