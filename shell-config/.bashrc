@@ -30,7 +30,7 @@ export TERM=xterm-256color # otherwise ssh has keyboard problems
 #export PATH="$PATH:/home/nabeel/.roswell/bin"
 
 alias python='python3'
-alias em='emacs -q -nw'
+alias em='emacsclient --alternate-editor="" --create-frame --no-wait'
 
 
 # lazy
