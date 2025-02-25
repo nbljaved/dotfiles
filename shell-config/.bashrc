@@ -12,8 +12,8 @@ BLESH="$BLESH/share/blesh/ble.sh"
 ##########
 
 # history
-export HISTSIZE=2000
-export HISTFILESIZE=2000
+export HISTSIZE=10000
+export HISTFILESIZE=10000
  
 ## Racket
 export PATH="$HOME/racket/bin:$PATH"
