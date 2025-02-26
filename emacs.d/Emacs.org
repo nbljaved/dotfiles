@@ -2281,7 +2281,15 @@ https://github.com/jdtsmith/indent-bars
 #+end_src
 
 ** ssh
-**** COMMENT Basic
+*** Custom
+
+#+begin_src emacs-lisp :lexical no
+(defun nbl/koreader-kindle-ssh ()
+  (interactive)
+  (find-file "/ssh:root@192.168.0.102#2222:/mnt/us"))
+#+end_src
+
+*** COMMENT Basic
 
 #+begin_src emacs-lisp :lexical no
 (add-to-list 'tramp-connection-properties
@@ -2289,7 +2297,7 @@ https://github.com/jdtsmith/indent-bars
                    "remote-shell" "/usr/bin/bash"))
 #+end_src
 
-**** ssh-config-mode
+*** ssh-config-mode
 https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 
 =# -*- mode: ssh-config -*-=
@@ -2298,7 +2306,7 @@ https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 (use-package ssh-config-mode)
 #+end_src
 
-**** ssh-agent
+*** ssh-agent
 
 #+CAPTION: This is what people do
 #+begin_src shell :eval no
