@@ -2440,6 +2440,16 @@ Identities (private keys) and recipients (public keys) are maintained via the cu
 #+end_src
 
 ** Fun
+*** Hindi
+https://www.emacswiki.org/emacs/SupportHindi
+- In a buffer of choice, type =C-x RET C-\ devanagari-itrans=. This sets your input method. Later, type =C-\= to toggle between hindi and english.
+  
+- To convert a piece of hindi text into its phonetic roman equivalent or vice versa, use =M-x devanagari-(encode/decode)-itrans-region=. As you will soon find out, that conversion is not perfect and has minor bugs.
+
+- When you reload a file in which you had typed some hindi, the characters are disjoint and not formed into words. To convert them back, this works for me: =M-x indian-to-devanagari-region=, followed by =M-x devanagari-compose-region=.
+
+- See many other useful functions in your emacs’ devan-utils.el and devanagari.el.
+  
 *** nov
 #+begin_src emacs-lisp
   (use-package nov
