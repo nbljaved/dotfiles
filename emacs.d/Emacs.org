@@ -4099,6 +4099,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
         org-edit-src-content-indentation 0
         org-use-speed-commands t
         ;; org links
+        org-link-keep-stored-after-insertion t
         help-at-pt-display-when-idle t)
   (help-at-pt-set-timer)
   ;; download images if their link is provided in org link form
