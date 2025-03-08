@@ -2102,7 +2102,7 @@ set -xeu -o
 if command -v gitleaks > /dev/null 2>&1
 then
     # Check if secrets are going to be leaked using 'gitleaks'
-    gitleaks git --pre-commit --staged
+    gitleaks git --pre-commit --staged --verbose
     if [ $? -eq 126 ]; then
         echo 'Gitleaks error: Unknown flag'
     fi
