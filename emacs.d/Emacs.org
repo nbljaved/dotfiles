@@ -183,7 +183,9 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
                                          "/src/guix"))
     "Value of environment variable $GUIX_CHECKOUT, i.e. the location
 of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
-  
+
+  ;; The below code can also be used to add newly installed guix emacs
+  ;; packages to the load-path
   (let ((default-directory (concat guix-profile-path
                                    "/share/emacs/site-lisp/")))
     (normal-top-level-add-subdirs-to-load-path)))
@@ -1394,24 +1396,6 @@ There is also a second command =restart-emacs-start-new-emacs= which starts a ne
 #+end_src
 
 ** Shells
-*** TODO COMMENT eat (emulate a terminal)
-
-https://codeberg.org/akib/emacs-eat
-
-[[https://abode.karthinks.com/share/eat-modes.png][EAT keybindings]]
-
-#+begin_src emacs-lisp :lexical no
-(straight-use-package
- '(eat :type git
-       :host codeberg
-       :repo "akib/emacs-eat"
-       :files ("*.el" ("term" "term/*.el") "*.texi"
-               "*.ti" ("terminfo/e" "terminfo/e/*")
-               ("terminfo/65" "terminfo/65/*")
-               ("integration" "integration/*")
-               (:exclude ".dir-locals.el" "*-tests.el"))))
-#+end_src
-
 *** term
 
 #+begin_src emacs-lisp
@@ -1423,22 +1407,22 @@ https://codeberg.org/akib/emacs-eat
 
 #+end_src
 
-*** COMMENT vterm
+*** vterm
 When you enable vterm-copy-mode, the terminal buffer behaves like a normal read-only text buffer: you can search, copy text, etc.
-The default keybinding to toggle vterm-copy-mode is C-c C-t.
+The default keybinding to toggle vterm-copy-mode is =C-c C-t=.
 When a region is selected, it is possible to copy the text and leave vterm-copy-mode with the enter key.
 
 #+begin_src emacs-lisp
 (use-package vterm
-  :bind (("C-<return>" . vterm-other-window)
-	 ("C-o" . 'other-window))
+  :ensure nil ;; installed via Guix (guix install emacs-vterm)
   :config
-  (setq ;;vterm-shell "/bin/zsh"
-        vterm-kill-buffer-on-exit t
-        vterm-term-environment-variable "eterm-256color"
-        vterm-disable-bold t
-        vterm-timer-delay nil
-        ))
+  (bind-key* (kbd "C-<return>") 'vterm-other-window)
+  (setq
+   ;;vterm-shell "/bin/bash"
+   vterm-kill-buffer-on-exit t
+   vterm-term-environment-variable "eterm-256color"
+   vterm-disable-bold t
+   vterm-timer-delay nil))
 
 (use-package vterm-toggle
   :bind (;;("s-<return>" . vterm-toggle-cd)
@@ -1476,29 +1460,6 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
 (defalias 'eshell/v 'eshell-exec-visual)
 #+end_src
 
-*** COMMENT fish
-
-**** fish-mode
-
-#+begin_src emacs-lisp
-  (use-package fish-mode)
-#+end_src
-
-**** fish-completion
-- Note :: global-fish-completion mode slowed down writing text in org to a crawl.
-  This can be a *reminder* so as not to enable global modes without any consideration.
-  
-#+begin_src emacs-lisp
-  (use-package fish-completion
-    :hook ((eshell-mode . fish-completion-mode)
-           (shell-mode . fish-completion-mode))
-    :config
-    ;; To enable fish completion in all Eshell and M-x shell buffers, add this to your Emacs configuration:
-    ;; (when (and (executable-find "fish")
-    ;;            (require 'fish-completion nil t))
-    ;;   (global-fish-completion-mode))
-    )
-#+end_src
 
 *** eterm-256color
 
