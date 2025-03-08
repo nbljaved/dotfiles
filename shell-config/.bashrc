@@ -11,6 +11,27 @@ BLESH="$BLESH/share/blesh/ble.sh"
 [[ $- != *i* ]] && return
 ##########
 
+if [[ $- != *i* ]]
+then
+    # We are being invoked from a non-interactive shell.  If this
+    # is an SSH session (as in "ssh host command"), source
+    # /etc/profile so we get PATH and other essential variables.
+    [[ -n "$SSH_CLIENT" ]] && source /etc/profile
+
+    # Don't do anything else.
+    return
+fi
+
+# Source the system-wide file.
+source /etc/bashrc
+
+# Bash initialization for interactive non-login shells and
+# for remote shells (info "(bash) Bash Startup Files").
+
+# Export 'SHELL' to child processes.  Programs such as 'screen'
+# honor it and otherwise use /bin/sh.
+export SHELL
+
 # history
 export HISTSIZE=10000
 export HISTFILESIZE=10000
@@ -72,15 +93,18 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:"$HOME/go/bin"
 
 
-# Automatically added by the Guix install script.
-if [ -n "$GUIX_ENVIRONMENT" ]; then
-    if [[ $PS1 =~ (.*)"\\$" ]]; then
-        PS1="${BASH_REMATCH[1]} [env]\\\$ "
-    fi
+# Adjust the prompt depending on whether we're in 'guix environment'.
+if [ -n "$GUIX_ENVIRONMENT" ]
+then
+    PS1='\u@\h \w [guix-env]\$ '
+else
+    PS1='\u@\h \w\$ '
 fi
 
 ## Guix
-if command -v "guix" >/dev/null 2>&1; then
+GUIX=$(command -v "guix")
+GUIX_SYSTEM=$(grep '^ID=guix' /etc/os-release)
+if [ ! -n $GUIX_SYSTEM ] && [ -n $GUIX ]; then
     export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
     export GUIX_PROFILE="$HOME/.guix-profile"
     source "$GUIX_PROFILE/etc/profile"
@@ -92,11 +116,13 @@ if command -v "guix" >/dev/null 2>&1; then
     export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
     export GIT_SSL_CAINFO="$SSL_CERT_FILE"
 fi
+
 # zoxide
 eval "$(zoxide init --cmd cd bash)"
 # Direnv
 eval "$(direnv hook bash)"
 # starship
+export PATH="$PATH":/usr/local/bin
 eval "$(starship init bash)"
 
 # Preferred editor for local and remote sessions
@@ -105,9 +131,6 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
   export EDITOR='emacs'
 fi
-
-
-. "$HOME/.cargo/env"
 
 # nvm
 export NVM_DIR="$HOME/.config/nvm"
@@ -120,10 +143,21 @@ export NVM_DIR="$HOME/.config/nvm"
 [[ ${BLE_VERSION-} ]] && ble-attach
 
 # uv
-source $HOME/.cargo/env
+export PATH="$HOME/.local/bin:$PATH"
+export UV_PYTHON_DOWNLOADS="manual"
+export UV_PYTHON_PREFERENCE="system"
+
+if [ -f $HOME/.cargo/env ]; then
+    source $HOME/.cargo/env
+fi
 
 # when facing gdk_pixbuf_errors
 # unset GDK_PIXBUF_MODULE_FILE
 
 # vscode
 # code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
+
+# Nix
+if command -v "nix" >/dev/null 2>&1; then
+    source /run/current-system/profile/etc/profile.d/nix.sh
+fi
