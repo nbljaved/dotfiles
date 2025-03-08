@@ -1,6 +1,6 @@
 My shell setup
 
-- Install [[https://sw.kovidgoyal.net/kitty/][kitty]]
+- Install [[https://sw.kovidgoyal.net/kitty/][kitty]], [[https://github.com/akinomyoga/ble.sh][ble.sh]], [[https://starship.rs/][starship]]
 
 - To link the files to your home folder
   (Before creating a soft-link, you will have to remove the file existing at that location, probably save them somewhere else.)
