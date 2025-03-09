@@ -2406,6 +2406,16 @@ Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x c
         copilot-log-max 4
         copilot-indent-offset-warning-disable t))
 #+end_src
+
+** ediff
+
+#+begin_src emacs-lisp :lexical no
+(when (require 'ediff nil :no-error)
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally)
+  (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
+#+end_src
+
 ** security
 *** age
 https://github.com/anticomputer/age.el
