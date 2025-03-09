@@ -167,7 +167,7 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 #+end_src
 
 *** Guix
-
+**** Basic
 #+begin_src emacs-lisp :lexical no
 (defvar guix? (executable-find "guix")
   "Boolean to check if guix exists on current system")
@@ -190,6 +190,16 @@ of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
                                    "/share/emacs/site-lisp/")))
     (normal-top-level-add-subdirs-to-load-path)))
 
+#+end_src
+
+**** emacs-guix
+See https://github.com/alezost/guix.el
+=guix install emacs-guix=
+
+#+begin_src emacs-lisp
+(when guix?
+  (require 'guix)
+  (guix-emacs-autoload-packages))
 #+end_src
 
 ** COMMENT use-package
@@ -1170,7 +1180,6 @@ https://github.com/tecosaur/LaTeX-auto-activating-snippets
 #+begin_src emacs-lisp
 (use-package laas
   :when (require 'auctex nil :no-error)
-
   :hook ((org-mode . laas-mode)
          (LaTeX-mode . laas-mode))
   :config )
@@ -1462,20 +1471,6 @@ https://github.com/akreisher/eshell-syntax-highlighting/tree/master
   (eshell-syntax-highlighting-global-mode +1))
 #+end_src
 
-**** eshell-vterm
-https://github.com/iostapyshyn/eshell-vterm/tree/master
-
-#+begin_src emacs-lisp :lexical no
-(use-package eshell-vterm
-  :load-path "site-lisp/eshell-vterm"
-  :after eshell vterm
-  :config
-  (eshell-vterm-mode))
-
-(defalias 'eshell/v 'eshell-exec-visual)
-#+end_src
-
-
 *** eterm-256color
 
 #+begin_src emacs-lisp
@@ -1485,7 +1480,7 @@ https://github.com/iostapyshyn/eshell-vterm/tree/master
   :config
   (setq eterm-256color-disable-bold t
         ;; https://github.com/akermu/emacs-libvterm?tab=readme-ov-file#vterm-term-environment-variable
-        vterm-term-environment-variable "eterm-color")
+        vterm-term-environment-variable "eterm-color"))
 #+end_src
 
 ** envrc
@@ -1753,16 +1748,6 @@ https://github.com/spotify/dockerfile-mode/tree/5db94549ce8b000ae35adf511c820ad2
     :ensure t
     :config
     (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode)))
-#+end_src
-
-** guix
-See https://github.com/alezost/guix.el
-=guix install emacs-guix=
-
-#+begin_src emacs-lisp
-(when guix?
-  (require 'guix)
-  (guix-emacs-autoload-packages))
 #+end_src
 
 ** gptel
