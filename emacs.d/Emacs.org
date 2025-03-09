@@ -2394,12 +2394,9 @@ Install https://aider.chat/docs/install.html
         aidermacs-auto-commits nil
         aidermacs-extra-args '("--watch-files"
                                ;; https://aider.chat/docs/more/edit-formats.html
-                               "--edit-format diff-fenced"
-                               ))
+                               "--edit-format diff-fenced"))
   ;; https://github.com/MatthewZMD/aidermacs#prompt-files-minor-mode
-  (aidermacs-setup-minor-mode)
-
-  )
+  (aidermacs-setup-minor-mode))
 #+end_src
 
 *** COMMENT copilot.el
