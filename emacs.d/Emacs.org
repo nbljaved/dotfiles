@@ -2412,7 +2412,8 @@ Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x c
 #+begin_src emacs-lisp :lexical no
 (when (require 'ediff nil :no-error)
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
-        ediff-split-window-function 'split-window-horizontally)
+        ediff-split-window-function 'split-window-horizontally
+        ediff-diff-options "-w")
   (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
 #+end_src
 
