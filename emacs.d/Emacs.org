@@ -161,6 +161,8 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
   ;; i.e. eager evaluation in contrast to elpaca's lazier version
   :ensure (:wait t)
   :config
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH"
+                                         "GEMINI_API_KEY" "OPENAI_API_KEY"))
   (when (or (memq window-system '(mac ns x))
             (daemonp))
     (exec-path-from-shell-initialize)))
