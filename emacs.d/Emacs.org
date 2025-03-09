@@ -659,6 +659,8 @@ Keeps code indented . (always)
          (sly-mode . company-mode)
          (jupyter-repl-mode . company-mode))
   :bind (
+         :map company-mode-map
+         ("C-;" . company-complete)
          :map company-active-map
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous)
@@ -668,13 +670,14 @@ Keeps code indented . (always)
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous))
   :config
-  ;; can still move cursor 
+  ;; can still move cursor
   (setq company-require-match nil)
   (setq company-idle-delay 0.1)
   (setq company-minimum-prefix-length 2))
 #+end_src
 
 ** company-quickhelp
+https://github.com/company-mode/company-quickhelp
 
 #+begin_src emacs-lisp
 (use-package company-quickhelp
@@ -2370,7 +2373,36 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
-** COMMENT copilot.el
+** AI
+*** aidermacs
+https://github.com/MatthewZMD/aidermacs
+
+Install https://aider.chat/docs/install.html
+
+#+begin_src emacs-lisp
+(use-package aidermacs
+  :ensure (aidermacs
+           :host github
+           :repo "MatthewZMD/aidermacs"
+           :files ("*.el")
+           :rev :newest)
+  :config
+  (bind-key* (kbd "C-c a") 'aidermacs-transient-menu)
+  (setq aidermacs-default-model "gemini/gemini-2.0-flash"
+        aidermacs-backend 'vterm
+        aidermacs-vterm-multiline-newline-key "M-<return>"
+        aidermacs-auto-commits nil
+        aidermacs-extra-args '("--watch-files"
+                               ;; https://aider.chat/docs/more/edit-formats.html
+                               "--edit-format diff-fenced"
+                               ))
+  ;; https://github.com/MatthewZMD/aidermacs#prompt-files-minor-mode
+  (aidermacs-setup-minor-mode)
+
+  )
+#+end_src
+
+*** COMMENT copilot.el
 https://github.com/copilot-emacs/copilot.el
 
 Install the copilot server by =M-x copilot-install-server=.
