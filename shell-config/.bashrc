@@ -125,6 +125,9 @@ eval "$(direnv hook bash)"
 export PATH="$PATH":/usr/local/bin
 eval "$(starship init bash)"
 
+##########
+## Emacs-start
+
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='emacs'
@@ -132,15 +135,53 @@ else
   export EDITOR='emacs'
 fi
 
+## Vterm - https://github.com/akermu/emacs-libvterm
+# vterm shell-side configuration
+vterm_printf() {
+    if [ -n "$TMUX" ] \
+        && { [ "${TERM%%-*}" = "tmux" ] \
+            || [ "${TERM%%-*}" = "screen" ]; }; then
+        # Tell tmux to pass the escape sequences through
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+    elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+    else
+        printf "\e]%s\e\\" "$1"
+    fi
+}
+# vterm-clear-scrollback (C-c C-l)
+if [ "$INSIDE_EMACS" = 'vterm' ]; then
+    clear() {
+        vterm_printf "51;Evterm-clear-scrollback";
+        tput clear;
+    }
+fi
+# https://github.com/akermu/emacs-libvterm?tab=readme-ov-file#vterm-buffer-name-string
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }"'echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
+# https://github.com/akermu/emacs-libvterm#message-passing
+vterm_cmd() {
+    local vterm_elisp
+    vterm_elisp=""
+    while [ $# -gt 0 ]; do
+        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+        shift
+    done
+    vterm_printf "51;E$vterm_elisp"
+}
+# https://github.com/akermu/emacs-libvterm#how-can-i-get-the-directory-tracking-in-a-more-understandable-way
+vterm_set_directory() {
+    vterm_cmd update-pwd "$PWD/"
+}
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }vterm_set_directory"
+
+## Emacs-end
+######
+
 # nvm
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-##############################################################################
-## ble.sh
-# Add this line at the end of .bashrc:
-[[ ${BLE_VERSION-} ]] && ble-attach
 
 # uv
 export PATH="$HOME/.local/bin:$PATH"
@@ -161,3 +202,9 @@ fi
 if command -v "nix" >/dev/null 2>&1; then
     source /run/current-system/profile/etc/profile.d/nix.sh
 fi
+
+##############################################################################
+## ble.sh
+# Add this line at the end of .bashrc:
+[[ ${BLE_VERSION-} ]] && ble-attach
+
