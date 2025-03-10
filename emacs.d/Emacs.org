@@ -347,6 +347,7 @@ See https://github.com/alezost/guix.el
 #+end_src
 
 *** Unicode support
+https://github.com/rolandwalker/unicode-fonts
 
 #+begin_src emacs-lisp
   (use-package unicode-fonts
@@ -1420,11 +1421,6 @@ There is also a second command =restart-emacs-start-new-emacs= which starts a ne
 
 #+begin_src emacs-lisp
   (require 'term)
-
-  (define-key term-mode-map (kbd "C-o") 'other-window)
-  (define-key term-raw-map (kbd "C-o") 'other-window)
-
-
 #+end_src
 
 *** vterm
