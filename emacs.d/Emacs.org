@@ -161,13 +161,15 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
   ;; i.e. eager evaluation in contrast to elpaca's lazier version
   :ensure (:wait t)
   :config
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH"
+                                         "GEMINI_API_KEY" "OPENAI_API_KEY"))
   (when (or (memq window-system '(mac ns x))
             (daemonp))
     (exec-path-from-shell-initialize)))
 #+end_src
 
 *** Guix
-
+**** Basic
 #+begin_src emacs-lisp :lexical no
 (defvar guix? (executable-find "guix")
   "Boolean to check if guix exists on current system")
@@ -183,11 +185,23 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
                                          "/src/guix"))
     "Value of environment variable $GUIX_CHECKOUT, i.e. the location
 of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
-  
+
+  ;; The below code can also be used to add newly installed guix emacs
+  ;; packages to the load-path
   (let ((default-directory (concat guix-profile-path
                                    "/share/emacs/site-lisp/")))
     (normal-top-level-add-subdirs-to-load-path)))
 
+#+end_src
+
+**** emacs-guix
+See https://github.com/alezost/guix.el
+=guix install emacs-guix=
+
+#+begin_src emacs-lisp
+(when guix?
+  (require 'guix)
+  (guix-emacs-autoload-packages))
 #+end_src
 
 ** COMMENT use-package
@@ -590,22 +604,21 @@ Keeps code indented . (always)
 #+begin_src emacs-lisp
 (use-package eyebrowse
   :defer nil
-  :bind (("M-\`". eyebrowse-switch-to-window-config-0)
-         ("M-1". eyebrowse-switch-to-window-config-1)
-         ("M-2". eyebrowse-switch-to-window-config-2)
-         ("M-3". eyebrowse-switch-to-window-config-3)
-         ("M-4". eyebrowse-switch-to-window-config-4)
-         ("M-5". eyebrowse-switch-to-window-config-5)
-         ("M-6". eyebrowse-switch-to-window-config-6)
-         ("M-7". eyebrowse-switch-to-window-config-7)
-         ("M-8". eyebrowse-switch-to-window-config-8)
-         ("M-9". eyebrowse-switch-to-window-config-9)
-         ("M-0". eyebrowse-switch-to-window-config)
-         )
   :config
   (setq eyebrowse-switch-back-and-forth t)
   (setq eyebrowse-wrap-around t)
   (setq eyebrowse-new-workspace t) ;; clean up and display the scratch buffer
+  (bind-key* (kbd "M-\`") 'eyebrowse-switch-to-window-config-0)
+  (bind-key* (kbd "M-1") 'eyebrowse-switch-to-window-config-1)
+  (bind-key* (kbd "M-2") 'eyebrowse-switch-to-window-config-2)
+  (bind-key* (kbd "M-3") 'eyebrowse-switch-to-window-config-3)
+  (bind-key* (kbd "M-4") 'eyebrowse-switch-to-window-config-4)
+  (bind-key* (kbd "M-5") 'eyebrowse-switch-to-window-config-5)
+  (bind-key* (kbd "M-6") 'eyebrowse-switch-to-window-config-6)
+  (bind-key* (kbd "M-7") 'eyebrowse-switch-to-window-config-7)
+  (bind-key* (kbd "M-8") 'eyebrowse-switch-to-window-config-8)
+  (bind-key* (kbd "M-9") 'eyebrowse-switch-to-window-config-9)
+  (bind-key* (kbd "M-0") 'eyebrowse-switch-to-window-config)
   (eyebrowse-mode 1))
 #+end_src
 
@@ -658,6 +671,8 @@ Keeps code indented . (always)
          (sly-mode . company-mode)
          (jupyter-repl-mode . company-mode))
   :bind (
+         :map company-mode-map
+         ("C-;" . company-complete)
          :map company-active-map
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous)
@@ -667,13 +682,14 @@ Keeps code indented . (always)
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous))
   :config
-  ;; can still move cursor 
+  ;; can still move cursor
   (setq company-require-match nil)
   (setq company-idle-delay 0.1)
   (setq company-minimum-prefix-length 2))
 #+end_src
 
 ** company-quickhelp
+https://github.com/company-mode/company-quickhelp
 
 #+begin_src emacs-lisp
 (use-package company-quickhelp
@@ -1040,7 +1056,10 @@ https://github.com/minad/consult
   :bind (("C-." . embark-act)
          :map minibuffer-local-map
          ("C-c C-c" . embark-collect)
-         ("C-c C-e" . embark-export)))
+         ("C-c C-e" . embark-export)
+         ("C-SPC " . embark-select))
+  :config
+  (setq embark-help-key "?"))
 
 ;; The `embark-consult' package is glue code to tie together `embark'
 ;; and `consult'.
@@ -1163,7 +1182,6 @@ https://github.com/tecosaur/LaTeX-auto-activating-snippets
 #+begin_src emacs-lisp
 (use-package laas
   :when (require 'auctex nil :no-error)
-
   :hook ((org-mode . laas-mode)
          (LaTeX-mode . laas-mode))
   :config )
@@ -1213,9 +1231,13 @@ https://github.com/nflath/hungry-delete
 (global-set-key (kbd "C-_") 'text-scale-decrease)
 
 ;; move to current directory
-(defun nbl/current-directory () (interactive)
-       (dired "./"))
-(global-set-key (kbd "<f4>") 'nbl/current-directory)
+(defun nbl/current-directory (prefix)
+  (interactive "P")
+  (if prefix
+      (progn (kill-new default-directory)
+             (message "Copied to kill ring: %s" default-directory))
+    (dired default-directory)))
+(bind-key* (kbd "<f4>") 'nbl/current-directory)
 (define-key dired-mode-map (kbd "<f4>") #'dired-up-directory)
 (define-key dired-mode-map (kbd "l") #'dired-up-directory)
 
@@ -1394,24 +1416,6 @@ There is also a second command =restart-emacs-start-new-emacs= which starts a ne
 #+end_src
 
 ** Shells
-*** TODO COMMENT eat (emulate a terminal)
-
-https://codeberg.org/akib/emacs-eat
-
-[[https://abode.karthinks.com/share/eat-modes.png][EAT keybindings]]
-
-#+begin_src emacs-lisp :lexical no
-(straight-use-package
- '(eat :type git
-       :host codeberg
-       :repo "akib/emacs-eat"
-       :files ("*.el" ("term" "term/*.el") "*.texi"
-               "*.ti" ("terminfo/e" "terminfo/e/*")
-               ("terminfo/65" "terminfo/65/*")
-               ("integration" "integration/*")
-               (:exclude ".dir-locals.el" "*-tests.el"))))
-#+end_src
-
 *** term
 
 #+begin_src emacs-lisp
@@ -1423,27 +1427,33 @@ https://codeberg.org/akib/emacs-eat
 
 #+end_src
 
-*** COMMENT vterm
+*** vterm
 When you enable vterm-copy-mode, the terminal buffer behaves like a normal read-only text buffer: you can search, copy text, etc.
-The default keybinding to toggle vterm-copy-mode is C-c C-t.
+The default keybinding to toggle vterm-copy-mode is =C-c C-t=.
 When a region is selected, it is possible to copy the text and leave vterm-copy-mode with the enter key.
+
+[[*eterm-256color][eterm-256color]]
 
 #+begin_src emacs-lisp
 (use-package vterm
-  :bind (("C-<return>" . vterm-other-window)
-	 ("C-o" . 'other-window))
+  :ensure nil ;; installed via Guix (guix install emacs-vterm)
   :config
-  (setq ;;vterm-shell "/bin/zsh"
-        vterm-kill-buffer-on-exit t
-        vterm-term-environment-variable "eterm-256color"
-        vterm-disable-bold t
-        vterm-timer-delay nil
-        ))
+  (bind-key* (kbd "C-<return>") 'vterm-other-window)
+  (setq
+   ;;vterm-shell "/bin/bash"
+   vterm-kill-buffer-on-exit t
+   vterm-term-environment-variable "eterm-256color"
+   vterm-disable-bold t
+   vterm-timer-delay nil
+   vterm-buffer-name-string "vterm %s"
+   vterm-always-compile-module t
+   vterm-max-scrollback 10000)
+  (define-key vterm-mode-map (kbd "C-q") #'vterm-send-next-key)
+  (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path)))))
+
 
 (use-package vterm-toggle
-  :bind (;;("s-<return>" . vterm-toggle-cd)
-         :map vterm-mode-map
-         ("C-o" . other-window)))
+  :config)
 
 ;; (use-package multi-vterm
 ;;   ::bind (("s-<return>" . multi-vterm)
@@ -1463,53 +1473,16 @@ https://github.com/akreisher/eshell-syntax-highlighting/tree/master
   (eshell-syntax-highlighting-global-mode +1))
 #+end_src
 
-**** eshell-vterm
-https://github.com/iostapyshyn/eshell-vterm/tree/master
-
-#+begin_src emacs-lisp :lexical no
-(use-package eshell-vterm
-  :load-path "site-lisp/eshell-vterm"
-  :after eshell vterm
-  :config
-  (eshell-vterm-mode))
-
-(defalias 'eshell/v 'eshell-exec-visual)
-#+end_src
-
-*** COMMENT fish
-
-**** fish-mode
-
-#+begin_src emacs-lisp
-  (use-package fish-mode)
-#+end_src
-
-**** fish-completion
-- Note :: global-fish-completion mode slowed down writing text in org to a crawl.
-  This can be a *reminder* so as not to enable global modes without any consideration.
-  
-#+begin_src emacs-lisp
-  (use-package fish-completion
-    :hook ((eshell-mode . fish-completion-mode)
-           (shell-mode . fish-completion-mode))
-    :config
-    ;; To enable fish completion in all Eshell and M-x shell buffers, add this to your Emacs configuration:
-    ;; (when (and (executable-find "fish")
-    ;;            (require 'fish-completion nil t))
-    ;;   (global-fish-completion-mode))
-    )
-#+end_src
-
 *** eterm-256color
 
 #+begin_src emacs-lisp
-  (use-package eterm-256color
-    :hook ((term-mode . eterm-256color-mode)
-           (vterm-mode . eterm-256color-mode))
-    :config
-    (setq eterm-256color-disable-bold t
-                                          ;eterm-256color-bright-blue "#00bfff"
-          ))
+(use-package eterm-256color
+  :hook ((term-mode . eterm-256color-mode)
+         (vterm-mode . eterm-256color-mode))
+  :config
+  (setq eterm-256color-disable-bold t
+        ;; https://github.com/akermu/emacs-libvterm?tab=readme-ov-file#vterm-term-environment-variable
+        vterm-term-environment-variable "eterm-color"))
 #+end_src
 
 ** envrc
@@ -1777,16 +1750,6 @@ https://github.com/spotify/dockerfile-mode/tree/5db94549ce8b000ae35adf511c820ad2
     :ensure t
     :config
     (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode)))
-#+end_src
-
-** guix
-See https://github.com/alezost/guix.el
-=guix install emacs-guix=
-
-#+begin_src emacs-lisp
-(when guix?
-  (require 'guix)
-  (guix-emacs-autoload-packages))
 #+end_src
 
 ** gptel
@@ -2112,7 +2075,7 @@ set -xeu -o
 if command -v gitleaks > /dev/null 2>&1
 then
     # Check if secrets are going to be leaked using 'gitleaks'
-    gitleaks git --pre-commit --staged
+    gitleaks git --pre-commit --staged --verbose
     if [ $? -eq 126 ]; then
         echo 'Gitleaks error: Unknown flag'
     fi
@@ -2291,7 +2254,15 @@ https://github.com/jdtsmith/indent-bars
 #+end_src
 
 ** ssh
-**** COMMENT Basic
+*** Custom
+
+#+begin_src emacs-lisp :lexical no
+(defun nbl/koreader-kindle-ssh ()
+  (interactive)
+  (find-file "/ssh:root@192.168.0.102#2222:/mnt/us"))
+#+end_src
+
+*** COMMENT Basic
 
 #+begin_src emacs-lisp :lexical no
 (add-to-list 'tramp-connection-properties
@@ -2299,7 +2270,7 @@ https://github.com/jdtsmith/indent-bars
                    "remote-shell" "/usr/bin/bash"))
 #+end_src
 
-**** ssh-config-mode
+*** ssh-config-mode
 https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 
 =# -*- mode: ssh-config -*-=
@@ -2308,7 +2279,7 @@ https://github.com/jhgorrell/ssh-config-mode-el/tree/master
 (use-package ssh-config-mode)
 #+end_src
 
-**** ssh-agent
+*** ssh-agent
 
 #+CAPTION: This is what people do
 #+begin_src shell :eval no
@@ -2399,7 +2370,33 @@ Highlights:
         crdt-tuntox-executable "~/.emacs.d/manual/tuntox-x64"))
 #+end_src
 
-** COMMENT copilot.el
+** AI
+*** aidermacs
+https://github.com/MatthewZMD/aidermacs
+
+Install https://aider.chat/docs/install.html
+
+#+begin_src emacs-lisp
+(use-package aidermacs
+  :ensure (aidermacs
+           :host github
+           :repo "MatthewZMD/aidermacs"
+           :files ("*.el")
+           :rev :newest)
+  :config
+  (bind-key* (kbd "C-c a") 'aidermacs-transient-menu)
+  (setq aidermacs-default-model "gemini/gemini-2.0-flash"
+        aidermacs-backend 'vterm
+        aidermacs-vterm-multiline-newline-key "M-<return>"
+        aidermacs-auto-commits nil
+        aidermacs-extra-args '("--watch-files"
+                               ;; https://aider.chat/docs/more/edit-formats.html
+                               "--edit-format diff-fenced"))
+  ;; https://github.com/MatthewZMD/aidermacs#prompt-files-minor-mode
+  (aidermacs-setup-minor-mode))
+#+end_src
+
+*** COMMENT copilot.el
 https://github.com/copilot-emacs/copilot.el
 
 Install the copilot server by =M-x copilot-install-server=.
@@ -2419,6 +2416,17 @@ Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x c
         copilot-log-max 4
         copilot-indent-offset-warning-disable t))
 #+end_src
+
+** ediff
+
+#+begin_src emacs-lisp :lexical no
+(when (require 'ediff nil :no-error)
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally
+        ediff-diff-options "-w")
+  (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
+#+end_src
+
 ** security
 *** age
 https://github.com/anticomputer/age.el
@@ -2442,6 +2450,16 @@ Identities (private keys) and recipients (public keys) are maintained via the cu
 #+end_src
 
 ** Fun
+*** Hindi
+https://www.emacswiki.org/emacs/SupportHindi
+- In a buffer of choice, type =C-x RET C-\ devanagari-itrans=. This sets your input method. Later, type =C-\= to toggle between hindi and english.
+  
+- To convert a piece of hindi text into its phonetic roman equivalent or vice versa, use =M-x devanagari-(encode/decode)-itrans-region=. As you will soon find out, that conversion is not perfect and has minor bugs.
+
+- When you reload a file in which you had typed some hindi, the characters are disjoint and not formed into words. To convert them back, this works for me: =M-x indian-to-devanagari-region=, followed by =M-x devanagari-compose-region=.
+
+- See many other useful functions in your emacs’ devan-utils.el and devanagari.el.
+  
 *** nov
 #+begin_src emacs-lisp
   (use-package nov
