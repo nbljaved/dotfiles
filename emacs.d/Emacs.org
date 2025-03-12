@@ -330,11 +330,13 @@ See https://github.com/alezost/guix.el
 ** Font
 *** Basic
 
+Use [[https://github.com/getnf/getnf?ref=linuxtldr.com][getnf]] to install Nerd Fonts (then do =fc-cache -fv= to force refresh), then launch a new Emacs.
+
 #+begin_src emacs-lisp
-  (set-face-attribute 'default nil :font "Fira Code" :height 138)
+  (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 138)
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil
-                      :font "Fira Code"
+                      :font "FiraCode Nerd Font"
                       :weight 'regular
                       :height 140)
 
