@@ -104,7 +104,7 @@ fi
 ## Guix
 GUIX=$(command -v "guix")
 GUIX_SYSTEM=$(grep '^ID=guix' /etc/os-release)
-if [ ! -n $GUIX_SYSTEM ] && [ -n $GUIX ]; then
+if [ -z "$GUIX_SYSTEM" ] && [ -n "$GUIX" ]; then
     export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
     export GUIX_PROFILE="$HOME/.guix-profile"
     source "$GUIX_PROFILE/etc/profile"
@@ -116,14 +116,6 @@ if [ ! -n $GUIX_SYSTEM ] && [ -n $GUIX ]; then
     export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
     export GIT_SSL_CAINFO="$SSL_CERT_FILE"
 fi
-
-# zoxide
-eval "$(zoxide init --cmd cd bash)"
-# Direnv
-eval "$(direnv hook bash)"
-# starship
-export PATH="$PATH":/usr/local/bin
-eval "$(starship init bash)"
 
 ##########
 ## Emacs-start
@@ -178,6 +170,14 @@ PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }vterm_set_directory"
 ## Emacs-end
 ######
 
+# zoxide
+eval "$(zoxide init --cmd cd bash)"
+# Direnv
+eval "$(direnv hook bash)"
+# starship
+export PATH="$PATH":/usr/local/bin
+eval "$(starship init bash)"
+
 # nvm
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -188,8 +188,8 @@ export PATH="$HOME/.local/bin:$PATH"
 export UV_PYTHON_DOWNLOADS="manual"
 export UV_PYTHON_PREFERENCE="system"
 
-if [ -f $HOME/.cargo/env ]; then
-    source $HOME/.cargo/env
+if [ -f "$HOME/.cargo/env" ]; then
+    source "$HOME/.cargo/env"
 fi
 
 # when facing gdk_pixbuf_errors
