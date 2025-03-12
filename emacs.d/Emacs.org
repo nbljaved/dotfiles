@@ -1191,10 +1191,14 @@ https://github.com/ymarco/auto-activating-snippets
                               (yas-expand-snippet "\\sum_{$1}^{$2} $0"))))
 #+end_src
 
-*** LaTeX Auto Activating Snippets
+*** COMMENT LaTeX Auto Activating Snippets
 https://github.com/tecosaur/LaTeX-auto-activating-snippets
 
+
 #+begin_src emacs-lisp
+;; Installing 'laas' means installing ANOTHER 'auctex'
+;; which leads to problems.
+;; ∴ don't install it
 (use-package laas
   :when (require 'auctex nil :no-error)
   :hook ((org-mode . laas-mode)
@@ -4338,7 +4342,7 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
       texlive-bin))
 
   (use-package auctex
-    :ensure t
+    :ensure nil ;; installed via Guix (emacs-auctex)
     ;; :ensure (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
     ;; 		  :pre-build (("make" "elpa"))
     ;; 		  :build (:not elpaca--compile-info) ;; Make will take care of this step
