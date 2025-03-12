@@ -23,3 +23,19 @@ bleopt history_preserve_point=1
 # target range relative to the history count at the session start. The
 # end of the target range is always the end of the command history.
 bleopt history_erasedups_limit=
+
+## Blesh fzf integration:
+# https://github.com/akinomyoga/blesh-contrib/blob/master/integration/fzf.md
+#
+# If ble/contrib/integration/fzf cannot find the fzf directory, please set the
+# following variable "_ble_contrib_fzf_base" manually.  The value
+# "/path/to/fzf-directory" should be replaced by a path to the fzf directory
+# such as "$HOME/.fzf" or "/usr/share/fzf" that contain
+# "shell/{completion,key-bindings}.bash" or "{completion,key-bindings}.bash".
+#
+# NOTE: I am only supplying this and not integrating with blesh to get rid of the
+# following error : 'ble/contrib:integration/fzf: failed to find "fzf" base directory'
+_ble_contrib_fzf_base=$( guix package -I fzf | awk '{print $4}')
+#
+#ble-import integration/fzf-completion
+#ble-import integration/fzf-key-bindings
