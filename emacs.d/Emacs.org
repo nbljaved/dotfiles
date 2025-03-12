@@ -331,6 +331,11 @@ See https://github.com/alezost/guix.el
 *** Basic
 
 Use [[https://github.com/getnf/getnf?ref=linuxtldr.com][getnf]] to install Nerd Fonts (then do =fc-cache -fv= to force refresh), then launch a new Emacs.
+Using 'getnf' install the following fonts:
+- FiraCode - v3.3.0
+- FiraMono - v3.3.0
+- Hack - v3.3.0
+- NerdFontsSymbolsOnly - v3.3.0
 
 #+begin_src emacs-lisp
   (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 138)
