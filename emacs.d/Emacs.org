@@ -384,31 +384,34 @@ https://github.com/jcs-elpa/company-emojify/tree/4889398d525aca1971f9a5e213759d5
 #+end_src
     
 ** Modeline
+https://github.com/seagle0128/doom-modeline
 
 [[file:elpaca/repos/doom-modeline/doom-modeline.el::doom-modeline-def-modeline 'pdf][custom modeline]]
 For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 #+begin_src emacs-lisp
-  (use-package doom-modeline
-    :init (doom-modeline-mode 1)
-    :config
-    (setq doom-modeline-bar-width 5
-          ;; small scroll-bar like in the bar 
-          doom-modeline-hud t)
-    (setq-default doom-modeline--pdf-pages t
-                  doom-modeline--debug-dap t)
-    ;; to get eyebrowse window number in pdf-view mode (=workspace-name= segment)
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :config
+  (setq doom-modeline-bar-width 5
+        ;; small scroll-bar like in the bar
+        doom-modeline-hud t)
+  (setq-default doom-modeline--pdf-pages t)
 
-    ;; 
-    (doom-modeline-def-modeline 'pdf
-      '(bar window-number workspace-name matches buffer-info pdf-pages)
-      '(misc-info major-mode process vcs))
-    (doom-modeline-def-modeline 'project
-      '(bar window-number workspace-name matches buffer-info pdf-pages)
-      '(misc-info major-mode process vcs))
-    (doom-modeline-def-modeline 'dashboard
-      '(bar window-number workspace-name matches buffer-info pdf-pages)
-      '(misc-info major-mode process vcs)))
+  ;; to get eyebrowse window number in pdf-view mode (=workspace-name= segment)
+  (doom-modeline-def-modeline 'my-custom-modeline
+    '(bar window-number workspace-name matches debug buffer-info pdf-pages)
+    '(misc-info major-mode process vcs))
+  (doom-modeline-def-modeline 'pdf
+    '(bar window-number workspace-name modals matches buffer-info pdf-pages)
+    '(compilation misc-info major-mode process vcs time))
+  (doom-modeline-def-modeline 'dashboard
+    '(bar window-number workspace-name modals buffer-default-directory-simple remote-host)
+    '(compilation misc-info battery irc mu4e gnus github debug minor-modes input-method major-mode process time))
 
+  ;; Set default mode-line
+  (add-hook 'doom-modeline-mode-hook
+            (lambda ()
+              (doom-modeline-set-modeline 'my-custom-line 'default))))
 #+end_src
    
 ** Theme
