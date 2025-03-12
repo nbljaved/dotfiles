@@ -22,9 +22,6 @@ then
     return
 fi
 
-# Source the system-wide file.
-source /etc/bashrc
-
 # Bash initialization for interactive non-login shells and
 # for remote shells (info "(bash) Bash Startup Files").
 
