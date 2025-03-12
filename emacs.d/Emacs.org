@@ -1452,7 +1452,6 @@ When a region is selected, it is possible to copy the text and leave vterm-copy-
   (setq
    ;;vterm-shell "/bin/bash"
    vterm-kill-buffer-on-exit t
-   vterm-term-environment-variable "eterm-256color"
    vterm-disable-bold t
    vterm-timer-delay nil
    vterm-buffer-name-string "vterm %s"
