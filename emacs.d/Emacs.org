@@ -2003,6 +2003,8 @@ Might need to use newer version of inbuilt emacs packages.
 *** magit-todos
 [[https://github.com/alphapapa/magit-todos]]
 
+- To exclude certain patterns in a repo https://github.com/alphapapa/magit-todos#tips
+
 #+begin_src emacs-lisp :lexical no
 (use-package magit-todos
   :after magit
@@ -2803,6 +2805,7 @@ https://github.com/joaotavora/eglot
         eglot-extend-to-xref t))
 #+end_src
 
+** TODO dape
 ** C/C++
 
 *** ccls
@@ -4598,7 +4601,7 @@ install
   ;;   (set-face-attribute 'org-column nil :background nil)
   ;;   (set-face-attribute 'org-column-title nil :background nil)
 
-  ;; TODO: Others to consider
+  ;; todo: Others to consider
   ;; '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
   ;; '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
   ;; '(org-property-value ((t (:inherit fixed-pitch))) t)
