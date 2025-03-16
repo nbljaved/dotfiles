@@ -197,7 +197,7 @@ export NVM_DIR="$HOME/.config/nvm"
 # uv
 export PATH="$HOME/.local/bin:$PATH"
 export UV_PYTHON_DOWNLOADS="manual"
-export UV_PYTHON_PREFERENCE="system"
+# export UV_PYTHON_PREFERENCE="system"
 
 if [ -f "$HOME/.cargo/env" ]; then
     source "$HOME/.cargo/env"
