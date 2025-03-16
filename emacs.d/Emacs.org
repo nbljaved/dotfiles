@@ -59,12 +59,12 @@ To update things like Melpa do =M-x elpaca-update-menus=
 #+end_src
 
 #+begin_src emacs-lisp
-(defvar elpaca-installer-version 0.7)
+(defvar elpaca-installer-version 0.10)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
+                              :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -74,20 +74,20 @@ To update things like Melpa do =M-x elpaca-update-menus=
   (add-to-list 'load-path (if (file-exists-p build) build repo))
   (unless (file-exists-p repo)
     (make-directory repo t)
-    (when (< emacs-major-version 28) (require 'subr-x))
+    (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let ((depth (plist-get order :depth)))
-                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                 ,(plist-get order :repo) ,repo))))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
             (progn (message "%s" (buffer-string)) (kill-buffer buffer))
           (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
@@ -1377,7 +1377,7 @@ https://github.com/rubikitch/recentf-ext
 (savehist-mode 1)
 #+end_src
 
-** casual
+** COMMENT casual
 *** casual-info
 https://github.com/kickingvegas/casual-info
 
@@ -1470,8 +1470,8 @@ When a region is selected, it is possible to copy the text and leave vterm-copy-
   (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path)))))
 
 
-(use-package vterm-toggle
-  :config)
+;; (use-package vterm-toggle
+;;   :config)
 
 ;; (use-package multi-vterm
 ;;   ::bind (("s-<return>" . multi-vterm)
@@ -1788,14 +1788,14 @@ https://github.com/karthink/gptel
                              gemini-1.5-pro-latest)))
   
   ;; Together.ai offers an OpenAI compatible API
-  (gptel-make-openai "TogetherAI"       ;Any name you want
-    :host "api.together.xyz"
-    :key (gptel-api-key-from-auth-source "api.together.xyz")
-    :stream t
-    :models '(;; has many more, check together.ai
-              "mistralai/Mixtral-8x7B-Instruct-v0.1"
-              "codellama/CodeLlama-13b-Instruct-hf"
-              "codellama/CodeLlama-34b-Instruct-hf"))
+  ;; (gptel-make-openai "TogetherAI"       ;Any name you want
+  ;;   :host "api.together.xyz"
+  ;;   :key (gptel-api-key-from-auth-source "api.together.xyz")
+  ;;   :stream t
+  ;;   :models '(;; has many more, check together.ai
+  ;;             "mistralai/Mixtral-8x7B-Instruct-v0.1"
+  ;;             "codellama/CodeLlama-13b-Instruct-hf"
+  ;;             "codellama/CodeLlama-34b-Instruct-hf"))
   (global-set-key (kbd "C-x C-l") 'gptel-send)
   (global-set-key (kbd "C-x l") 'gptel-abort))
 #+end_src
@@ -1991,11 +1991,13 @@ Might need to use newer version of inbuilt emacs packages.
 
 #+begin_src emacs-lisp 
 (use-package magit
+  :after nerd-icons
+  :custom (magit-format-file-function #'magit-format-file-nerd-icons)
   :bind (:map magit-mode-map
-              ("M-1" . nil)
-              ("M-2" . nil)
-              ("M-3" . nil)
-              ("M-4" . nil))
+	      ("M-1" . nil)
+	      ("M-2" . nil)
+	      ("M-3" . nil)
+	      ("M-4" . nil))
   :config
   (setq magit-diff-refine-hunk t))
 #+end_src
