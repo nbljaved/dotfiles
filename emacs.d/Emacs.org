@@ -1135,23 +1135,24 @@ https://github.com/minad/consult
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package flycheck
-    :init
-    (global-flycheck-mode 1))
+(use-package flycheck
+  :init
+  (global-flycheck-mode -1))
 
-  (use-package flycheck-inline
-    :after flycheck
-    :hook ((flycheck-mode . flycheck-inline-mode)))
+;; https://github.com/flycheck/flycheck-inline
+(use-package flycheck-inline
+  :after flycheck
+  :hook ((flycheck-mode . flycheck-inline-mode)))
 
-  ;; (use-package flycheck-pos-tip
-  ;;   :after flycheck
-  ;;   :init
-  ;;   (flycheck-pos-tip-mode 1))
+;; (use-package flycheck-pos-tip
+;;   :after flycheck
+;;   :init
+;;   (flycheck-pos-tip-mode 1))
 
-  ;; (use-package flycheck-pkg-config
-  ;;   :after flycheck
-  ;;   :config
-  ;; )
+;; (use-package flycheck-pkg-config
+;;   :after flycheck
+;;   :config
+;; )
 #+end_src
 
 *** yasnippet
@@ -1643,6 +1644,7 @@ It provides the `mountavfs' command that starts a small `avfsd' daemon.
 When a specially formatted path under `~/.avfs' is accessed, the daemon provides listings and content access on the fly
 
 *** diredfl
+https://github.com/purcell/diredfl
 
 #+begin_src emacs-lisp
   (use-package diredfl
@@ -3224,7 +3226,7 @@ We will refer to these later as rules #1, #2, #3 and #4.
             (define-key paxedit-mode-map (kbd "C-#") 'paxedit-symbol-kill)))
 #+end_src
 
-**** clhs
+**** COMMENT clhs
 
 Access the Common lisp Hyperspec(CLHS)
 
