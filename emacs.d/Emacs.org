@@ -2489,7 +2489,7 @@ https://karthinks.com/software/simple-folding-with-hideshow/
            (hs-hide-level 1)
            (setq this-command 'hs-cycle-children))
           ('hs-cycle-children
-           ;; TODO: Fix this case. `hs-show-block' needs to be
+           ;; todo: Fix this case. `hs-show-block' needs to be
            ;; called twice to open all folds of the parent
            ;; block.
            (save-excursion (hs-show-block))
