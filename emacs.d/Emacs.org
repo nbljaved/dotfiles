@@ -2017,6 +2017,7 @@ Might need to use newer version of inbuilt emacs packages.
         magit-todos-group-by '(magit-todos-item-filename
                                magit-todos-item-keyword)
         magit-todos-scanner #'magit-todos--scan-with-git-grep)
+  (setq magit-todos-exclude-globs '(".git/" "*.map"))
   (magit-todos-mode 1))
 #+end_src
 
