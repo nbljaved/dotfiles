@@ -2858,7 +2858,8 @@ https://github.com/joaotavora/eglot
               ("M-?" . xref-find-references))
   :config
   (setq eglot-connect-timeout 30
-        eglot-extend-to-xref t))
+        eglot-extend-to-xref t)
+  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))))
 #+end_src
 
 ** TODO dape
