@@ -2474,6 +2474,19 @@ Identities (private keys) and recipients (public keys) are maintained via the cu
 (use-package pfuture)
 #+end_src
 
+** dotenv-mode
+https://github.com/preetpalS/emacs-dotenv-mode
+
+An Emacs mode for .env files
+
+#+begin_src emacs-lisp :lexical no
+(use-package dotenv-mode
+  :config
+  ;; for optionally supporting additional file extensions such as `.env.test'
+  ;; with this major mode
+  (add-to-list 'auto-mode-alist '("\\.env\\..*\\'" . dotenv-mode)))
+#+end_src
+
 ** hideshow
 https://karthinks.com/software/simple-folding-with-hideshow/
 
