@@ -191,6 +191,9 @@ fi
 
 # when facing gdk_pixbuf_errors
 # unset GDK_PIXBUF_MODULE_FILE
+#
+# when facing errors relating to 'gio'
+# unset GIO_EXTRA_MODULES
 
 # vscode
 # code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
