@@ -1781,11 +1781,12 @@ https://github.com/karthink/gptel
   ;; Register a backend
   ;; :key can be a function that returns the API key.
   (setq
-   gptel-model 'gemini-2.0-flash
+   gptel-model 'gemini-2.5-pro-exp-03-25
    gptel-backend (gptel-make-gemini "Gemini"
                    :key (exec-path-from-shell-getenv "GEMINI_API_KEY")
                    :stream t
-                   :models '(gemini-2.0-flash
+                   :models '(gemini-2.5-pro-exp-03-25
+                             gemini-2.0-flash
                              gemini-pro
                              gemini-1.5-pro-latest)))
   
@@ -2410,13 +2411,15 @@ Install https://aider.chat/docs/install.html
            :rev :newest)
   :config
   (bind-key* (kbd "C-c a") 'aidermacs-transient-menu)
-  (setq aidermacs-default-model "gemini/gemini-2.0-flash"
-        aidermacs-backend 'vterm
-        aidermacs-vterm-multiline-newline-key "M-<return>"
-        aidermacs-auto-commits nil
-        aidermacs-extra-args '("--watch-files"
-                               ;; https://aider.chat/docs/more/edit-formats.html
-                               "--edit-format diff-fenced"))
+  (setq
+   ;; aidermacs-default-model "gemini/gemini-2.0-flash"
+   aidermacs-default-model "gemini/gemini-2.5-pro-exp-03-25"
+   aidermacs-backend 'vterm
+   aidermacs-vterm-multiline-newline-key "M-<return>"
+   aidermacs-auto-commits nil
+   aidermacs-extra-args '("--watch-files"
+                          ;; https://aider.chat/docs/more/edit-formats.html
+                          "--edit-format diff-fenced"))
   ;; https://github.com/MatthewZMD/aidermacs#prompt-files-minor-mode
   (aidermacs-setup-minor-mode))
 #+end_src
