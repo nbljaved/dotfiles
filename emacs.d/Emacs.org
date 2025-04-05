@@ -184,7 +184,8 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
                                  (concat (getenv "HOME")
                                          "/src/guix"))
     "Value of environment variable $GUIX_CHECKOUT, i.e. the location
-of checked out guix repo https://git.savannah.gnu.org/git/guix.git")
+of checked out guix repo https://git.savannah.gnu.org/git/guix.git.
+See https://guix.gnu.org/cookbook/en/html_node/Direct-checkout-hacking.html")
 
   ;; The below code can also be used to add newly installed guix emacs
   ;; packages to the load-path
@@ -3362,7 +3363,9 @@ https://github.com/jingtaozf/literate-lisp
   (setq geiser-guile-binary "guile")
   (when guix?
     (with-eval-after-load 'geiser-guile
-      (add-to-list 'geiser-guile-load-path guix-checkout-path))))
+      (add-to-list 'geiser-guile-load-path guix-checkout-path)
+      (add-to-list 'geiser-guile-load-path (concat (getenv "HOME") "/src/nonguix"))
+      (add-to-list 'geiser-guile-load-path (concat (getenv "HOME") "/.config/guix/current/share")))))
 #+end_src
 
 When evaluation scheme using =lispy-eval= I get the error 'lispy--eval-scheme: Symbol’s function definition is void: geiser-racket--language'
