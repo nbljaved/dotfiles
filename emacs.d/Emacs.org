@@ -966,6 +966,10 @@ https://github.com/minad/vertico
   :config
   (setq vertico-cycle nil)
   (setq vertico-resize nil)
+
+  ;; with vertico you can make it auto hide the old path when you type ~/ or /
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
   (vertico-mode 1))
 #+end_src
 
