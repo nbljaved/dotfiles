@@ -11,6 +11,14 @@ BLESH="$BLESH/share/blesh/ble.sh"
 [[ $- != *i* ]] && return
 ##########
 
+# # Note: If you want to combine fzf-completion with bash_completion, you need to
+# # load bash_completion earlier than fzf-completion.  This is required
+# # regardless of whether to use ble.sh or not.
+# source /etc/profile.d/bash_completion.sh
+
+# ble-import integration/fzf-completion
+# ble-import integration/fzf-key-bindings
+
 if [[ $- != *i* ]]
 then
     # We are being invoked from a non-interactive shell.  If this
@@ -20,6 +28,11 @@ then
 
     # Don't do anything else.
     return
+fi
+
+# Source the system-wide file.
+if [ -f /etc/bashrc ]; then
+    source /etc/bashrc
 fi
 
 # Bash initialization for interactive non-login shells and
