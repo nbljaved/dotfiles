@@ -50,6 +50,7 @@ export HISTFILESIZE=10000
 export PATH="$HOME/racket/bin:$PATH"
 
 ## Kitty
+export PATH="$HOME/.local/kitty.app/bin:$PATH"
 source <(kitty + complete setup bash)
 
 export TERM=xterm-256color # otherwise ssh has keyboard problems
@@ -132,9 +133,9 @@ fi
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='emacs'
+  export EDITOR='emacsclient --alternate-editor="" --create-frame --no-wait'
 else
-  export EDITOR='emacs'
+  export EDITOR='emacsclient --alternate-editor="" --create-frame --no-wait'
 fi
 
 ## Vterm - https://github.com/akermu/emacs-libvterm
