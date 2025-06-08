@@ -75,11 +75,6 @@
 ;; Load mode-line configuration 
 (load "/home/nabeel/.stumpwm.d/modeline.lisp")
 
-(defun executable? (program)
-  "Return T if program exists on PATH, otherwise return NIL"
-  (let ((path (run-shell-command (format nil "which ~a" program) t)))
-    (not (string-equal "" path))))
-
 (defun battery-low? ()
   "Returns t if battery is low"
   (if (and (executable? "acpi")

@@ -1,5 +1,14 @@
 (in-package :stumpwm)
 
+(defun command-is-successful? (command)
+  "Return T if running of command is successful, otherwise return NIL"
+  (let ((exit-code (nth-value 2 (uiop:run-program command :ignore-error-status t))))
+    (eq exit-code 0)))
+
+(defun executable? (program)
+  "Return T if program exists on PATH, otherwise return NIL"
+  (command-is-successful? (format nil "which ~a" program)))
+
 ;; Keyboard
 (defcommand nbl/keyboard () ()
   "setxbmap setting"
@@ -52,6 +61,9 @@
   "Run-or-Raise Firefox"
   ;; --sync makes the X calls synchronous
   (run-or-raise "firefox" '(:class "Firefox")))
+(defcommand librewolf () ()
+  "Run-or-Raise Librewolf"
+  (run-or-raise "librewolf" '(:class "librewolf")))
 
 (defcommand chromium () ()
   "Run-or-Raise Chromium"
@@ -183,6 +195,7 @@
     ("Emacs" . 0)
     ("firefox" . 2)
     ("LibreWolf" . 2)
+    ("librewolf" . 2)
     ("firefox-default" . 2)
     ("kitty" . 3)
     ("Pavucontrol" . 8))

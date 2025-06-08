@@ -9,7 +9,8 @@
 ;;(run-shell-command "cbatticon") ; battery
 (run-shell-command "dunst &") ; notification server
 ;; composter
-;; (run-shell-command "picom -bc")
+(when (executable? "picom")
+  (run-shell-command "picom -bc"))
 ;; In order to start the agent automatically and make sure that only one ssh-agent process runs at a time
 (run-shell-command
  "if ! pgrep -u \"$USER\" ssh-agent > /dev/null; then
