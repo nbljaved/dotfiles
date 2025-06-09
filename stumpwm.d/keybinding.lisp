@@ -5,7 +5,8 @@
 
 ;; Keyboard
 (define-key *top-map* (kbd "s-!") "exec")
-(define-key *top-map* (kbd "s-:") "eval")
+;; (define-key *top-map* (kbd "s-:") "eval") ; eval is dangerous, can crash Stumpwm, use the Sly repl
+(define-key *top-map* (kbd "s-:") "colon")
 (define-key *top-map* (kbd "C-s-k") "nbl/keyboard")
 (define-key *top-map* (kbd "s-S-Left") "exchange-direction left")
 (define-key *top-map* (kbd "s-S-Down") "exchange-direction down")
