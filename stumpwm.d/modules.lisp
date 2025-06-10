@@ -1,9 +1,5 @@
 (in-package :stumpwm)
-(ql:quickload :alexandria)
-(ql:quickload :clx)
-(ql:quickload :cl-ppcre)
 
-;; (setf *contrib-dir* #P"/home/nabeel/.stumpwm.d/modules/")
 (setf *module-dir* #P"/home/nabeel/.stumpwm.d/modules/")
 (init-load-path *module-dir*)
 ;; modeline

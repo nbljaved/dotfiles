@@ -14,14 +14,13 @@
   (if (and (executable? "acpi")
            (executable? "grep")
            (executable? "cut")
-           (executable? "notify-send")
            (executable? "dunstify"))
       (let ((time-left (run-shell-command
                         "BATTINFO=$(acpi -b);echo $BATTINFO | grep Discharging | cut -f 5 -d \" \""
                         t)))
         (and (not (string-equal "" time-left))
              (string<= time-left "00:15:00")))
-      (message "Make sure acpi, grep, cut, notify-send and dunstify are on PATH")))
+      (message "Make sure acpi, grep, cut and dunstify are on PATH")))
 
 ;; Keyboard
 (defcommand nbl/keyboard () ()

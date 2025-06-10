@@ -1,5 +1,5 @@
 ;; Start slynk server for use with sly
-(load "~/quicklisp/setup.lisp")
+(ignore-errors (load "~/quicklisp/setup.lisp"))
 ;; load quicklisp
 (asdf:load-system "slynk")
 (slynk:create-server :port 4005 :dont-close t)
