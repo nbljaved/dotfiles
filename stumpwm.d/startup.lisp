@@ -31,3 +31,11 @@ fi
 
 ;; (clx-truetype:cache-fonts)
 ;; (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 12))
+(defparameter *battery-low-timer*
+  (run-with-timer 1  ; delay of x no. of seconds
+                  60 ; repeat again in x no. of seconds
+                  (lambda ()
+                    (when (battery-low?)
+                      (run-shell-command
+                       "dunstify BATTERY LOW -u critical"))))
+  "Use (cancel-timer *battery-low-timer*) to remove it.")

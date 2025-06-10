@@ -9,6 +9,20 @@
   "Return T if program exists on PATH, otherwise return NIL"
   (command-is-successful? (format nil "which ~a" program)))
 
+(defun battery-low? ()
+  "Returns t if battery is low"
+  (if (and (executable? "acpi")
+           (executable? "grep")
+           (executable? "cut")
+           (executable? "notify-send")
+           (executable? "dunstify"))
+      (let ((time-left (run-shell-command
+                        "BATTINFO=$(acpi -b);echo $BATTINFO | grep Discharging | cut -f 5 -d \" \""
+                        t)))
+        (and (not (string-equal "" time-left))
+             (string<= time-left "00:15:00")))
+      (message "Make sure acpi, grep, cut, notify-send and dunstify are on PATH")))
+
 ;; Keyboard
 (defcommand nbl/keyboard () ()
   "setxbmap setting"

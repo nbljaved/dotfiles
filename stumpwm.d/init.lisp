@@ -57,46 +57,11 @@
 (load "/home/nabeel/.stumpwm.d/defcommands.lisp")
 (load "/home/nabeel/.stumpwm.d/keybinding.lisp")
 
-;;
-;; (when *initializing*
-;;   (progn
-;;     (load "/home/nabeel/.stumpwm.d/startup.lisp")
-;;     ;; (launch-polybar)
-;;     ))
-
-(load "/home/nabeel/.stumpwm.d/startup.lisp")
 (when *initializing*
   (progn
-    (load "/home/nabeel/.stumpwm.d/startup.lisp")
-    ;; (launch-polybar)
-    ))
-;; (load "/home/nabeel/.stumpwm.d/startup.lisp")
+    (load "/home/nabeel/.stumpwm.d/startup.lisp")))
 
 ;; Load mode-line configuration 
 (load "/home/nabeel/.stumpwm.d/modeline.lisp")
-
-(defun battery-low? ()
-  "Returns t if battery is low"
-  (if (and (executable? "acpi")
-           (executable? "grep")
-           (executable? "cut")
-           (executable? "notify-send")
-           (executable? "dunstify"))
-      (let ((time-left (run-shell-command
-                        "BATTINFO=$(acpi -b);echo $BATTINFO | grep Discharging | cut -f 5 -d \" \""
-                        t)))
-        (and (not (string-equal "" time-left))
-             (string<= time-left "00:15:00")))
-      
-      (message "Make sure acpi, grep, cut, notify-send and dunstify are on PATH")))
-
-(defparameter *battery-low-timer*
-  (run-with-timer 1  ; delay of x no. of seconds
-                  60 ; repeat again in x no. of seconds
-                  (lambda ()
-                    (when (battery-low?)
-                      (run-shell-command
-                       "dunstify BATTERY LOW -u critical"))))
-  "Use (cancel-timer *battery-low-timer*) to remove it.")
 
 
