@@ -96,12 +96,12 @@
   (run-or-raise "nyxt" '(:class "Nyxt")))
 
 (defcommand nbl/emacs () ()
-  "launch new Emacs frame"
-  (run-shell-command "emacsclient --alternate-editor=\"\" --create-frame --no-wait"))
-(defcommand nbl/emacs-frame () ()
-  "Run-or-raise emacs frame provided the server is running"
-  (run-or-raise "emacsclient --alternate-editor=\"\" --create-frame --no-wait"
-                '(:class "Emacs" :instance "emacs")))
+  "Run-or-Raise Emacs"
+  (run-or-raise "emacs --debug-init" '(:class "Emacs" :instance "emacs")))
+;; (defcommand nbl/emacs-frame () ()
+;;   "Run-or-raise emacs frame provided the server is running"
+;;   (run-or-raise "emacsclient --alternate-editor=\"\" --create-frame --no-wait"
+;;                 '(:class "Emacs" :instance "emacs")))
 
 (defcommand nbl/lispworks () ()
   "lispworks"
