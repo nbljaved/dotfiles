@@ -46,19 +46,19 @@
 
 ;; xrandr
 (defcommand xrandr-laptop () ()
-  (run-shell-command "xrandr --output HMDI-1 --off --output eDP-1 --primary --auto"))
+  (run-shell-command "xrandr --output HDMI-2 --off --output eDP-1 --primary --auto"))
 (defcommand xrandr-monitor () ()
-  (run-shell-command "xrandr --output HMDI-1 --primary --mode 2560x1440 --output eDP-1 --off"))
+  (run-shell-command "xrandr --output HDMI-2 --primary --mode 2560x1440 --output eDP-1 --off"))
 (defcommand xrandr-vertical () ()
-  (run-shell-command "xrandr --output HMDI-1 --primary --rotation left --auto --output eDP-1 --rotation normal --auto --left-of HMDI-1"))
+  (run-shell-command "xrandr --output HDMI-2 --primary --rotation left --auto --output eDP-1 --rotation normal --auto --left-of HDMI-2"))
 (defcommand xrandr-horizontal () ()
-  (run-shell-command "xrandr --output eDP-1 --primary --rotate normal --auto --output HMDI-1 --rotate normal"))
+  (run-shell-command "xrandr --output eDP-1 --primary --rotate normal --auto --output HDMI-2 --rotate normal"))
 (defcommand xrandr-same () ()
-  (run-shell-command "xrandr --output eDP-1 --primary --auto --output HMDI-1 --auto --same-as eDP-1")
-  ;;  (run-shell-command "xrandr --output eDP-1 --mode 1920x1080 --output HMDI-1 --mode 1920x1080 --same-as eDP-1")
+  (run-shell-command "xrandr --output eDP-1 --primary --auto --output HDMI-2 --auto --same-as eDP-1")
+  ;;  (run-shell-command "xrandr --output eDP-1 --mode 1920x1080 --output HDMI-2 --mode 1920x1080 --same-as eDP-1")
   )
 (defcommand xrandr-right-of-laptop () ()
-  (run-shell-command "xrandr --output eDP-1 --primary --output HMDI-1 --auto --right-of eDP-1"))
+  (run-shell-command "xrandr --output eDP-1 --primary --output HDMI-2 --auto --right-of eDP-1"))
 
 
 ;;; Polybar
