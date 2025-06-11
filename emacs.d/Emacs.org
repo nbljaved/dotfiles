@@ -1229,11 +1229,35 @@ https://github.com/apchamberlain/undo-tree.el
 *** hungry-delete
 https://github.com/nflath/hungry-delete
 
+- hungry deletion :: Means that deleting a whitespace character will delete all whitespace until the next non-whitespace character.
+
 #+begin_src emacs-lisp :lexical no
 (use-package hungry-delete
   :config
   (setf hungry-delete-join-reluctantly t)
   (global-hungry-delete-mode))
+#+end_src
+
+*** ws-butler
+https://github.com/lewang/ws-butler
+
+An unobtrusive way to trim spaces from end of line.
+Only lines touched get trimmed.
+Trimming only happens when saving.
+
+#+begin_src emacs-lisp :lexical no
+(use-package ws-butler
+  :hook ((prog-mode . ws-butler-mode))
+  :config
+  ;; There might be lines you don't want to get trimmed, e.g. spaces in
+  ;; multiline strings. The behavior can be customized through
+  ;; ws-butler-trim-predicate. This variable should hold a function that expects
+  ;; 2 arguments (region beginning and end) and should return true only for
+  ;; regions that one wants to get trimmed. As an example
+  (setq ws-butler-trim-predicate
+        (lambda (beg end)
+          (not (eq 'font-lock-string-face
+                   (get-text-property end 'face))))))
 #+end_src
 
 ** Keybindings
