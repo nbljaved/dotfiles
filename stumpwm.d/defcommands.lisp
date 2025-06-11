@@ -22,6 +22,19 @@
              (string<= time-left "00:15:00")))
       (message "Make sure acpi, grep, cut and dunstify are on PATH")))
 
+(defcommand nbl/start-ssh-agent () ()
+    "Is idempotent"
+  (let* ((ssh-agent-process-exists? (command-is-successful? "pgrep -u \"$USER\" ssh-agent > /dev/null"))
+         (ssh-agent-file (uiop:file-exists-p (format nil "~a/~a" (getenv "XDG_RUNTIME_DIR") "ssh-agent.env"))))
+    (unless (and ssh-agent-process-exists? ssh-agent-file)
+      (if (command-is-successful? "ssh-agent -t 1h > \"$XDG_RUNTIME_DIR/ssh-agent.env\"")
+          (message "ssh-agent started")
+          (message "Unable to start ssh-agent :(")))
+    (when (command-is-successful? "[ ! \"$SSH_AUTH_SOCK\" ]")
+      (if (command-is-successful? "source \"$XDG_RUNTIME_DIR/ssh-agent.env\" >/dev/null")
+          (message "$SSH_AUTH_SOCK is now available")
+          (message (format nil "Error sourcing ~a" ssh-agent-file))))))
+
 ;; Keyboard
 (defcommand nbl/keyboard () ()
   "setxbmap setting"

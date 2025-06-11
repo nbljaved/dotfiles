@@ -29,7 +29,7 @@
 (stumpwm:set-border-color "#1e90ff") ;;(dodger blue) for input bar and message bar
 (stumpwm:set-focus-color "#836fff")  ;;(slate blue)
 ;;(setf *window-info-format*)
-(setf *timeout-wait*                   6 )
+(setf *timeout-wait* 3)
 (setf *input-window-gravity*           :center )
 (setf *message-window-gravity*         :center)
 ;; (setf *grab-pointer-foreground* (xlib:make-color :red 0.1 :green 0.25 :blue 0.5))

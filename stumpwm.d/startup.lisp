@@ -12,14 +12,7 @@
 (when (executable? "picom")
   (run-shell-command "picom -bc"))
 ;; In order to start the agent automatically and make sure that only one ssh-agent process runs at a time
-(run-shell-command
- "if ! pgrep -u \"$USER\" ssh-agent > /dev/null; then
-    ssh-agent -t 1h > \"$XDG_RUNTIME_DIR/ssh-agent.env\"
-fi
-if [[ ! \"$SSH_AUTH_SOCK\" ]]; then
-    source \"$XDG_RUNTIME_DIR/ssh-agent.env\" >/dev/null
-fi
-")
+(nbl/start-ssh-agent)
 
 ;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
 ;; (ql:quickload :clx-truetype)
@@ -32,8 +25,8 @@ fi
 ;; (clx-truetype:cache-fonts)
 ;; (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 12))
 (defparameter *battery-low-timer*
-  (run-with-timer 1  ; delay of x no. of seconds
-                  60 ; repeat again in x no. of seconds
+  (run-with-timer 1                     ; delay of x no. of seconds
+                  60                    ; repeat again in x no. of seconds
                   (lambda ()
                     (when (battery-low?)
                       (run-shell-command
