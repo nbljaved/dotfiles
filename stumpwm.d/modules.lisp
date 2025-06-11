@@ -3,12 +3,12 @@
 (setf *module-dir* #P"/home/nabeel/.stumpwm.d/modules/")
 (init-load-path *module-dir*)
 ;; modeline
-(load-module "cpu")
-(load-module "mem")
-(ql:quickload "xembed")
-(load-module "stumptray")
-(load-module "net")
-(load-module "wifi")
+;; (load-module "cpu")
+;; (load-module "mem")
+;; (ql:quickload "xembed")
+;; (load-module "stumptray")
+;; (load-module "net")
+;; (load-module "wifi")
 
 (load-module "winner-mode")
 
@@ -26,7 +26,7 @@
 (define-key *root-map* (kbd "M-y") "show-clipboard-history")
 ;; start the polling timer process
 (clipboard-history:start-clipboard-manager)
-(setf clipboard-history:*clipboard-history-max-length* 100)
+(setf clipboard-history:*clipboard-history-max-length* 1000)
 
 
 ;; (load-module "productivity")
@@ -34,18 +34,18 @@
 
 (load-module "globalwindows")
 
-;; swm-gaps
-(load-module "swm-gaps")
-;; Head gaps run along the 4 borders of the monitor(s)
-(setf swm-gaps:*head-gaps-size* 0)
+;; ;; swm-gaps (FORGET ABOUT THIS !!!!!!)
+;; (load-module "swm-gaps")
+;; ;; Head gaps run along the 4 borders of the monitor(s)
+;; (setf swm-gaps:*head-gaps-size* 0)
 
-;; Inner gaps run along all the 4 borders of a window
-(setf swm-gaps:*inner-gaps-size* 5)
+;; ;; Inner gaps run along all the 4 borders of a window
+;; (setf swm-gaps:*inner-gaps-size* 5)
 
-;; Outer gaps add more padding to the outermost borders of a window (touching
-;; the screen border)
-(setf swm-gaps:*outer-gaps-size* 5)
-;;(swm-gaps:toggle-gaps-on)
+;; ;; Outer gaps add more padding to the outermost borders of a window (touching
+;; ;; the screen border)
+;; (setf swm-gaps:*outer-gaps-size* 5)
+;; ;;(swm-gaps:toggle-gaps-on)
 
 
 ;; binwarp

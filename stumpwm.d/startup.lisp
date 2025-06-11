@@ -21,7 +21,7 @@ if [[ ! \"$SSH_AUTH_SOCK\" ]]; then
 fi
 ")
 
-;; FONTS
+;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
 ;; (ql:quickload :clx-truetype)
 ;; (load-module "ttf-fonts")
 ;; (setf xft:*font-dirs* '("/usr/share/fonts/"))

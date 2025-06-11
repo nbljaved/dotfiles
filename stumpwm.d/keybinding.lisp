@@ -21,7 +21,6 @@
 
 ;; frame manipulation
 (define-key *top-map* (kbd "C-Q") "send-raw-key") ;; send raw key
-(define-key *top-map* (kbd "s-:") "eval")
 (define-key *top-map* (kbd "s-F") "fullscreen")
 (define-key *top-map* (kbd "s-q") "delete")
 (define-key *top-map* (kbd "s-Q") "kill")
@@ -117,7 +116,7 @@
 (define-key *top-map* (kbd "s-A") "battery")
 (define-key *top-map* (kbd "s-a") "time")
 (define-key *top-map* (kbd "s-M") "nbl/toggle-mode-line")
-(define-key *top-map* (kbd "s-G") "nbl/toggle-gaps")
+;; (define-key *top-map* (kbd "s-G") "nbl/toggle-gaps")
 ;;(define-key *top-map* (kbd "s-"))
 
 ;; simulation keys

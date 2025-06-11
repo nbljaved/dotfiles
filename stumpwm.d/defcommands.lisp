@@ -35,9 +35,9 @@
 			    (stumpwm:current-head)))
 
 ;; ;; swm-gaps toggle
-(defcommand nbl/toggle-gaps () ()
-  "turn on/off the gaps"
-  (swm-gaps:toggle-gaps))
+;; (defcommand nbl/toggle-gaps () ()
+;;   "turn on/off the gaps"
+;;   (swm-gaps:toggle-gaps))
 
 
 ;; 🔋
