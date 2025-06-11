@@ -22,11 +22,13 @@
       *transient-border-width*         2
       *run-or-raise-all-groups*        nil
       *run-or-raise-all-screens*       nil
-      stumpwm::*float-window-border* 0
-      stumpwm::*float-window-title-height* 0
+      stumpwm::*float-window-border* 1
+      stumpwm::*float-window-title-height* 10
       *window-border-style*            :thin
-      *window-format*                 "%m%n%s%t")
+      *window-format*                 "%m%n%s%c")
+
 (stumpwm:set-border-color "#1e90ff") ;;(dodger blue) for input bar and message bar
+(set-float-focus-color "#836fff")
 (stumpwm:set-focus-color "#836fff")  ;;(slate blue)
 ;;(setf *window-info-format*)
 (setf *timeout-wait* 3)
