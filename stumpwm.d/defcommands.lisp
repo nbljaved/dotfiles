@@ -84,7 +84,7 @@
 
 (defcommand google-chrome () ()
   "Run-or-Raise Chrome"
-  (run-or-raise "google-chrome-stable" '(:class "Google-chrome")))
+  (run-or-raise "google-chrome" '(:class "Google-chrome")))
 
 (defcommand mpv () ()
   "Run-or-Raise mpv"

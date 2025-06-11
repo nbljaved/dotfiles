@@ -98,8 +98,8 @@
 ;; Launch applications
 ;; Add "run-or-raises" programs to root-map
 (define-key *top-map* (kbd "s-RET") "terminal")
-(define-key *top-map* (kbd "s-f") "firefox")
-(define-key *top-map* (kbd "s-b") "chromium")
+(define-key *top-map* (kbd "s-f") "librewolf")
+(define-key *top-map* (kbd "s-b") "google-chrome")
 (define-key *top-map* (kbd "s-n") "nyxt")
 (define-key *top-map* (kbd "s-m") "mpv")
 (define-key *top-map* (kbd "s-e") "nbl/emacs")
