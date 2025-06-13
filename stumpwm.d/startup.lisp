@@ -9,8 +9,7 @@
 ;;(run-shell-command "cbatticon") ; battery
 (run-shell-command "dunst &") ; notification server
 ;; composter
-(when (executable? "picom")
-  (run-shell-command "picom -bc"))
+(picom-start)
 ;; In order to start the agent automatically and make sure that only one ssh-agent process runs at a time
 (nbl/start-ssh-agent)
 

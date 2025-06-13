@@ -28,6 +28,14 @@
       (command-is-successful? (format nil "feh --bg-scale --randomize ~awallpapers/*" *config-dir*))
       (message "Install feh")))
 
+(defcommand picom-start () ()
+  "Picom is our composter"
+  (cond ((not (executable? "picom"))
+         (message "Install picom"))
+        ((command-is-successful? (format nil "picom -bc --config ~apicom.conf" *config-dir*))
+         (message ":)"))
+        (t (message ":( Failed to start picom"))))
+
 (defcommand nbl/start-ssh-agent () ()
   "Is idempotent"
   (let* ((ssh-agent-process-exists? (command-is-successful? "pgrep -u \"$USER\" ssh-agent > /dev/null"))
