@@ -10,6 +10,14 @@
 ;; (load-module "net")
 ;; (load-module "wifi")
 
+;; Run mod-key :, type alert-me-at, then 18, 52, meeting with foo.
+;; At 18:52, stumpwm will remind you 3 times every 10 seconds that you have a
+;; meeting with foo.
+;;
+;; The remainder 3 times is because stumpwm might hide the message if you’re
+;; switching between windows.
+(load-module "alert-me")
+
 (load-module "winner-mode")
 
 ;; stuff that should be in the module but isn't
