@@ -45,7 +45,12 @@ export SHELL
 # history
 export HISTSIZE=10000
 export HISTFILESIZE=10000
- 
+
+# Nix
+if command -v "nix" >/dev/null 2>&1; then
+    source /run/current-system/profile/etc/profile.d/nix.sh
+fi
+
 ## Racket
 export PATH="$HOME/racket/bin:$PATH"
 
@@ -211,11 +216,6 @@ fi
 
 # vscode
 # code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
-
-# Nix
-if command -v "nix" >/dev/null 2>&1; then
-    source /run/current-system/profile/etc/profile.d/nix.sh
-fi
 
 ##############################################################################
 ## ble.sh
