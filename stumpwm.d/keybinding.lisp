@@ -116,6 +116,7 @@
 (define-key *top-map* (kbd "s-A") "battery")
 (define-key *top-map* (kbd "s-a") "time")
 (define-key *top-map* (kbd "s-M") "nbl/toggle-mode-line")
+(define-key *top-map* (kbd "s-W") "wallpaper")
 ;; (define-key *top-map* (kbd "s-G") "nbl/toggle-gaps")
 
 ;;; Desktop Environment

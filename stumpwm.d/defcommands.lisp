@@ -22,8 +22,14 @@
              (string<= time-left "00:15:00")))
       (message "Make sure acpi, grep, cut and dunstify are on PATH")))
 
+(defcommand wallpaper () ()
+  "Applies wallpaper from ~/.stumpwm.d/wallpapers"
+  (if (executable? "feh")
+      (command-is-successful? (format nil "feh --bg-scale --randomize ~awallpapers/*" *config-dir*))
+      (message "Install feh")))
+
 (defcommand nbl/start-ssh-agent () ()
-    "Is idempotent"
+  "Is idempotent"
   (let* ((ssh-agent-process-exists? (command-is-successful? "pgrep -u \"$USER\" ssh-agent > /dev/null"))
          (ssh-agent-file (uiop:file-exists-p (format nil "~a/~a" (getenv "XDG_RUNTIME_DIR") "ssh-agent.env"))))
     (unless (and ssh-agent-process-exists? ssh-agent-file)
