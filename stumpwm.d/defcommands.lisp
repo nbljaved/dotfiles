@@ -25,14 +25,14 @@
 (defcommand wallpaper () ()
   "Applies wallpaper from ~/.stumpwm.d/wallpapers"
   (if (executable? "feh")
-      (command-is-successful? (format nil "feh --bg-scale --randomize ~awallpapers/*" *config-dir*))
+      (command-is-successful? (format nil "feh --bg-scale --randomize ~awallpapers/*" *data-dir*))
       (message "Install feh")))
 
 (defcommand picom-start () ()
   "Picom is our composter"
   (cond ((not (executable? "picom"))
          (message "Install picom"))
-        ((command-is-successful? (format nil "picom -bc --config ~apicom.conf" *config-dir*))
+        ((command-is-successful? (format nil "picom -bc --config ~apicom.conf" *data-dir*))
          (message ":)"))
         (t (message ":( Failed to start picom"))))
 

@@ -18,6 +18,8 @@
 (define-key *root-map* (kbd "w") "windowlist") ;;windows
 (define-key *root-map* (kbd "s-n") "renumber")
 (define-key *root-map* (kbd "s-w") "other")
+(define-key *root-map* (kbd "i") "show-window-properties")
+(define-key *root-map* (kbd "I") "list-window-properties")
 
 ;; frame manipulation
 (define-key *top-map* (kbd "C-Q") "send-raw-key") ;; send raw key

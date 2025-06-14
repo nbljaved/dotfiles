@@ -2,16 +2,17 @@
 (ignore-errors (load "~/quicklisp/setup.lisp"))
 ;; load quicklisp
 (asdf:load-system "slynk")
-(slynk:create-server :port 4005 :dont-close t)
+(ignore-errors (slynk:create-server :port 4005 :dont-close t))
 
 (asdf:load-system :stumpwm)
 (in-package :stumpwm)
 
-(defvar *config-dir* "~/.stumpwm.d/")
-
-;; Default programs
-(setf *suppress-abort-messages* nil)
-(setf *top-level-error-action* :message)
+(setf
+ ;; Set this variable to a number > 0 to turn on debugging.  The greater the
+ ;; number the more debugging output.
+ *debug-level* 1
+ *suppress-abort-messages* t
+ *top-level-error-action* :message)
 
 ;; Set stumpwm values
 (setf *startup-message*                 "Take Responsibility."
@@ -19,13 +20,14 @@
       *shell-program* (stumpwm:getenv "SHELL")
       *maxsize-border-width*           5
       *normal-border-width*            5
-      *transient-border-width*         2
+      *transient-border-width*         5
       *run-or-raise-all-groups*        nil
       *run-or-raise-all-screens*       nil
-      stumpwm::*float-window-border* 1
-      stumpwm::*float-window-title-height* 10
+      stumpwm::*float-window-border* 5
+      stumpwm::*float-window-title-height* 1
       *window-border-style*            :thin
-      *window-format*                 "%m%n%s%c")
+      *window-format*                 "%m%n%s%c: %20t %r"
+      *input-history-ignore-duplicates* t)
 
 (stumpwm:set-border-color "#1e90ff") ;;(dodger blue) for input bar and message bar
 (set-float-focus-color "#836fff")

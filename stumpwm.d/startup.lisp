@@ -10,6 +10,7 @@
 (run-shell-command "dunst &") ; notification server
 ;; composter
 (picom-start)
+(wallpaper)
 ;; In order to start the agent automatically and make sure that only one ssh-agent process runs at a time
 (nbl/start-ssh-agent)
 
@@ -31,3 +32,20 @@
                       (run-shell-command
                        "dunstify BATTERY LOW -u critical"))))
   "Use (cancel-timer *battery-low-timer*) to remove it.")
+
+(defun redirect-stream (stream file)
+  "Elect to redirect stream to the specified file. For instance,
+if you want *debug-stream* to go to ~/.stumpwm.d/debug-stream.txt you would
+do:
+
+@example
+(redirect-stream *debug-stream* (data-dir-file \"debug-stream\" \"txt\"))
+@end example
+"
+  (let ((new-stream (open file :direction :output :if-exists :append :if-does-not-exist :create)))
+    (setf stream new-stream)))
+
+(redirect-stream *error-output* (data-dir-file "error-output" "txt"))
+;; (redirect-stream *standard-output* (data-dir-file "standard-output" "txt"))
+;; (redirect-stream *trace-output* (data-dir-file "trace-output" "txt"))
+(redirect-stream *debug-stream* (data-dir-file "debug-stream" "txt"))
