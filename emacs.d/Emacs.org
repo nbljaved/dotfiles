@@ -55,6 +55,7 @@ It then builds and activates Elpaca.
 To update things like Melpa do =M-x elpaca-update-menus=
 
 #+begin_src  emacs-lisp
+;; see the definition of `elpaca-core-date`
 ;;(setq elpaca--core-date "20230730")
 #+end_src
 
@@ -677,6 +678,90 @@ You can use =M-x nerd-icons-install-fonts= to install =Symbols Nerd Fonts Mono= 
 
 #+begin_src emacs-lisp
 (use-package treemacs)
+#+end_src
+
+** stumwpm
+
+#+begin_src emacs-lisp :lexical no
+(setq frame-resize-pixelwise t)
+#+end_src
+
+** transparency
+
+*** After version 29.4
+**** If Emacs from Guix isn't respecting alpha-background
+
+Then we have to rebuild a custom version of emacs
+
+#+begin_src lisp
+;; custom-emacs.scm
+
+(use-modules (guix packages)
+             (gnu packages emacs)
+             (gnu packages xorg))
+
+(define-public nbl-emacs
+  (package
+   (inherit emacs)
+   (inputs (modify-inputs (package-inputs emacs)
+                          (prepend libxaw)))))
+
+nbl-emacs
+#+end_src
+
+To build this just do
+#+begin_src shell
+guix package -f custom-emacs.scm
+#+end_src
+
+**** Transparency setting
+#+begin_src emacs-lisp :lexical no
+(defvar transparency-value 85)
+(set-frame-parameter nil 'alpha-background transparency-value)
+(add-to-list 'default-frame-alist `(alpha-background . ,transparency-value))
+
+(defun toggle-transparency ()
+  (interactive)
+  (let ((alpha-background (frame-parameter nil 'alpha-background)))
+    (unless (numberp alpha-background)
+      (error (format "Value of alpha-background is not a number: %s" alpha-background)))
+    (set-frame-parameter nil
+                         'alpha-background
+                         (if (eql alpha-background 100)
+                             transparency-value
+                           (progn (setq transparency-value alpha-background) 100)))))
+;; (global-set-key (kbd "C-c t") 'toggle-transparency)
+
+(defun transparency (value)
+  "Sets the transparency of the frame window. 0=transparent/100=opaque"
+  (interactive (list (read-string "Transparency Value 0 - 100(opaque): "
+                                  (number-to-string transparency-value))))
+  (setq transparency-value (string-to-number value))
+  (set-frame-parameter (selected-frame) 'alpha-background transparency-value))
+
+#+end_src
+
+*** COMMENT Before Emacs 29.4
+
+#+begin_src emacs-lisp :lexical no :tangle no
+(defun toggle-transparency ()
+   (interactive)
+   (let ((alpha (frame-parameter nil 'alpha)))
+     (set-frame-parameter
+      nil 'alpha
+      (if (eql (cond ((numberp alpha) alpha)
+                     ((numberp (cdr alpha)) (cdr alpha))
+                     ;; Also handle undocumented (<active> <inactive>) form.
+                     ((numberp (cadr alpha)) (cadr alpha)))
+               100)
+          '(85 . 50) '(100 . 100)))))
+ (global-set-key (kbd "C-c t") 'toggle-transparency)
+
+ ;; Set transparency of emacs
+ (defun transparency (value)
+   "Sets the transparency of the frame window. 0=transparent/100=opaque"
+   (interactive "nTransparency Value 0 - 100 opaque:")
+   (set-frame-parameter (selected-frame) 'alpha value))
 #+end_src
 
 * Completion
