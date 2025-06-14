@@ -1051,6 +1051,10 @@ https://github.com/minad/vertico
   :config
   (setq vertico-cycle nil)
   (setq vertico-resize nil)
+
+  ;; with vertico you can make it auto hide the old path when you type ~/ or /
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
   (vertico-mode 1))
 #+end_src
 
@@ -1310,11 +1314,35 @@ https://github.com/apchamberlain/undo-tree.el
 *** hungry-delete
 https://github.com/nflath/hungry-delete
 
+- hungry deletion :: Means that deleting a whitespace character will delete all whitespace until the next non-whitespace character.
+
 #+begin_src emacs-lisp :lexical no
 (use-package hungry-delete
   :config
   (setf hungry-delete-join-reluctantly t)
   (global-hungry-delete-mode))
+#+end_src
+
+*** ws-butler
+https://github.com/lewang/ws-butler
+
+An unobtrusive way to trim spaces from end of line.
+Only lines touched get trimmed.
+Trimming only happens when saving.
+
+#+begin_src emacs-lisp :lexical no
+(use-package ws-butler
+  :hook ((prog-mode . ws-butler-mode))
+  :config
+  ;; There might be lines you don't want to get trimmed, e.g. spaces in
+  ;; multiline strings. The behavior can be customized through
+  ;; ws-butler-trim-predicate. This variable should hold a function that expects
+  ;; 2 arguments (region beginning and end) and should return true only for
+  ;; regions that one wants to get trimmed. As an example
+  (setq ws-butler-trim-predicate
+        (lambda (beg end)
+          (not (eq 'font-lock-string-face
+                   (get-text-property end 'face))))))
 #+end_src
 
 ** Keybindings
@@ -1828,14 +1856,6 @@ https://github.com/Silex/docker.el
   (use-package docker
     :ensure t
     :bind (("C-c d" . docker)))
-#+end_src
-
-*** COMMENT docker-tramp
-https://github.com/emacs-pe/docker-tramp.el
-
-#+begin_src emacs-lisp
-  (use-package docker-tramp
-    :ensure t)
 #+end_src
 
 *** docker-compose-mode
@@ -2373,6 +2393,33 @@ https://github.com/jdtsmith/indent-bars
   (interactive)
   (find-file "/ssh:root@192.168.0.102#2222:/mnt/us"))
 #+end_src
+
+*** Tramp
+**** ssh-tramp
+
+If your local host runs an SSH client, and the remote host runs an SSH server, the simplest remote file name is =/ssh:user@host:/path/to/file=. The remote file name =/ssh::= opens a remote connection to yourself on the local host, and is often used for testing TRAMP.
+
+On MS Windows, PuTTY is often used as the SSH client. Its plink method can be used there to open a connection to a remote host running an ssh server: /plink:user@host:/path/to/file.
+
+
+**** docker-tramp
+
+=/docker:container-host-name:/path/to/file=.
+
+Integration for Docker containers. The host name may be either a running container’s name or ID, as returned by =docker ps=.
+
+
+**** sudo-tramp
+
+Sometimes, it is necessary to work on your local host under different permissions. For this, you can use the su or sudo connection method. If your system is systemd-based, there is the run0 connection method. On OpenBSD systems, the doas connection method offers the same functionality. If your local system is Android, use the method androidsu instead of su.
+
+- These methods use ‘root’ as default user name and the return value of (system-name) as default host name. Therefore, it is convenient to open a file as =/sudo::/path/to/file=.
+
+  - If the su, sudo, doas or run0 method should be performed on another host, it can be combined with a leading ssh or plink method.
+
+    That means that TRAMP connects first to the other host with non-administrative credentials, and changes to administrative credentials on that host afterwards.
+
+    In a simple case, the syntax looks like =/ssh:user@host|sudo::/path/to/file=.
 
 *** COMMENT Basic
 
