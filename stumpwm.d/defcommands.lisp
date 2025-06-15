@@ -32,7 +32,7 @@
   "Picom is our composter"
   (cond ((not (executable? "picom"))
          (message "Install picom"))
-        ((command-is-successful? (format nil "picom -bc --config ~apicom.conf" *data-dir*))
+        ((command-is-successful? (format nil "picom -bc --config ~a/config/picom/picom.conf" *data-dir*))
          (message ":)"))
         (t (message ":( Failed to start picom"))))
 
