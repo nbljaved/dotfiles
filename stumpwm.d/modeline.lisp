@@ -7,7 +7,7 @@
 (setf *mode-line-timeout* 5)
 (setf stumpwm:*mode-line-position* :top)
 
-(setf *mode-line-background-color* "#483d8b")
+(setf *mode-line-background-color* "#000000")
 
 (setq *separator* " ^7*^B||^b")
 
