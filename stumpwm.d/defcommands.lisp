@@ -135,7 +135,7 @@
 
 (defcommand rofi () ()
   "rofi"
-  (run-or-raise "rofi -show run" '(:class "rofi")))
+  (run-or-raise (format nil "rofi -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi")))
 
 ;; Rofi (for window switching)
 (defcommand window-mini () ()
@@ -207,7 +207,7 @@
 
 (defcommand flameshot () ()
   "Launch flameshot for screenshot"
-  (run-shell-command "flameshot gui"))
+  (run-shell-command "flameshot gui --clipboard"))
 
 (defcommand flameshot-launcher () ()
   (run-shell-command "flameshot launcher"))

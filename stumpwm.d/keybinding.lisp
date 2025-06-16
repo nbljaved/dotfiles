@@ -39,7 +39,7 @@
 (define-key *menu-map* (kbd "C-k" ) 'menu-up)
 
 (define-key *root-map* (kbd "`") "remove-split")
-(define-key *root-map* (kbd "0") "only")
+(define-key *root-map* (kbd "0") "remove-split")
 (define-key *root-map* (kbd "1") "only")
 (define-key *root-map* (kbd "2") "vsplit")
 (define-key *root-map* (kbd "3") "hsplit")
