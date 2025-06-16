@@ -1332,7 +1332,8 @@ Trimming only happens when saving.
 
 #+begin_src emacs-lisp :lexical no
 (use-package ws-butler
-  :hook ((prog-mode . ws-butler-mode))
+  :hook ((prog-mode . ws-butler-mode)
+         (org-mode . ws-butler-mode))
   :config
   ;; There might be lines you don't want to get trimmed, e.g. spaces in
   ;; multiline strings. The behavior can be customized through
@@ -1552,6 +1553,31 @@ There is also a second command =restart-emacs-start-new-emacs= which starts a ne
 #+begin_src emacs-lisp
   (use-package hydra
     :ensure t)
+#+end_src
+
+** colorful-mode
+https://github.com/DevelopmentCool2449/colorful-mode
+
+Shows the actual color, next to hex codes like #00FF00.
+
+#+begin_src emacs-lisp :lexical no
+(use-package colorful-mode
+  ;; :diminish
+  :ensure t                             ; Optional
+  :custom
+  (colorful-use-prefix t)
+  (colorful-only-strings 'only-prog)
+  (css-fontify-colors nil)
+  :config
+  (global-colorful-mode t)
+  (setq global-colorful-modes
+        '(org-mode
+          prog-mode
+          helpful-mode
+          help-mode
+          html-mode
+          css-mode
+          latex-mode)))
 #+end_src
 
 ** Shells
