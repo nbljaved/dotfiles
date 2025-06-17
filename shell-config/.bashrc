@@ -55,8 +55,10 @@ fi
 export PATH="$HOME/racket/bin:$PATH"
 
 ## Kitty
-export PATH="$HOME/.local/kitty.app/bin:$PATH"
-source <(kitty + complete setup bash)
+if command -v "kitty" >/dev/null 2>&1; then
+    export PATH="$HOME/.local/kitty.app/bin:$PATH"
+    source <(kitty + complete setup bash)
+fi
 
 export TERM=xterm-256color # otherwise ssh has keyboard problems
 
