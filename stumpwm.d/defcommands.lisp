@@ -207,6 +207,9 @@
 
 (defcommand flameshot () ()
   "Launch flameshot for screenshot"
+  ;; flameshot daemon should be running, otherwise clipboard won't work
+  (unless (command-is-successful? "ps -e | grep flameshot")
+    (command-is-successful? "flameshot &"))
   (run-shell-command "flameshot gui --clipboard"))
 
 (defcommand flameshot-launcher () ()
