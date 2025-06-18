@@ -51,8 +51,8 @@
 
 (define-key *top-map* (kbd "s-0") "fclear")
 (define-key *top-map* (kbd "Print") "flameshot")
-(define-key *top-map* (kbd "s-P") "flameshot")
-(define-key *top-map* (kbd "s-Print") "flameshot-launcher")
+(define-key *top-map* (kbd "s-P") "flameshot-gui")
+(define-key *top-map* (kbd "s-Print") "flameshot-gui")
 (define-key *top-map* (kbd "s-SPC") "emacs-everywhere")
 (define-key *top-map* (kbd "s-B") "blueman-manager")
 

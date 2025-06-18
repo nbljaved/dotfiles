@@ -212,8 +212,10 @@
     (command-is-successful? "flameshot &"))
   (run-shell-command "flameshot gui --clipboard"))
 
-(defcommand flameshot-launcher () ()
-  (run-shell-command "flameshot launcher"))
+(defcommand flameshot-gui () ()
+  (unless (command-is-successful? "ps -e | grep flameshot")
+    (command-is-successful? "flameshot &"))
+  (run-shell-command "flameshot gui"))
 
 ;; Window selection
 (defcommand nbl/select-window-by-number (n) ((:number "enter window number"))
