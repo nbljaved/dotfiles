@@ -129,10 +129,6 @@
 ;;   (run-or-raise "emacsclient --alternate-editor=\"\" --create-frame --no-wait"
 ;;                 '(:class "Emacs" :instance "emacs")))
 
-(defcommand nbl/lispworks () ()
-  "lispworks"
-  (run-or-raise "ros -L run lispworks" '(:class "Lw-console")))
-
 (defcommand rofi () ()
   "rofi"
   (run-or-raise (format nil "rofi -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi")))

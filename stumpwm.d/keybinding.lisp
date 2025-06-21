@@ -105,7 +105,6 @@
 (define-key *top-map* (kbd "s-m") "mpv")
 (define-key *top-map* (kbd "s-e") "nbl/emacs")
 (define-key *top-map* (kbd "s-E") nil)
-(define-key *top-map* (kbd "s-l") "nbl/lispworks")
 (define-key *top-map* (kbd "s-s") "nbl/slack")
 (define-key *top-map* (kbd "s-z") "nbl/zoom")
 (define-key *top-map* (kbd "s-S") "sound-settings")
