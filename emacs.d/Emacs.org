@@ -60,7 +60,7 @@ To update things like Melpa do =M-x elpaca-update-menus=
 #+end_src
 
 #+begin_src emacs-lisp
-(defvar elpaca-installer-version 0.10)
+(defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -95,7 +95,7 @@ To update things like Melpa do =M-x elpaca-update-menus=
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 #+end_src
@@ -1355,7 +1355,7 @@ Trimming only happens when saving.
 ;; (global-set-key (kbd "C-2") 'split-window-below)
 ;; (global-set-key (kbd "C-3") 'split-window-right)
 
-(global-set-key (kbd "s-k") 'kill-this-buffer)
+(global-set-key (kbd "s-k") 'kill-current-buffer)
 (global-set-key (kbd "s-K") 'kill-buffer-and-window)
 (bind-key* (kbd "C-o") 'other-window)
 (define-key prog-mode-map (kbd "C-o") 'other-window)
@@ -2114,12 +2114,18 @@ Version 2017-11-10"
 ** In built emacs packages
 Might need to use newer version of inbuilt emacs packages.
 
-*** transient
+*** COMMENT pfuture
+#+begin_src emacs-lisp
+(use-package pfuture)
+#+end_src
+
+*** COMMENT transient
 
 #+begin_src emacs-lisp :lexical no
 ;; Magit needed transient to be >= 0.5.0
 ;; do =M-x magit-version= to know transient version
-(use-package transient)
+(use-package transient
+  :ensure (:wait t))
 #+end_src
 
 ** git
@@ -2127,6 +2133,7 @@ Might need to use newer version of inbuilt emacs packages.
 
 #+begin_src emacs-lisp 
 (use-package magit
+  :ensure nil ;; installed via Guix.
   :after nerd-icons
   :custom (magit-format-file-function #'magit-format-file-nerd-icons)
   :bind (:map magit-mode-map
@@ -2145,7 +2152,7 @@ Might need to use newer version of inbuilt emacs packages.
 
 #+begin_src emacs-lisp :lexical no
 (use-package magit-todos
-  :after magit
+  :ensure nil ;; installed via Guix.
   :config
   (setq magit-todos-fontify-org nil
         magit-todos-group-by '(magit-todos-item-filename
@@ -2572,7 +2579,6 @@ Install https://aider.chat/docs/install.html
   :config
   (bind-key* (kbd "C-c a") 'aidermacs-transient-menu)
   (setq
-   ;; aidermacs-default-model "gemini/gemini-2.0-flash"
    aidermacs-default-model "gemini/gemini-2.5-pro-exp-03-25"
    aidermacs-backend 'vterm
    aidermacs-vterm-multiline-newline-key "M-<return>"
@@ -2630,11 +2636,6 @@ Identities (private keys) and recipients (public keys) are maintained via the cu
   (age-default-recipient "~/.age/key.pub")
   :config
   (age-file-disable))
-#+end_src
-
-** pfuture
-#+begin_src emacs-lisp
-(use-package pfuture)
 #+end_src
 
 ** dotenv-mode
