@@ -36,6 +36,14 @@
          (message ":)"))
         (t (message ":( Failed to start picom"))))
 
+(defcommand udiskie-start () ()
+  "udiskie is an automounter. See `udisksctl`"
+  (cond ((not (executable? "udiskie"))
+         (message "Install udiskie"))
+        ((command-is-successful? (format nil "udiskie --config ~a/config/udiskie/udiskie.conf &" *data-dir*))
+         (message ":)"))
+        (t (message ":( Failed to start udiskie"))))
+
 (defcommand nbl/start-ssh-agent () ()
   "Is idempotent"
   (let* ((ssh-agent-process-exists? (command-is-successful? "pgrep -u \"$USER\" ssh-agent > /dev/null"))
