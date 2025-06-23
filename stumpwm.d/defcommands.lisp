@@ -37,8 +37,10 @@
         (t (message ":( Failed to start picom"))))
 
 (defcommand udiskie-start () ()
-  "udiskie is an automounter. See `udisksctl`"
-  (cond ((not (executable? "udiskie"))
+  "udiskie is an automounter. See `df -h` for mount location"
+  (cond ((command-is-successful? "pgrep -u \"$USER\" udiskie > /dev/null")
+         (message "Already running"))
+        ((not (executable? "udiskie"))
          (message "Install udiskie"))
         ((command-is-successful? (format nil "udiskie --config ~a/config/udiskie/udiskie.conf &" *data-dir*))
          (message ":)"))

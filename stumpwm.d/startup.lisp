@@ -13,6 +13,8 @@
 (wallpaper)
 ;; In order to start the agent automatically and make sure that only one ssh-agent process runs at a time
 (nbl/start-ssh-agent)
+;;
+(udiskie-start)
 
 ;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
 ;; (ql:quickload :clx-truetype)
