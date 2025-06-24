@@ -77,6 +77,7 @@ alias ld='lazydocker'
 alias lg='lazygit'
 alias ls='ls -alh'
 alias cat='bat'
+alias du='dust'
 alias l='eza --color=auto --icons -l'
 alias rgi='rg --no-ignore --hidden -i'
 
