@@ -16,9 +16,11 @@
 ;;
 ;; The remainder 3 times is because stumpwm might hide the message if you’re
 ;; switching between windows.
-(load-module "alert-me")
+(ignore-errors (ql:quickload "alert-me"))
 
-(load-module "winner-mode")
+(progn
+  (uiop:run-program (format nil "mkdir -p ~awinner-layouts" *data-dir*))
+  (load-module "winner-mode"))
 
 ;; stuff that should be in the module but isn't
 (load-module "undocumented")
