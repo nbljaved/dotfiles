@@ -162,7 +162,7 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
   ;; i.e. eager evaluation in contrast to elpaca's lazier version
   :ensure (:wait t)
   :config
-  (setq exec-path-from-shell-variables '("PATH" "MANPATH"
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH" "HOSTNAME"
                                          "GEMINI_API_KEY" "OPENAI_API_KEY"))
   (when (or (memq window-system '(mac ns x))
             (daemonp))
@@ -339,20 +339,26 @@ Using 'getnf' install the following fonts:
 - Hack - v3.3.0
 - NerdFontsSymbolsOnly - v3.3.0
 
-#+begin_src emacs-lisp
-  (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 138)
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil
-                      :font "FiraCode Nerd Font"
-                      :weight 'regular
-                      :height 140)
+#+begin_src emacs-lisp :lexical no
+(unless (executable-find "getnf")
+  (warn "Install getnf, visit https://github.com/getnf/getnf"))
+#+end_src
 
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil
-                      ;; :font "Cantarell"
-                      :font "DejaVu Sans Mono"
-                      :height 140
-                      :weight 'regular)
+#+begin_src emacs-lisp
+  (ignore-errors
+    (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 138)
+    ;; Set the fixed pitch face
+    (set-face-attribute 'fixed-pitch nil
+                        :font "FiraCode Nerd Font"
+                        :weight 'regular
+                        :height 120)
+
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil
+                        ;; :font "Cantarell"
+                        :font "DejaVu Sans Mono"
+                        :height 120
+                        :weight 'regular))
 #+end_src
 
 *** Unicode support
@@ -669,11 +675,13 @@ You can use =M-x nerd-icons-install-fonts= to install =Symbols Nerd Fonts Mono= 
 
 #+begin_src emacs-lisp
 (use-package multiple-cursors
+  :custom
+  (mc/always-run-for-all t)
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
-
 #+end_src
+
 ** treemacs
 
 #+begin_src emacs-lisp
@@ -3119,7 +3127,8 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
 ;; .mlisp
 (add-to-list 'auto-mode-alist '("\\.mlisp\\'" . lisp-mode))
 #+end_src
-**** .roswell
+
+**** COMMENT .roswell
 ***** init.lisp
 
 - Rather than pushing the directory, that we want ASDF to search, into ~asdf:*central-registry*~, we can call the following function
@@ -3127,9 +3136,9 @@ https://github.com/micanzhang/ob-rust/tree/30fe7e7181f44443d02e905dda77f83ec4944
   - If only one asd file is present, it loads it. If none are present, it issues an error. And if more than one is present (for whatever reason), it offers a choice of which to choose or 0 to bail.
   - Lives in =~/.roswell/init.lisp=
 
-    #+begin_src emacs-lisp
-      (make-directory "~/.roswell" :parents)
-    #+end_src
+#+begin_src emacs-lisp
+(make-directory "~/.roswell" :parents)
+#+end_src
     
 #+begin_src lisp :tangle ~/.roswell/init.lisp
 ;; Written by https://www.reddit.com/user/mirkov19/
@@ -3661,6 +3670,15 @@ https://www.antlr.org/index.html
 #+end_src
 
 ** Golang
+*** some go packages to install
+
+#+begin_src emacs-lisp :lexical no
+(unless (executable-find "lazydocker")
+  (warn "Install lazydocker using `go install github.com/jesseduffield/lazydocker@latest`"))
+(unless (executable-find "lazygit")
+  (warn "Install lazydocker using `go install github.com/jesseduffield/lazygit@latest`"))
+#+end_src
+
 *** go-mode
 https://github.com/dominikh/go-mode.el
 
@@ -4576,14 +4594,16 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 *** Auctex
 
 #+begin_src emacs-lisp :lexical yes
-  (when guix? 
-    (let* ((texlive-path (or (car (last (split-string
-					 (shell-command-to-string
-					  "guix package -I texlive"))))
-			     (error "install 'texlive' using 'guix install texlive'")))
-	   (texlive-bin (concat texlive-path "/bin")))
-      (cl-pushnew texlive-bin exec-path)
-      texlive-bin))
+  (when guix?
+    (condition-case nil
+        (let* ((texlive-path (or (car (last (split-string
+    					   (shell-command-to-string
+    					    "guix package -I texlive"))))
+    			       (error "install 'texlive' using 'guix install texlive'")))
+    	     (texlive-bin (concat texlive-path "/bin")))
+  	(cl-pushnew texlive-bin exec-path)
+  	texlive-bin)
+      (error (warn "install 'texlive' using 'guix install texlive'"))))
 
   (use-package auctex
     :ensure nil ;; installed via Guix (emacs-auctex)
@@ -4785,16 +4805,17 @@ install
   ;;                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
   ;; Increase the size of various headings
-  (set-face-attribute 'org-document-title nil :font "Fira Code" :weight 'bold :height 1.3)
-  (dolist (face '((org-level-1 . 1.4)
-                  (org-level-2 . 1.3)
-                  (org-level-3 . 1.25)
-                  (org-level-4 . 1.2)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Fira Code" :weight 'medium :height (cdr face)))
+  (ignore-errors
+    (set-face-attribute 'org-document-title nil :font "Fira Code" :weight 'bold :height 1.3)
+    (dolist (face '((org-level-1 . 1.4)
+                    (org-level-2 . 1.3)
+                    (org-level-3 . 1.25)
+                    (org-level-4 . 1.2)
+                    (org-level-5 . 1.1)
+                    (org-level-6 . 1.1)
+                    (org-level-7 . 1.1)
+                    (org-level-8 . 1.1)))
+      (set-face-attribute (car face) nil :font "Fira Code" :weight 'medium :height (cdr face))))
 
 
   ;; (let* ((variable-tuple
