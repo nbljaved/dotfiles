@@ -3,3 +3,16 @@ To update submodule (https://github.com/stumpwm/stumpwm-contrib) run:
 #+begin_src shell
 git submodule update --init --recursive
 #+end_src
+
+* Quicklisp (is required)
+At =~/quicklisp/=.
+Set it up by following the instructions at https://www.quicklisp.org/beta/
+
+** clx-truetype
+Place clx-truetype in =~/quicklisp/local-projects/clx-truetype/=
+
+#+begin_src shell
+ln -s ~/.stumpwm.d/clx-truetype ~/quicklisp/local-projects/
+#+end_src
+
+#+RESULTS:
