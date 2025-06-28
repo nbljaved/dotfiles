@@ -3691,8 +3691,9 @@ https://github.com/dominikh/go-mode.el
 *** gopls
 Gopls is the official language server protocol (lsp) implementation provided by the Go team. It is intended to replace the existing third party tools for code formatting (gofmt), automatic imports (goimports), code navigation (godef/guru), type and function descriptions (godoc/godef), error checking, auto completion (gocode), variable and type renaming (rename), and more.
 
-#+begin_src shell
-go install golang.org/x/tools/gopls@latest
+#+begin_src emacs-lisp
+(unless (executable-find "gopls")
+  (warn "Install gopls with `go install golang.org/x/tools/gopls@latest`"))
 #+end_src
 
 *** ob-go
