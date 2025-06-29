@@ -211,6 +211,13 @@ if [ -f "$HOME/.cargo/env" ]; then
     source "$HOME/.cargo/env"
 fi
 
+## typst
+# do fc-list to look at available fonts
+export TYPST_FONT_PATHS="$HOME/.guix-profile/share/fonts/:$HOME/.local/share/fonts"
+
+# Dark theme for pavucontrol
+export GTK_THEME=Adwaita:dark
+
 # when facing gdk_pixbuf_errors
 # unset GDK_PIXBUF_MODULE_FILE
 #
