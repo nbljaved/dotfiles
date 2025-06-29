@@ -4481,6 +4481,75 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 #+end_src
 
 ** Academic writing
+*** typst
+**** typst (cli)
+https://github.com/typst/typst
+
+#+begin_src emacs-lisp :lexical no
+(unless (executable-find "typst")
+  (warn "Install typst using `guix install typst`"))
+#+end_src
+
+**** typst-ts-mode
+https://codeberg.org/meow_king/typst-ts-mode/wiki/
+
+#+begin_src emacs-lisp :lexical no
+(use-package typst-ts-mode
+  :ensure (:type git :host codeberg :repo "meow_king/typst-ts-mode")
+  :mode ("\\.typ\\'" . typst-ts-mode)
+  :custom
+  (typst-ts-watch-options "--open")
+  (typst-ts-mode-enable-raw-blocks-highlight t)
+  :config
+  (keymap-set typst-ts-mode-map "C-c C-c" #'typst-ts-tmenu))
+
+#+end_src
+
+https://github.com/uben0/tree-sitter-typst
+#+CAPTION: Install tree sitter grammar using
+#+begin_src emacs-lisp :lexical no
+  ;;
+  ;; Install the treesitter grammar using:
+  ;; M-x typst-ts-mc-install-grammar
+  ;;
+#+end_src
+
+
+**** tinymist
+https://github.com/Myriad-Dreamin/tinymist/tree/main/editors/emacs
+
+- Preview :: To preview
+
+  #+begin_src sh
+  tinymist preview path-to-your-file.typ --no-open
+
+  # Then visit the webpage they mention
+  #+end_src
+
+
+#+CAPTION: Install
+#+begin_src emacs-lisp
+(unless (executable-find "tinymist")
+  (warn "Install tinymist with `nix-env -iA nixpkgs.tinymist`"))
+#+end_src
+
+https://codeberg.org/meow_king/typst-ts-mode/wiki/Integration.md
+#+begin_src emacs-lisp :lexical no
+(with-eval-after-load 'eglot
+  (with-eval-after-load 'typst-ts-mode
+    (add-to-list 'eglot-server-programs
+                 `((typst-ts-mode) .
+                   ,(eglot-alternatives `(,typst-ts-lsp-download-path
+                                          "tinymist"
+                                          "typst-lsp"))))))
+#+end_src
+
+https://github.com/Myriad-Dreamin/tinymist/tree/main/editors/emacs#extra-settings
+#+begin_src emacs-lisp :lexical no
+(setq-default eglot-workspace-configuration
+              '(:tinymist (:exportPdf "onSave")))
+#+end_src
+
 *** latex setup
 
 #+begin_src emacs-lisp
