@@ -174,7 +174,7 @@
 
 (defcommand sound-settings () ()
   "Open sound settings"
-  (run-or-raise "GTK_THEME=Adwaita:dark pavucontrol" '(:class "Pavucontrol")))
+  (run-or-raise "pavucontrol" '(:class "Pavucontrol")))
 
 (defcommand nbl/slack () ()
   "Unbound key"
@@ -247,7 +247,7 @@
   (run-shell-command "emacsclient --eval \"(emacs-everywhere)\""))
 
 (defcommand blueman-manager () ()
-  (run-or-raise "GTK_THEME=Adwaita:dark blueman-manager" '(:instance "blueman-manager")))
+  (run-or-raise "blueman-manager" '(:instance "blueman-manager")))
 
 ;; Fixed window numbers for certain programs
 ;; https://github.com/stumpwm/stumpwm/wiki/Tips-And-Tricks

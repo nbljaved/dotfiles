@@ -18,8 +18,7 @@
 (when pc?
   ;; https://wiki.archlinux.org/title/HiDPI
   ;;
-  ;; for firefox
-  ;; in 'about:config' set 'layout.css.devPixelsPerPx' to 1.5
+  ;; (THIS ->) https://wiki.archlinux.org/title/Xsettingsd
 
   ;;
   ;; 96 is default (0% scaling)

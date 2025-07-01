@@ -1,3 +1,5 @@
+# -*- mode: conf-space -*-
+
 # Configure our fonts.
 Xft/Antialias   1
 # dpi is x * 1024 ,
@@ -11,3 +13,7 @@ Xft/Hinting     1
 Xft/HintStyle   "hintfull"
 Xft/lcdfilter   "lcddefault"
 Xft/RGBA        "rgb"
+
+# Configure our theme
+# https://docs.gtk.org/gtk4/class.CssProvider.html
+Net/ThemeName "Adwaita-dark"
