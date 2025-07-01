@@ -88,6 +88,7 @@
 ;; xrandr
 (defvar *xrandr-map* (make-sparse-keymap))
 (define-key *top-map* (kbd "s-x") '*xrandr-map*)
+(define-key *xrandr-map* (kbd "s-a") "xrandr-auto")
 (define-key *xrandr-map* (kbd "s-l") "xrandr-laptop")
 (define-key *xrandr-map* (kbd "s-m") "xrandr-monitor")
 (define-key *xrandr-map* (kbd "s-v") "xrandr-vertical")

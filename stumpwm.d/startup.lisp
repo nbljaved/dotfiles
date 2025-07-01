@@ -3,7 +3,7 @@
 (nbl/keyboard)
 ;; (run-shell-command "feh --bg-scale ~/Pictures/wallpaper/dark_mountain.jpg")
 ;; wallpaper
-(run-shell-command "xrandr --auto")
+(xrandr-auto)
 (run-shell-command "nm-applet") ; wifi
 ;;(run-shell-command "pasystray") ; volume
 ;;(run-shell-command "cbatticon") ; battery

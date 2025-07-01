@@ -82,6 +82,8 @@
   (message (run-shell-command "acpi" t)))
 
 ;; xrandr
+(defcommand xrandr-auto () ()
+  (run-shell-command "xrandr --auto"))
 (defcommand xrandr-laptop () ()
   (run-shell-command "xrandr --output HDMI-2 --off --output eDP-1 --primary --auto"))
 (defcommand xrandr-monitor () ()
