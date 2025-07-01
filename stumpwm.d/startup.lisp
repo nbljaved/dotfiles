@@ -16,18 +16,19 @@
 ;;
 (udiskie-start)
 
-;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
-(when (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
-  ;; Add https://github.com/goose121/clx-truetype to ~/quicklisp/local-projects/
-  (ql:quickload :clx-truetype)
-  (ql:quickload "ttf-fonts")
+(ignore-errors (ql:quickload :clx-truetype))
+(ignore-errors
+ (ql:quickload "ttf-fonts")
+ ;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
+ (when (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
+   ;; Add https://github.com/goose121/clx-truetype to ~/quicklisp/local-projects/
 
-  (setf xft:*font-dirs* '("/run/current-system/profile/share/fonts/"))
-  (setf clx-truetype::+font-cache-filename+ (concat (getenv "HOME") "/.fonts/font-cache.sexp"))
+   (setf xft:*font-dirs* '("/run/current-system/profile/share/fonts/"))
+   (setf clx-truetype::+font-cache-filename+ (concat (getenv "HOME") "/.fonts/font-cache.sexp"))
 
-  (xft:cache-fonts)
-  (clx-truetype:cache-fonts)
-  (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 12)))
+   (xft:cache-fonts)
+   (clx-truetype:cache-fonts)
+   (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 12))))
 
 (defparameter *battery-low-timer*
   (run-with-timer 1                     ; delay of x no. of seconds
