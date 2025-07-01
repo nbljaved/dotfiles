@@ -81,18 +81,14 @@
 (defcommand battery () ()
   (message (run-shell-command "acpi" t)))
 
-;; xrandr
-(defcommand dpi-get () ()
-  (if (not (command-is-successful? "which xdpyinfo"))
+(defcommand xsettingsd-start () ()
+  (if (not (executable? "xdpyinfo"))
       (message "Install `xdpyinfo`")
-      (message (run-shell-command "xdpyinfo | grep -B 2 resolution" t))))
+      (if (command-is-successful? "xsettingsd -c ~/.stumpwm.d/config/xsettingsd/.xsettingsd &")
+          (message "xsettingsd started :)")
+          (message ":( Failed"))))
 
-(defcommand dpi-set (value) ((:number "Number (default 96): "))
-  (if (not (command-is-successful? "which xrandr"))
-      (message "Install `xrandr`")
-      (progn (run-shell-command (format nil "xrandr --dpi ~a" (or value 96)))
-             (message (run-shell-command "xdpyinfo | grep -B 2 resolution" t)))))
-
+;; xrandr
 (defcommand xrandr-auto () ()
   (run-shell-command "xrandr --auto"))
 (defcommand xrandr-laptop () ()
@@ -154,7 +150,9 @@
 
 (defcommand rofi () ()
   "rofi"
-  (run-or-raise (format nil "rofi -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi")))
+  (if pc?
+      (run-or-raise (format nil "rofi -dpi 140 -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi"))
+      (run-or-raise (format nil "rofi -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi"))))
 
 ;; Rofi (for window switching)
 (defcommand window-mini () ()
@@ -176,7 +174,7 @@
 
 (defcommand sound-settings () ()
   "Open sound settings"
-  (run-or-raise "pavucontrol" '(:class "Pavucontrol")))
+  (run-or-raise "GTK_THEME=Adwaita:dark pavucontrol" '(:class "Pavucontrol")))
 
 (defcommand nbl/slack () ()
   "Unbound key"
@@ -249,7 +247,7 @@
   (run-shell-command "emacsclient --eval \"(emacs-everywhere)\""))
 
 (defcommand blueman-manager () ()
-  (run-or-raise "blueman-manager" '(:instance "blueman-manager")))
+  (run-or-raise "GTK_THEME=Adwaita:dark blueman-manager" '(:instance "blueman-manager")))
 
 ;; Fixed window numbers for certain programs
 ;; https://github.com/stumpwm/stumpwm/wiki/Tips-And-Tricks

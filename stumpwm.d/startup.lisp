@@ -1,8 +1,5 @@
 (in-package :stumpwm)
 
-(defparameter pc? (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
-  "Boolean is T when hostname is \"pc\".")
-
 (nbl/keyboard)
 ;; (run-shell-command "feh --bg-scale ~/Pictures/wallpaper/dark_mountain.jpg")
 ;; wallpaper
@@ -19,9 +16,17 @@
 ;;
 (udiskie-start)
 (when pc?
+  ;; https://wiki.archlinux.org/title/HiDPI
+  ;;
+  ;; for firefox
+  ;; in 'about:config' set 'layout.css.devPixelsPerPx' to 1.5
+
+  ;;
   ;; 96 is default (0% scaling)
-  ;; 192 (100% scaling)
-  (dpi-set 192))
+  ;; See https://dpi.lv/#3840%C3%972160 (for 3840x2160 res, and 32 inc
+  ;; diagonal), dpi comes out to 138 pixels per inch, thereofore I am setting
+  ;; the dpi to 144 (26 * 6)
+  (xsettingsd-start))
 
 (ignore-errors (ql:quickload :clx-truetype))
 (ignore-errors

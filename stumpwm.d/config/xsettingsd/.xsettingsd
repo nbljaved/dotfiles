@@ -1,0 +1,13 @@
+# Configure our fonts.
+Xft/Antialias   1
+# dpi is x * 1024 ,
+# (* 96 1024)  = 98304
+# (* 120 1024) = 122880
+# (* 144 1024) = 147456
+# (* 168 1024) = 172032
+# (* 192 1024) = 196608
+Xft/DPI         147456
+Xft/Hinting     1
+Xft/HintStyle   "hintfull"
+Xft/lcdfilter   "lcddefault"
+Xft/RGBA        "rgb"

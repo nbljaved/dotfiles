@@ -7,6 +7,9 @@
 (asdf:load-system :stumpwm)
 (in-package :stumpwm)
 
+(defparameter pc? (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
+  "Boolean is T when hostname is \"pc\".")
+
 (setf
  ;; Set this variable to a number > 0 to turn on debugging.  The greater the
  ;; number the more debugging output.
