@@ -1,5 +1,8 @@
 (in-package :stumpwm)
 
+(defparameter pc? (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
+  "Boolean is T when hostname is \"pc\".")
+
 (nbl/keyboard)
 ;; (run-shell-command "feh --bg-scale ~/Pictures/wallpaper/dark_mountain.jpg")
 ;; wallpaper
@@ -15,12 +18,16 @@
 (nbl/start-ssh-agent)
 ;;
 (udiskie-start)
+(when pc?
+  ;; 96 is default (0% scaling)
+  ;; 192 (100% scaling)
+  (dpi-set 192))
 
 (ignore-errors (ql:quickload :clx-truetype))
 (ignore-errors
  (ql:quickload "ttf-fonts")
  ;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
- (when (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
+ (when pc?
    ;; Add https://github.com/goose121/clx-truetype to ~/quicklisp/local-projects/
 
    (setf xft:*font-dirs* '("/run/current-system/profile/share/fonts/"))
@@ -28,7 +35,7 @@
 
    (xft:cache-fonts)
    (clx-truetype:cache-fonts)
-   (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 12))))
+   (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 17))))
 
 (defparameter *battery-low-timer*
   (run-with-timer 1                     ; delay of x no. of seconds

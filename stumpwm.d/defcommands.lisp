@@ -82,6 +82,17 @@
   (message (run-shell-command "acpi" t)))
 
 ;; xrandr
+(defcommand dpi-get () ()
+  (if (not (command-is-successful? "which xdpyinfo"))
+      (message "Install `xdpyinfo`")
+      (message (run-shell-command "xdpyinfo | grep -B 2 resolution" t))))
+
+(defcommand dpi-set (value) ((:number "Number (default 96): "))
+  (if (not (command-is-successful? "which xrandr"))
+      (message "Install `xrandr`")
+      (progn (run-shell-command (format nil "xrandr --dpi ~a" (or value 96)))
+             (message (run-shell-command "xdpyinfo | grep -B 2 resolution" t)))))
+
 (defcommand xrandr-auto () ()
   (run-shell-command "xrandr --auto"))
 (defcommand xrandr-laptop () ()
