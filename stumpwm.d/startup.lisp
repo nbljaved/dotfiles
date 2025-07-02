@@ -16,6 +16,14 @@
 ;;
 (udiskie-start)
 (when pc?
+  ;; Monitor going into sleep:
+  ;; see current settings using `xset q`
+  (if (not (executable? "xset"))
+      (message "Install `xset`")
+      ;; Disable DPMS (Display Power Management Signaling)
+      (run-shell-command "xset -dpms"))
+
+  ;; HiDPI
   ;; https://wiki.archlinux.org/title/HiDPI
   ;;
   ;; (THIS ->) https://wiki.archlinux.org/title/Xsettingsd

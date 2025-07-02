@@ -81,6 +81,7 @@
 (defcommand battery () ()
   (message (run-shell-command "acpi" t)))
 
+;; X11
 (defcommand xsettingsd-start () ()
   (if (not (executable? "xdpyinfo"))
       (message "Install `xdpyinfo`")
