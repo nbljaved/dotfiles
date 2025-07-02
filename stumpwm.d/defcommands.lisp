@@ -89,6 +89,14 @@
           (message "xsettingsd started :)")
           (message ":( Failed"))))
 
+(defcommand screen-blank-time (&optional s) ((:number "after seconds (default 15min = 900): "))
+  "Sets screen blank time, also disable DPMS (Display Power Management Signalling)"
+  (if (not (executable? "xset"))
+      (message "Install `xset`")
+      (let ((seconds (or s 900)))
+        (when (command-is-successful? (format nil "xset s ~a ~a -dpms" seconds seconds))
+          (message (format nil "Screen blank time set to ~,1f minutes" (float (/ seconds 60))))))))
+
 ;; xrandr
 (defcommand xrandr-auto () ()
   (run-shell-command "xrandr --auto"))

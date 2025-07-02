@@ -18,12 +18,7 @@
 (when pc?
   ;; Monitor going into sleep:
   ;; see current settings using `xset q`
-  (if (not (executable? "xset"))
-      (message "Install `xset`")
-      ;; Change time before which the screen is blanked, to 3,600 seconds (1 hour)
-      ;; and
-      ;; Disable DPMS (Display Power Management Signaling)
-      (run-shell-command "xset s 3600 3600 -dpms"))
+  (screen-blank-time))
 
   ;; HiDPI
   ;; https://wiki.archlinux.org/title/HiDPI
