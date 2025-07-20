@@ -2587,7 +2587,7 @@ Install https://aider.chat/docs/install.html
   :config
   (bind-key* (kbd "C-c a") 'aidermacs-transient-menu)
   (setq
-   aidermacs-default-model "gemini/gemini-2.5-pro-exp-03-25"
+   aidermacs-default-model "gemini/gemini-2.5-flash-preview-05-20"
    aidermacs-backend 'vterm
    aidermacs-vterm-multiline-newline-key "M-<return>"
    aidermacs-auto-commits nil
@@ -2708,6 +2708,22 @@ https://karthinks.com/software/simple-folding-with-hideshow/
               ("C-<iso-lefttab>" . hs-global-cycle)))
 
 
+#+end_src
+
+** pandoc
+https://github.com/joostkremers/pandoc-mode
+
+*pandoc-mode* uses the hydra package to create a keyboard-driven menu interface to all options and settings. The main menu is called by pressing =C-c /=.
+
+#+begin_src emacs-lisp :lexical no
+(unless (executable-find "pandoc")
+  (warn "Install `pandoc`"))
+#+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package pandoc-mode
+  :hook ((pandoc-mode . pandoc-load-default-settings)
+         (markdown-mode . pandoc-mode)))
 #+end_src
 
 ** Fun
@@ -4397,7 +4413,11 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
         help-at-pt-display-when-idle t)
   (help-at-pt-set-timer)
   ;; download images if their link is provided in org link form
-  (set org-display-remote-inline-images 'download))
+  (set org-display-remote-inline-images 'download)
+
+  ;; making strikethrough text look like comments
+  (cl-pushnew '("+" (:inherit font-lock-comment-face :strike-through t))
+              org-emphasis-alist))
 
 ;; C-c C-c also refreshes org-inline-image
 
