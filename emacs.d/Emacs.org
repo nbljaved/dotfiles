@@ -2009,6 +2009,9 @@ Then the user can run a command to view or go to places in the list.
 ** project.el
 *** basic
 
+To let eglot know where the root directory is.
+=project-vc-extra-root-markers= was a bust as probably .git has more priority
+
 #+begin_src emacs-lisp :lexical no
 (defun project-root-override (dir)
   "Find DIR's project root by searching for a '.project.el' file.
