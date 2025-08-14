@@ -1929,6 +1929,8 @@ https://github.com/karthink/gptel
 
 #+begin_src emacs-lisp :lexical no
 (use-package gptel
+  :custom
+  (gptel-default-mode 'org-mode)
   :config
   (require 'gptel-integrations)
 
