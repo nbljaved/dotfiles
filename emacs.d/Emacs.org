@@ -2316,7 +2316,9 @@ fi")
 (defun nbl/git-insert-gitleaks-pre-commit ()
   "Insert a pre-commit hook that runs gitleaks"
   (interactive)
-  (let ((git-directory (vc-root-dir)))
+  (let ((git-directory (or (vc-root-dir)
+                           (when (derived-mode-p 'magit-mode)
+                             (magit-toplevel)))))
     (if git-directory
         ;; add contents of gitleaks-pre-commit-string
         ;; to vc-root-dir/.git/hooks/pre-commit
