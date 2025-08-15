@@ -1972,11 +1972,10 @@ See [[https://github.com/jwiegley/ob-gptel?tab=readme-ov-file#tips-and-tricks][t
               'ob-gptel-capf nil t)))
 #+end_src
 
-** COMMENT polymode
+** polymode
 
 #+begin_src emacs-lisp
 (use-package poly-org
-  :ensure t
   :config
   (remove-hook 'poly-org-mode (lambda () (olivetti-mode -1))))
 #+end_src
@@ -4438,7 +4437,6 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
     :config
     (setq auto-mode-alist (cons '("\\.po\\'\\|\\.po\\." . po-mode)
                                 auto-mode-alist)))
-
 #+end_src
     
 * Org
@@ -4525,37 +4523,36 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
 
  
 #+begin_src emacs-lisp
-  ;; This is needed as of Org 9.2
-  (require 'org-tempo)
+;; This is needed as of Org 9.2
+(require 'org-tempo)
 
-  (add-to-list 'org-structure-template-alist '("sh" . "src sh"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("sc" . "src scheme"))
-  (add-to-list 'org-structure-template-alist '("cl" . "src lisp"))
-  (add-to-list 'org-structure-template-alist '("cp" . "src C++ :results output"))
-  (add-to-list 'org-structure-template-alist '("oc" . "src octave :results output"))
-  ;;(add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("jl" . "src julia"))
-  (add-to-list 'org-structure-template-alist '("ll" . "src lisp"))
-  (add-to-list 'org-structure-template-alist '("ej" . "src ein-julia :results output"))
-  (add-to-list 'org-structure-template-alist '("jj" . "src jupyter-julia"))
+(add-to-list 'org-structure-template-alist '("bash" . "src bash"))
+(add-to-list 'org-structure-template-alist '("sh" . "src sh"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("sc" . "src scheme"))
+(add-to-list 'org-structure-template-alist '("cl" . "src lisp"))
+(add-to-list 'org-structure-template-alist '("cp" . "src C++ :results output"))
+(add-to-list 'org-structure-template-alist '("oc" . "src octave :results output"))
+;;(add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("jl" . "src julia"))
+(add-to-list 'org-structure-template-alist '("ll" . "src lisp"))
+(add-to-list 'org-structure-template-alist '("ej" . "src ein-julia :results output"))
+(add-to-list 'org-structure-template-alist '("jj" . "src jupyter-julia"))
 
-  (setq org-babel-default-header-args:jupyter-julia
-        '((:async . "yes")
-          (:session . "jl")
-          (:kernel . "julia-1.6")
-          ;;(:display . "text/plain  text/org text/html text/markdown text/latex image/svg+xml image/png image/jpeg ")
-          ))
-  (setq org-babel-default-header-args:C++
-        '((:namespaces . "std")
-          (:includes   . "<iostream> <algorithm> <vector> <string> <list>")))
-  ;; is 'julia' block refers to 'jupyter-julia' block
-  ;; (org-babel-jupyter-override-src-block "julia")
+(setq org-babel-default-header-args:jupyter-julia
+      '((:async . "yes")
+        (:session . "jl")
+        (:kernel . "julia-1.6")
+        ;;(:display . "text/plain  text/org text/html text/markdown text/latex image/svg+xml image/png image/jpeg ")
+        ))
+(setq org-babel-default-header-args:C++
+      '((:namespaces . "std")
+        (:includes   . "<iostream> <algorithm> <vector> <string> <list>")))
+;; is 'julia' block refers to 'jupyter-julia' block
+;; (org-babel-jupyter-override-src-block "julia")
 
-  (defalias 'org-babel-execute:julia 'org-babel-execute:julia-vterm)
-
-
+(defalias 'org-babel-execute:julia 'org-babel-execute:julia-vterm)
 
 #+end_src
 
@@ -5021,7 +5018,11 @@ install
 #+RESULTS:
 
 *** org-appear
-auto-toggle org elements
+https://github.com/awth13/org-appear
+
+- Make invisible parts of Org elements appear visible.
+
+  This package, inspired by org-fragtog, enables automatic visibility toggling depending on cursor position. Hidden element parts appear when the cursor enters an element and disappear when it leaves.
 
 #+begin_src emacs-lisp
 (use-package org-appear
@@ -5030,8 +5031,7 @@ auto-toggle org elements
   :config
   (setq org-appear-autoentities t
         org-appear-autolinks nil
-        org-appear-autosubmarkers t)
-  (format "hello"))
+        org-appear-autosubmarkers t))
 #+end_src
 
 *** org-download
@@ -5109,8 +5109,31 @@ https://github.com/alphapapa/org-sticky-header
 *** orglink
 https://github.com/tarsius/orglink
 
-#+begin_src emacs-lisp :lexical no
+Use Org Mode links in other modes.
 
+This library implements support for some Org Mode link types in other major modes. Links can be opened and edited like in Org Mode.
+
+To use enable =global-orglink-mode= and customize ~orglink-activate-in-modes~. Or use the buffer local =orglink-mode=. Do the latter now to linkify these examples:
+
+#+begin_example
+[[Code]]
+[[Code][start of code]]
+[[define-derived-mode orglink-mode][orglink-mode]]
+<mailto:emacs.orglink@jonas.bernoulli.dev>
+man:info
+<info:man>
+https://github.com/tarsius/orglink
+#+end_example
+
+#+begin_src emacs-lisp :lexical no
+(use-package orglink
+  :custom
+  (orglink-activate-links '(bracket angle plain))
+  (orglink-activate-in-modes '(emacs-lisp-mode prog-mode))
+  :config
+  (global-orglink-mode))
+
+;; For example, activate org-edit-special and look at: [[file:Emacs.org::*orglink][orglink heading]]
 #+end_src
 
 *** COMMENT org-noter
