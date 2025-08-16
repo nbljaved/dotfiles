@@ -32,19 +32,9 @@
   ;; the dpi to 144 (26 * 6)
   (xsettingsd-start))
 
-(ignore-errors (ql:quickload :clx-truetype))
-(ignore-errors
- (ql:quickload "ttf-fonts")
- ;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
- (when pc?
-   ;; Add https://github.com/goose121/clx-truetype to ~/quicklisp/local-projects/
-
-   (setf xft:*font-dirs* '("/run/current-system/profile/share/fonts/"))
-   (setf clx-truetype::+font-cache-filename+ (concat (getenv "HOME") "/.fonts/font-cache.sexp"))
-
-   (xft:cache-fonts)
-   (clx-truetype:cache-fonts)
-   (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 17))))
+(when pc?
+  ;; to avoid reader error of 'package doesn't exist'
+  (load "/home/nabeel/.stumpwm.d/load-fonts.lisp"))
 
 (defparameter *battery-low-timer*
   (run-with-timer 1                     ; delay of x no. of seconds
