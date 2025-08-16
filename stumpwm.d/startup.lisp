@@ -18,7 +18,7 @@
 (when pc?
   ;; Monitor going into sleep:
   ;; see current settings using `xset q`
-  (screen-blank-time))
+  (screen-blank-time)
 
   ;; HiDPI
   ;; https://wiki.archlinux.org/title/HiDPI
