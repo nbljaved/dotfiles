@@ -1977,7 +1977,11 @@ See [[https://github.com/jwiegley/ob-gptel?tab=readme-ov-file#tips-and-tricks][t
 #+begin_src emacs-lisp
 (use-package poly-org
   :config
-  (remove-hook 'poly-org-mode (lambda () (olivetti-mode -1))))
+  ;; polyorg mode autoloads:
+  ;; (add-to-list 'auto-mode-alist '("\\.org\\'" . poly-org-mode))
+  ;; we will remove this after the package loads
+  (setq auto-mode-alist (delete '("\\.org\\'" . poly-org-mode) auto-mode-alist))
+  (add-hook 'poly-org-mode (lambda () (olivetti-mode -1))))
 #+end_src
 
 ** COMMENT tree-sitter
