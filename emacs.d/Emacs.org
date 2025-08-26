@@ -1595,6 +1595,15 @@ Shows the actual color, next to hex codes like #00FF00.
   (require 'term)
 #+end_src
 
+*** eat (Emulate a terminal)
+https://codeberg.org/akib/emacs-eat
+
+#+begin_src emacs-lisp :lexical no
+(use-package eat
+  :ensure nil ;; installed via Guix (guix install emacs-eat)
+  )
+#+end_src
+
 *** vterm
 When you enable vterm-copy-mode, the terminal buffer behaves like a normal read-only text buffer: you can search, copy text, etc.
 The default keybinding to toggle vterm-copy-mode is =C-c C-t=.
@@ -1686,7 +1695,7 @@ envrc.el - buffer-local direnv integration for Emacs
 
 ;; Toggle omission of uninteresting files in Dired
 ;; The default is to omit  ‘.’, ‘..’, auto-save files and lock files.
-(add-hook 'dired-mode-hook #'dired-omit-mode)
+;; (add-hook 'dired-mode-hook #'dired-omit-mode)
 
 ;; as with 'i' I can insert subdir, therefore I want 'I' to kill the subdir.
 (define-key dired-mode-map (kbd "I") 'dired-kill-subdir)
@@ -1933,6 +1942,7 @@ https://github.com/karthink/gptel
   (gptel-default-mode 'org-mode)
   :config
   (require 'gptel-integrations)
+  (require 'gptel-org)
 
   ;; Register a backend
   ;; :key can be a function that returns the API key.
@@ -1976,12 +1986,21 @@ See [[https://github.com/jwiegley/ob-gptel?tab=readme-ov-file#tips-and-tricks][t
 
 #+begin_src emacs-lisp
 (use-package poly-org
+  :init (setq polymode-lsp-integration nil)
   :config
   ;; polyorg mode autoloads:
   ;; (add-to-list 'auto-mode-alist '("\\.org\\'" . poly-org-mode))
   ;; we will remove this after the package loads
   (setq auto-mode-alist (delete '("\\.org\\'" . poly-org-mode) auto-mode-alist))
-  (add-hook 'poly-org-mode (lambda () (olivetti-mode -1))))
+  (add-hook 'poly-org-mode (lambda () (olivetti-mode -1)))
+
+  ;; So that in polymode in org, we don't need to restart eglot b/w
+  ;; src blocks.
+  ;; https://github.com/joaotavora/eglot/issues/1229
+  (add-to-list 'polymode-run-these-after-change-functions-in-other-buffers
+               'eglot--after-change)
+  (add-to-list 'polymode-run-these-before-change-functions-in-other-buffers
+               'eglot--before-change))
 #+end_src
 
 ** COMMENT tree-sitter
@@ -2789,6 +2808,43 @@ https://github.com/joostkremers/pandoc-mode
          (markdown-mode . pandoc-mode)))
 #+end_src
 
+** howm - Handy own wiki mimic
+https://github.com/kaorahi/howm
+
+- Get is epub/pdf from https://emacs101.github.io/howm.html:
+  I have stored mine at [[file:manual/Howm_tutorial_eng.epub]] (date downloaded <2025-08-17 Sun>)
+
+- For tips/tricks, see https://www.emacswiki.org/emacs/HowmMode
+
+- Comparision with org-roam:
+  TL;DR: Balanced simplicity, clever linking system, UI for contextual reading.
+
+  Most things you can do in Howm are probably possible in Org-roam as well. But
+  Howm is more minimalistic and loose in every way. It is designed on the belief
+  that not aiming for perfect organization is the key to maintaining long-term
+  note-taking without becoming unmanageable. Users seem to appreciate its
+  balance between simplicity and functionality, as well as its smooth navigation
+  UI. The UI, along with the search-based link/backlink system, helps with
+  reading many fragmentary notes collectively.
+
+
+#+begin_src emacs-lisp :lexical no
+(use-package howm
+  :init
+  ;; Format
+  (require 'howm-org) ;; Write notes in Org-mode. (*2)
+
+  ;; Preferences
+  (setq howm-directory "~/Documents/public/notes/howm") ;; Where to store the files?
+  (setq howm-follow-theme t) ;; Use your Emacs theme colors. (*3)
+
+  ;; Performance
+  (setq howm-menu-expiry-hours 1)       ;; Cache menu N hours. (*4)
+  (setq howm-menu-refresh-after-save t) ;; nil to Speed up note saving. (*5)
+  )
+
+#+end_src
+
 ** Fun
 *** Hindi
 https://www.emacswiki.org/emacs/SupportHindi
@@ -2800,7 +2856,9 @@ https://www.emacswiki.org/emacs/SupportHindi
 
 - See many other useful functions in your emacs’ devan-utils.el and devanagari.el.
   
-*** nov
+*** nov.el
+https://depp.brause.cc/nov.el/
+
 #+begin_src emacs-lisp
   (use-package nov
     ;;:hook (nov-mode . olivetti-mode)
@@ -2808,8 +2866,6 @@ https://www.emacswiki.org/emacs/SupportHindi
     (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
 #+end_src
 
-#+RESULTS:
-| olivetti-mode |
 *** COMMENT parrot
 
 #+begin_src emacs-lisp
@@ -3124,6 +3180,13 @@ https://github.com/joaotavora/eglot
         eglot-extend-to-xref t)
   (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1))))
 #+end_src
+
+** COMMENT eglot-x : Protocol extensions for Eglot
+https://github.com/nemethf/eglot-x
+
+Eglot aims to support the Language Server Protocol, but none of its unofficial extensions. Eglot-x adds support for some of these protocol extensions.
+
+If you find a bug in Eglot, please, try to reproduce it without Eglot-x, because Eglot-x substantially modifies Eglot's normal behavior as well.
 
 ** TODO dape
 ** C/C++
