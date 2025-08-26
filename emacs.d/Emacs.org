@@ -2808,7 +2808,7 @@ https://github.com/joostkremers/pandoc-mode
          (markdown-mode . pandoc-mode)))
 #+end_src
 
-** howm - Handy own wiki mimic
+** TODO howm - Handy own wiki mimic
 https://github.com/kaorahi/howm
 
 - Get is epub/pdf from https://emacs101.github.io/howm.html:
