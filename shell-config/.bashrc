@@ -197,10 +197,25 @@ eval "$(direnv hook bash)"
 export PATH="$PATH":/usr/local/bin
 eval "$(starship init bash)"
 
-# nvm
-export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+## npm
+# To allow global package installations for the current user
+if command -v "npm" >/dev/null 2>&1; then
+    PATH="$HOME/.local/bin:$PATH"
+    export npm_config_prefix="$HOME/.local"
+    npm config set ignore-scripts true --global
+fi
+
+#bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+# bun, by default, blocks post install scripts (unless you have trusted them
+# manually)
+alias npm='echo "Use bun (https://bun.sh/docs) instead of: npm"'
+
+# # nvm
+# export NVM_DIR="$HOME/.config/nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # uv
 export PATH="$HOME/.local/bin:$PATH"
