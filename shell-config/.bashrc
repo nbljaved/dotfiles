@@ -202,7 +202,7 @@ eval "$(starship init bash)"
 if command -v "npm" >/dev/null 2>&1; then
     PATH="$HOME/.local/bin:$PATH"
     export npm_config_prefix="$HOME/.local"
-    npm config set ignore-scripts true --global
+    command npm config set ignore-scripts true --global
 fi
 
 #bun
