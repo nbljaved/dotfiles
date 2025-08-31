@@ -46,6 +46,16 @@
          (message ":)"))
         (t (message ":( Failed to start udiskie"))))
 
+(defcommand bluetooth-start () ()
+  "See https://wiki.archlinux.org/title/Blueman"
+  (cond ((command-is-successful? "pgrep -u \"$USER\" blueman-applet > /dev/null")
+         (message "Already running blueman-applet"))
+        ((not (executable? "blueman-applet"))
+         (message "Install blueman"))
+        ((command-is-successful? "blueman-applet &")
+         (message "Bluetooth started"))
+        (t (message ":( Failed to start bluetooth"))))
+
 (defcommand nbl/start-ssh-agent () ()
   "Is idempotent"
   (let* ((ssh-agent-process-exists? (command-is-successful? "pgrep -u \"$USER\" ssh-agent > /dev/null"))

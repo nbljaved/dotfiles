@@ -15,6 +15,7 @@
 (nbl/start-ssh-agent)
 ;;
 (udiskie-start)
+(bluetooth-start)
 (when pc?
   ;; Monitor going into sleep:
   ;; see current settings using `xset q`
