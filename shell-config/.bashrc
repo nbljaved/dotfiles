@@ -203,6 +203,8 @@ if command -v "npm" >/dev/null 2>&1; then
     PATH="$HOME/.local/bin:$PATH"
     export npm_config_prefix="$HOME/.local"
     command npm config set ignore-scripts true --global
+    # Example on how to temporarily enable script execution:
+    # npm install -g bun --ignore-scripts=false
 fi
 
 #bun
