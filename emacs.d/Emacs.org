@@ -1958,8 +1958,20 @@ https://github.com/karthink/gptel
                              gemini-2.5-flash-preview-04-17
                              gemini-2.0-flash
                              gemini-pro
-                             gemini-1.5-pro-latest)))
+                             gemini-1.5-pro-latest))
+   gptel-default-mode 'org-mode
+   ;; Whether supported media in chat buffers should be sent
+   gptel-track-media t)
 
+  ;; Together.ai offers an OpenAI compatible API
+  ;; (gptel-make-openai "TogetherAI"       ;Any name you want
+  ;;   :host "api.together.xyz"
+  ;;   :key (gptel-api-key-from-auth-source "api.together.xyz")
+  ;;   :stream t
+  ;;   :models '(;; has many more, check together.ai
+  ;;             "mistralai/Mixtral-8x7B-Instruct-v0.1"
+  ;;             "codellama/CodeLlama-13b-Instruct-hf"
+  ;;             "codellama/CodeLlama-34b-Instruct-hf"))
   (global-set-key (kbd "C-x C-l") 'gptel-send)
   (global-set-key (kbd "C-x l") 'gptel-abort))
 #+end_src
