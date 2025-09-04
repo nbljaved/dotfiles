@@ -431,53 +431,56 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 *** modus-theme
 
 #+begin_src emacs-lisp
-  (use-package modus-themes
-    :demand t
-    :bind (("<f12>" . modus-themes-toggle))
-    :config
-    (setq modus-themes-bold-constructs t
-          modus-themes-slanted-constructs t
-          modus-themes-syntax '(alt-syntax)
-          modus-themes-hl-line '(accented intense)
-          modus-themes-intense-hl-line t
-          modus-themes-links '(faint)
-          modus-themes-paren-match '(bold intense)
-          modus-themes-org-blocks 'gray-background
-          modus-themes-region '(accented)
-          modus-themes-variable-pitch-heading nil
-          modus-themes-variable-pitch-ui nil
-          modus-themes-mode-line nil
-          modus-themes-completions '((matches . (extrabold intense))
-                                     (selection . (extrabold intense))
-                                     (popup . (extrabold intense))))
-    (modus-themes-load-theme 'modus-vivendi))
+(use-package modus-themes
+  :demand t
+  :bind (("<f12>" . modus-themes-toggle))
+  :config
+  (setq modus-themes-bold-constructs t
+        modus-themes-slanted-constructs t
+        modus-themes-syntax '(alt-syntax)
+        modus-themes-hl-line '(accented intense)
+        modus-themes-intense-hl-line t
+        modus-themes-links '(faint)
+        modus-themes-paren-match '(bold intense)
+        modus-themes-org-blocks 'gray-background
+        modus-themes-region '(accented)
+        modus-themes-variable-pitch-heading nil
+        modus-themes-variable-pitch-ui nil
+        modus-themes-mode-line nil
+        modus-themes-completions '((matches . (extrabold intense))
+                                   (selection . (extrabold intense))
+                                   (popup . (extrabold intense))))
+  (if (file-exists-p "/run/.containerenv")
+      ;; in container run tinted theme
+      (modus-themes-load-theme 'modus-vivendi-tinted)
+    (modus-themes-load-theme 'modus-vivendi)))
 
-  (with-eval-after-load 'org
-    (setq org-src-block-faces
-          '(("emacs-lisp" modus-themes-nuanced-magenta)
-            ("elisp" modus-themes-nuanced-magenta)
-            ("clojure" modus-themes-nuanced-magenta)
-            ("clojurescript" modus-themes-nuanced-magenta)
-            ;; lisp
-            ("lisp" modus-themes-nuanced-magenta)
-            ("c" modus-themes-nuanced-blue)
-            ("c++" modus-themes-nuanced-blue)
-            ("sh" modus-themes-nuanced-green)
-            ("shell" modus-themes-nuanced-green)
-            ("html" modus-themes-nuanced-yellow)
-            ("xml" modus-themes-nuanced-yellow)
-            ("css" modus-themes-nuanced-red)
-            ("scss" modus-themes-nuanced-red)
-            ("python" modus-themes-nuanced-green)
-            ("ipython" modus-themes-nuanced-magenta)
-            ("r" modus-themes-nuanced-cyan)
-            ;; julia
-            ("julia" modus-themes-nuanced-magenta)
-            ("jupyter-julia" modus-themes-nuanced-magenta)
-            ("yaml" modus-themes-nuanced-cyan)
-            ("conf" modus-themes-nuanced-cyan)
-            ;; ("docker" modus-themes-nuanced-cyan)
-            )))
+(with-eval-after-load 'org
+  (setq org-src-block-faces
+        '(("emacs-lisp" modus-themes-nuanced-magenta)
+          ("elisp" modus-themes-nuanced-magenta)
+          ("clojure" modus-themes-nuanced-magenta)
+          ("clojurescript" modus-themes-nuanced-magenta)
+          ;; lisp
+          ("lisp" modus-themes-nuanced-magenta)
+          ("c" modus-themes-nuanced-blue)
+          ("c++" modus-themes-nuanced-blue)
+          ("sh" modus-themes-nuanced-green)
+          ("shell" modus-themes-nuanced-green)
+          ("html" modus-themes-nuanced-yellow)
+          ("xml" modus-themes-nuanced-yellow)
+          ("css" modus-themes-nuanced-red)
+          ("scss" modus-themes-nuanced-red)
+          ("python" modus-themes-nuanced-green)
+          ("ipython" modus-themes-nuanced-magenta)
+          ("r" modus-themes-nuanced-cyan)
+          ;; julia
+          ("julia" modus-themes-nuanced-magenta)
+          ("jupyter-julia" modus-themes-nuanced-magenta)
+          ("yaml" modus-themes-nuanced-cyan)
+          ("conf" modus-themes-nuanced-cyan)
+          ;; ("docker" modus-themes-nuanced-cyan)
+          )))
 #+end_src
 
 *** COMMENT doom-themes
@@ -2237,6 +2240,10 @@ Might need to use newer version of inbuilt emacs packages.
 [[https://github.com/alphapapa/magit-todos]]
 
 - To exclude certain patterns in a repo https://github.com/alphapapa/magit-todos#tips
+- [[https://github.com/alphapapa/magit-todos#why-arent-my-to-do-items-shown-in-the-list][Why aren't my todo items shown in the list]]
+  See =magit-todos-keywords= and =magit-todos-ignored-keyword=
+
+  Your keywords should be like ~TODO(username):~
 
 #+begin_src emacs-lisp :lexical no
 (use-package magit-todos
