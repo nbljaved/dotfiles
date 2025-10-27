@@ -549,6 +549,11 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 ;; Use hippie instead of dabbrev
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
 
+;; Disable middle mouse button to paste stuff:
+;;
+;; in browser's about:config, change 'middlemouse.paste' to false
+(global-unset-key [mouse-2])
+
 #+end_src
 
 *** COMMENT face-remap+
@@ -1997,7 +2002,7 @@ See [[https://github.com/jwiegley/ob-gptel?tab=readme-ov-file#tips-and-tricks][t
               'ob-gptel-capf nil t)))
 #+end_src
 
-** polymode
+** COMMENT polymode
 
 #+begin_src emacs-lisp
 (use-package poly-org
@@ -2673,7 +2678,21 @@ Highlights:
 #+end_src
 
 ** AI
-*** aidermacs
+*** claude-code-ide
+https://github.com/manzaltu/claude-code-ide.el
+
+#+begin_src emacs-lisp :lexical no
+(use-package claude-code-ide
+  :ensure (:type git
+                 :host github
+                 :repo "manzaltu/claude-code-ide.el")
+  :bind ("C-c a" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup)   ; Optionally enable Emacs MCP tools
+  )
+#+end_src
+
+*** COMMENT aidermacs
 https://github.com/MatthewZMD/aidermacs
 
 Install https://aider.chat/docs/install.html
@@ -4800,7 +4819,7 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
                 texfrag-preview-buffer-at-start nil))
 #+end_src
 
-*** cdlatex
+*** COMMENT cdlatex
 
 #+begin_src emacs-lisp
   (use-package cdlatex
