@@ -47,7 +47,7 @@ export HISTSIZE=10000
 export HISTFILESIZE=10000
 
 # Nix
-if command -v "nix" >/dev/null 2>&1; then
+if command -v "nix" >/dev/null 2>&1 && [ -n "$GUIX_SYSTEM" ]; then
     source /run/current-system/profile/etc/profile.d/nix.sh
 fi
 
@@ -124,6 +124,8 @@ fi
 GUIX=$(command -v "guix")
 GUIX_SYSTEM=$(grep '^ID=guix' /etc/os-release)
 if [ -z "$GUIX_SYSTEM" ] && [ -n "$GUIX" ]; then
+    # -z : zero length
+    # -n : non-zero length
     export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
     export GUIX_PROFILE="$HOME/.guix-profile"
     source "$GUIX_PROFILE/etc/profile"
