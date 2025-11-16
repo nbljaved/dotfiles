@@ -46,14 +46,6 @@ export SHELL
 export HISTSIZE=10000
 export HISTFILESIZE=10000
 
-# Nix
-if command -v "nix" >/dev/null 2>&1 && [ -n "$GUIX_SYSTEM" ]; then
-    source /run/current-system/profile/etc/profile.d/nix.sh
-fi
-
-## Racket
-export PATH="$HOME/racket/bin:$PATH"
-
 ## Kitty
 if command -v "kitty" >/dev/null 2>&1; then
     export PATH="$HOME/.local/kitty.app/bin:$PATH"
@@ -107,6 +99,11 @@ fi
 #safety
 alias rm='echo "Use trash-cli instead of: rm"'
 
+# shot-scraper
+# https://shot-scraper.datasette.io/
+# See ~/guix-config/.config/useful-docker-images/shot-scraper/
+export PATH=$PATH:"$HOME/guix-config/.config/useful-docker-images/shot-scraper/bin"
+
 # Golang
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:"$HOME/go/bin"
@@ -136,6 +133,12 @@ if [ -z "$GUIX_SYSTEM" ] && [ -n "$GUIX" ]; then
     export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
     export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
     export GIT_SSL_CAINFO="$SSL_CERT_FILE"
+fi
+
+
+# Nix
+if command -v "nix" >/dev/null 2>&1 && [ -n "$GUIX_SYSTEM" ]; then
+    source /run/current-system/profile/etc/profile.d/nix.sh
 fi
 
 ##########
