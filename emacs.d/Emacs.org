@@ -206,6 +206,15 @@ See https://github.com/alezost/guix.el
   (guix-emacs-autoload-packages))
 #+end_src
 
+*** Nix
+**** nix-mode
+https://github.com/NixOS/nix-mode
+
+#+begin_src emacs-lisp :lexical no
+(use-package nix-mode
+  :mode "\\.nix\\'")
+#+end_src
+
 ** COMMENT use-package
 
 #+begin_src emacs-lisp
@@ -1904,9 +1913,10 @@ Your trash directory is most likely at:
 https://github.com/Silex/docker.el
 
 #+begin_src emacs-lisp
-  (use-package docker
-    :ensure t
-    :bind (("C-c d" . docker)))
+(use-package docker
+  :custom
+  (docker-command "podman")
+  :bind (("C-c d" . docker)))
 #+end_src
 
 *** docker-compose-mode
@@ -2450,7 +2460,13 @@ https://github.com/tecosaur/emacs-everywhere
 https://github.com/DamienCassou/json-navigator/tree/afd902e0b5cde37fad4786515a695d17f1625286
 
 #+begin_src emacs-lisp :lexical no
-(use-package json-mode)
+(use-package json-mode
+  :config
+  (add-hook 'json-mode-hook
+            (lambda ()
+              (make-local-variable 'js-indent-level)
+              (setq tab-width 2)
+              (setq js-indent-level 2))))
 
 ;;(use-package json-navigator)
 #+end_src
@@ -4703,8 +4719,10 @@ https://github.com/Myriad-Dreamin/tinymist/tree/main/editors/emacs
 
   #+begin_src sh
   tinymist preview path-to-your-file.typ --no-open
-
   # Then visit the webpage they mention
+
+  # I prefer
+  typst watch path-to-your-file.typ
   #+end_src
 
 
