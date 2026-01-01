@@ -541,6 +541,7 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 ;; insert  "" () etc in pairs
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 ;;(add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'prog-mode-hook 'subword-mode)
 
 ;;(electric-pair-mode -1)
 
@@ -4730,6 +4731,7 @@ https://github.com/Myriad-Dreamin/tinymist/tree/main/editors/emacs
 
   # I prefer
   typst watch path-to-your-file.typ
+  # Also, you will find typst packages in ~/.cache/typst/packages/
   #+end_src
 
 
