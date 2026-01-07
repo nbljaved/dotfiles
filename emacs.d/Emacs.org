@@ -3013,6 +3013,20 @@ https://github.com/emacs-vs/line-reminder
   (add-hook 'Info-selection-hook 'info-colors-fontify-node)
 #+end_src
 
+*** svg-lib
+https://github.com/rougier/svg-lib
+
+svg-lib is an Emacs library that allows to create and display various SVG objects, namely tags, icons, buttons, progress bars, progress pies and dates. Each object is guaranteed to fit nicely in a text buffer ensuring width is a multiple of character width and height a multiple of character height.
+
+#+begin_src emacs-lisp :lexical no
+(use-package svg-lib)
+
+;; (plist-get (cdr (svg-lib-tag "NJ" nil :padding 0.5)) :data)
+;;
+;; => "<svg width=\"42.5\" height=\"30.6\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect width=\"42.5\" height=\"30.6\" x=\"0.0\" y=\"0\" rx=\"3\" fill=\"#ffffff\"></rect><rect width=\"40.5\" height=\"28.6\" x=\"1.0\" y=\"1.0\" rx=\"2.0\" fill=\"#000000\"></rect><text y=\"23\" x=\"6.25\" fill=\"#ffffff\" font-size=\"24\" font-weight=\"400\" font-family=\"FiraCode Nerd Font\">NJ</text></svg>"
+
+#+end_src
+
 *** COMMENT svg-tag-mode
 
 #+begin_src emacs-lisp :lexical no
