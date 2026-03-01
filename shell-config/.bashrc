@@ -2,8 +2,9 @@
 
 ##############################################################################
 ## ble.sh
-BLESH=$( guix package -I blesh | awk '{print $4}')
-BLESH="$BLESH/share/blesh/ble.sh"
+#BLESH=$( guix package -I blesh | awk '{print $4}')
+#BLESH="$BLESH/share/blesh/ble.sh"
+BLESH=$( guix locate ble.sh | awk '{print $2}')
 # Add this lines at the top of .bashrc:
 [[ $- == *i* ]] && source "$BLESH" --noattach
 
@@ -72,6 +73,15 @@ alias cat='bat'
 alias du='dust'
 alias l='eza --color=auto --icons -l'
 alias rgi='rg --no-ignore --hidden -i'
+
+# Distrobox
+arch() {
+    if [ $# -eq 0 ]; then
+        distrobox enter arch
+    else
+        distrobox enter arch -- "$@"
+    fi
+}
 
 # Set up fzf key bindings and fuzzy completion
 # fuzzy completion using **<TAB>
@@ -224,9 +234,9 @@ alias npm='echo "Use bun (https://bun.sh/docs) instead of: npm"'
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 # [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-# uv
+# uv (If on non-FHS compliant system, use distrobox)
 export PATH="$HOME/.local/bin:$PATH"
-export UV_PYTHON_DOWNLOADS="manual"
+# export UV_PYTHON_DOWNLOADS="manual"
 # export UV_PYTHON_PREFERENCE="system"
 
 if [ -f "$HOME/.cargo/env" ]; then
@@ -245,6 +255,8 @@ export GTK_THEME=Adwaita:dark
 #
 # when facing errors relating to 'gio'
 # unset GIO_EXTRA_MODULES
+#
+# ip link set dev wlp128s20f3 mtu 1279
 
 # vscode
 # code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
