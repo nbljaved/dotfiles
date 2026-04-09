@@ -69,6 +69,14 @@
           (message "$SSH_AUTH_SOCK is now available")
           (message (format nil "Error sourcing ~a" ssh-agent-file))))))
 
+(defcommand hibernate () ()
+  (when (command-is-successful? "loginctl hibernate")
+    (message "Hibernating (-_-) zzz")))
+
+(defcommand suspend-and-lock () ()
+  (when (command-is-successful? "loginctl suspend && i3lock -c 2e2e2e")
+    (message "lockin")))
+
 ;; Keyboard
 (defcommand nbl/keyboard () ()
   "setxbmap setting"

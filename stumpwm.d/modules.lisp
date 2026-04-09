@@ -36,7 +36,7 @@
 (define-key *root-map* (kbd "M-y") "show-clipboard-history")
 ;; start the polling timer process
 (clipboard-history:start-clipboard-manager)
-(setf clipboard-history:*clipboard-history-max-length* 1000)
+(setf clipboard-history:*clipboard-history-max-length* 100)
 
 
 ;; (load-module "productivity")
