@@ -12,8 +12,9 @@
 
 (setf
  ;; Set this variable to a number > 0 to turn on debugging.  The greater the
- ;; number the more debugging output.
- *debug-level* 1
+ ;; number the more debugging output. Level 1 logs every X event and
+ ;; produces gigabytes of output very quickly.
+ *debug-level* 0
  *suppress-abort-messages* t
  *top-level-error-action* :message)
 
