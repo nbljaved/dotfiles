@@ -77,6 +77,7 @@
 (define-key *groups-map* (kbd "s-g") "gother")
 (define-key *groups-map* (kbd "g") "grouplist")
 (define-key *groups-map* (kbd "f") "gnew")
+(define-key *groups-map* (kbd "s-n") "grenumber")
 
 
 ;; polybar manipulation

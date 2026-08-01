@@ -317,3 +317,14 @@
         (update-all-mode-lines)))))
 
 (add-hook *new-window-hook* 'renumber-window-by-class)
+
+;; Renumber groups (parallel to the built-in `renumber` for windows)
+(defcommand grenumber (num &optional (group (current-group)))
+    ((:number "Set group number to: "))
+  "Change the number of the current group. If another group is already
+using that number, the two groups swap numbers."
+  (let ((swap (find num (screen-groups (current-screen)) :key #'group-number)))
+    (when swap
+      (setf (group-number swap) (group-number group)))
+    (setf (group-number group) num)
+    (update-all-mode-lines)))
