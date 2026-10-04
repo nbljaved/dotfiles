@@ -4772,7 +4772,11 @@ https://github.com/Myriad-Dreamin/tinymist/tree/main/editors/emacs#extra-setting
               '(:tinymist (:exportPdf "onSave")))
 #+end_src
 
-*** latex setup
+*** COMMENT latex setup
+Disabled on 2026-10-04, when =texlive= came out of the Guix manifest: the CV
+is typst now, and this block was the rest of the LaTeX story — org's inline
+fragment previews and =org-latex-pdf-process= (xelatex + minted).  To get them
+back, reinstall =texlive-scheme-full= and drop the =COMMENT=.
 
 #+begin_src emacs-lisp
   (setq org-highlight-latex-and-related '(native)
@@ -4883,7 +4887,10 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
   \\end{tikzpicture}" nil))))
 #+end_src
 
-*** Auctex
+*** COMMENT Auctex
+Disabled with =latex setup= on 2026-10-04.  Without texlive the lookup below
+finds nothing and only =warn=s, once per startup.  =emacs-auctex= is still in the
+Guix manifest; it is inert while this is commented.
 
 #+begin_src emacs-lisp :lexical yes
   (when guix?
@@ -4979,7 +4986,9 @@ Activate with =C-u C-\ unicode-math RET=. Then TeX commands (e.g., \alpha) are r
   (use-package unicode-math-input)
 #+end_src
 
-*** org-fragtog
+*** COMMENT org-fragtog
+Disabled with =latex setup= on 2026-10-04: it previews a LaTeX fragment
+whenever the cursor leaves it, which needs a TeX engine.
 
 #+begin_src emacs-lisp 
   (use-package org-fragtog
