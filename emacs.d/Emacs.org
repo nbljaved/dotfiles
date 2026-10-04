@@ -4889,8 +4889,9 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 
 *** COMMENT Auctex
 Disabled with =latex setup= on 2026-10-04.  Without texlive the lookup below
-finds nothing and only =warn=s, once per startup.  =emacs-auctex= is still in the
-Guix manifest; it is inert while this is commented.
+finds nothing and only =warn=s, once per startup.  =emacs-auctex= came out of the
+Guix manifest the same day, so =.tex= files now open in Emacs's built-in
+=latex-mode=; put the package back before removing this =COMMENT=.
 
 #+begin_src emacs-lisp :lexical yes
   (when guix?
