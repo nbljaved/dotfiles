@@ -1,0 +1,16 @@
+! T460 (Debian).  Symlinked to ~/.Xresources by REINSTALL-thinkpad.org 6.4;
+! read by `xrdb -merge ~/.Xresources` in ~/.xinitrc.
+!
+! Pick the DPI from the panel: `xdpyinfo | grep -B1 dimensions` prints the
+! resolution and the physical size.  14" T460 panels are either 1366x768
+! (~112 dpi -> leave 96) or 1920x1080 (~157 dpi -> 144).
+Xft.dpi: 96
+Xcursor.size: 24
+
+! Rendering, same as the pc.
+Xft.autohint: 0
+Xft.lcdfilter: lcddefault
+Xft.hintstyle: hintfull
+Xft.hinting: 1
+Xft.antialias: 1
+Xft.rgba: rgb
