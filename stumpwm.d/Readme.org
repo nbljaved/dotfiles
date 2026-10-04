@@ -1,18 +1,87 @@
-To update submodule (https://github.com/stumpwm/stumpwm-contrib) run:
+#+TITLE: StumpWM configuration
 
+Two machines share this repo:
+- *pc* — Guix System, logs in through GDM, which starts the StumpWM session itself.
+- *thinkpad* — Debian 13 with Guix on top (see =guix-config/other/reinstall-os/REINSTALL-thinkpad.org=). X comes from apt, StumpWM from a Guix profile, and the session is started by =startx= after a tty1 login.
+
+=init.lisp= sets =pc?= from the hostname, and everything machine-specific keys off it. Nothing here needs editing to work on the other machine.
+
+* Layout
+| Path                   | What it is                                                                 |
+|------------------------+----------------------------------------------------------------------------|
+| =init.lisp=              | entry point: loads quicklisp if present, slynk, then the files below       |
+| =modules.lisp=           | =*module-dir*= and the contrib modules that get loaded                       |
+| =defcommands.lisp=       | commands and the =*-start= helpers =startup.lisp= calls                       |
+| =keybinding.lisp=        | keys                                                                       |
+| =modeline.lisp=          | mode line                                                                  |
+| =startup.lisp=           | runs once, at =*initializing*=: applets, wallpaper, pc-only extras           |
+| =load-fonts.lisp=        | TrueType font, *pc only* (see [[*Fonts (clx-truetype, pc only)][Fonts]])                              |
+| =config/=                | configs for the programs StumpWM starts (see below)                        |
+| =Xresources=, =Xresources.<host>= | X resources, merged by =xinitrc= (see below)                           |
+| =xinitrc=                | symlink target for =~/.xinitrc=, thinkpad only                               |
+| =bootstrap-quicklisp.sh= | rebuilds =~/quicklisp= from upstream                                         |
+| =modules/=               | submodule: stumpwm-contrib                                                 |
+| =clx-truetype/=          | submodule: goose121's fork, loaded through quicklisp                       |
+| =wallpapers/=            | =wallpaper= picks one at random                                              |
+
+Submodules, after a fresh clone (or =git clone --recurse-submodules=):
 #+begin_src shell
 git submodule update --init --recursive
 #+end_src
 
-* Quicklisp (is required)
-At =~/quicklisp/=.
-Set it up by following the instructions at https://www.quicklisp.org/beta/
+* The =config/= directory
+These are *not* symlinked into =~/.config=. Every command passes the path explicitly, so the copy in this repo is the only copy — edit the file in place and restart the program, nothing to install or link. The lisp finds them through =*data-dir*=, which is =~/.stumpwm.d/=.
 
-** clx-truetype
-Place clx-truetype in =~/quicklisp/local-projects/clx-truetype/=
+| Program      | Started by                            | Path it is given                                   |
+|--------------+---------------------------------------+----------------------------------------------------|
+| =picom=        | =picom-start=, from =startup.lisp=        | =--config ~/.stumpwm.d/config/picom/picom.conf=      |
+| =udiskie=      | =udiskie-start=, from =startup.lisp=      | =--config ~/.stumpwm.d/config/udiskie/udiskie.conf=  |
+| =xsettingsd=   | =xsettingsd-start=, *pc only*           | =-c ~/.stumpwm.d/config/xsettingsd/.xsettingsd=      |
+| =rofi=         | =rofi= command, bound to =s-d=            | =-config ~/.stumpwm.d/config/rofi/config.rasi=       |
+| =polybar=      | nothing, today                        | =launch-polybar= runs =sh ~/.config/polybar/launch.sh=, a path that does not exist on either machine, so =config/polybar/= is unused. Point the command at =config/polybar/launch.sh= if you want it back |
 
-#+begin_src shell
-ln -s ~/.stumpwm.d/clx-truetype ~/quicklisp/local-projects/
+=config/xsettingsd/.xsettingsd= is what actually applies the pc's HiDPI settings to GTK applications: =Xft/DPI 147456= is 144 × 1024. It is started only =(when pc?)=, from =startup.lisp=.
+
+* X resources
+=xinitrc= merges =Xresources= and then =Xresources.$(hostname)=, so shared rendering settings live in the first file and DPI and cursor size in the second.
+
+*Only a session that runs =xrdb= reads them, which today means the thinkpad.* The pc's session comes from GDM, which never runs =xrdb= — on the pc these files are inert and =xsettingsd= does the same job. That is also why they live here rather than with the shell config: they configure *this* session. A desktop environment (GNOME, KDE) sets DPI, cursors and font rendering through its own settings daemon and would ignore them.
+
+=Xresources= also carries the two =XTerm*= lines that used to sit in =~/.Xdefaults=. A client reads =~/.Xdefaults= only when nobody has run =xrdb=, so they were being dropped as soon as the session started.
+
+* Starting the session
+** thinkpad (Debian): =startx= from tty1
+#+begin_src sh
+ln -sf ~/.stumpwm.d/xinitrc ~/.xinitrc
 #+end_src
+Then add this to =~/shell-config/.bash_profile= (it is already there since 2026-10). The hostname test keeps it inert on the pc, where GDM owns the session:
+#+begin_src sh
+# thinkpad (Debian): start X after logging in on tty1.  `exec` means leaving
+# X also ends the login session, so no shell is left behind.
+if [ -z "$DISPLAY" ] && [ "$(tty)" = /dev/tty1 ] && [ "$(hostname)" = thinkpad ]; then
+    exec startx
+fi
+#+end_src
+What =xinitrc= does, and why: exports =DISPLAY= / =XAUTHORITY= into the systemd user session so PipeWire and the portals can see it; merges the X resources above; sets the keyboard layout; starts =xss-lock= with */usr/bin/i3lock*, Debian's own copy, because the locker has to authenticate through Debian's PAM and a copy from a Guix profile cannot; then =exec stumpwm=.
 
-#+RESULTS:
+*The PATH trap on this machine.* The Guix profile comes before =/usr/bin=, so whenever both provide a command the Guix copy wins. Two consequences live in this repo:
+- =bluetooth-start= uses =*blueman-applet*= (=defcommands.lisp=), which is =/usr/bin/blueman-applet= off the pc: the applet needs =blueman-mechanism=, a root D-Bus service only a system package can register.
+- =udiskie-start= can stay on the Guix copy — it is only a client of =udisks2=, which comes from apt.
+Check what a session really started with =pgrep -a blueman-applet=, or =type -a <command>= before trusting =PATH=.
+
+** pc (Guix System): GDM
+Nothing to do. GDM runs the StumpWM session from the system profile, and =startup.lisp= adds the pc-only pieces: =screen-blank-time=, =xsettingsd-start= and the TrueType font.
+
+* Quicklisp
+=~/quicklisp= exists for one reason: =clx-truetype='s dependencies (=zpb-ttf=, =cl-vectors=, =cl-store=, =cl-fad=, =bordeaux-threads=, =trivial-features=, =trivial-garbage=, =global-vars=, =cacle=). =init.lisp= loads =~/quicklisp/setup.lisp= inside =ignore-errors=, and =~/.sbclrc= (from =shell-config=) only loads it =(when (probe-file …))=, so StumpWM starts fine without it. What you lose is the =alert-me= module and, on the pc, the font.
+
+Rebuild it instead of restoring it. The script checks the installer's OpenPGP signature, installs into =~/quicklisp=, links =clx-truetype= into =local-projects= and quickloads it once:
+#+begin_src shell
+bash ~/.stumpwm.d/bootstrap-quicklisp.sh
+#+end_src
+Needs =sbcl=, =curl=, =gpg= and the network; it never calls =guix=.
+
+* Fonts (clx-truetype, pc only)
+=startup.lisp= loads =load-fonts.lisp= only =(when pc?)=. It quickloads =clx-truetype= (package nickname =xft=) and the contrib module =ttf-fonts=, which implements StumpWM's font protocol for =xft:font= objects, caches the font list into =~/.fonts/font-cache.sexp=, and sets DejaVu Sans Mono 17. That is what makes the message, input and mode-line windows antialiased instead of X core bitmap fonts.
+
+To enable it on the thinkpad, =load-fonts.lisp= first has to stop hard-coding =/run/current-system/profile/share/fonts/=, which does not exist on Debian; it would need =~/.guix-profile/share/fonts/= (and =/usr/share/fonts/=).

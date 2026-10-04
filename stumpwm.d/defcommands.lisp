@@ -46,13 +46,20 @@
          (message ":)"))
         (t (message ":( Failed to start udiskie"))))
 
+(defparameter *blueman-applet*
+  (if pc? "blueman-applet" "/usr/bin/blueman-applet")
+  "Which blueman-applet to start.  The thinkpad runs Debian with Guix on
+top, and its Guix profile comes first in PATH; the Guix copy cannot talk to
+blueman-mechanism, the root D-Bus service that only a system package can
+register.  So there, name Debian's copy by path.  `pc?' is set in init.lisp.")
+
 (defcommand bluetooth-start () ()
   "See https://wiki.archlinux.org/title/Blueman"
   (cond ((command-is-successful? "pgrep -u \"$USER\" blueman-applet > /dev/null")
          (message "Already running blueman-applet"))
-        ((not (executable? "blueman-applet"))
+        ((not (executable? *blueman-applet*))
          (message "Install blueman"))
-        ((command-is-successful? "blueman-applet &")
+        ((command-is-successful? (format nil "~a &" *blueman-applet*))
          (message "Bluetooth started"))
         (t (message ":( Failed to start bluetooth"))))
 
