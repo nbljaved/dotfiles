@@ -412,7 +412,6 @@ https://github.com/seagle0128/doom-modeline
 For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
 #+begin_src emacs-lisp
 (use-package doom-modeline
-  :init (doom-modeline-mode 1)
   :config
   (setq doom-modeline-bar-width 5
         ;; small scroll-bar like in the bar
@@ -430,10 +429,17 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
     '(bar window-number workspace-name modals buffer-default-directory-simple remote-host)
     '(compilation misc-info battery irc mu4e gnus github debug minor-modes input-method major-mode process time))
 
-  ;; Set default mode-line
+  ;; Set default mode-line.  The name has to match the def-modeline above;
+  ;; it used to say 'my-custom-line, which matches nothing.
   (add-hook 'doom-modeline-mode-hook
             (lambda ()
-              (doom-modeline-set-modeline 'my-custom-line 'default))))
+              (doom-modeline-set-modeline 'my-custom-modeline 'default)))
+
+  ;; Last, so the modelines and the hook above already exist.  This was in
+  ;; :init, which runs *before* the package is loaded: it only worked while
+  ;; the autoloads happened to be in place, and broke on a fresh install
+  ;; with "void-function doom-modeline-mode".
+  (doom-modeline-mode 1))
 #+end_src
    
 ** Theme
@@ -1252,7 +1258,9 @@ https://github.com/minad/consult
 
 #+begin_src emacs-lisp
 (use-package flycheck
-  :init
+  ;; :config, not :init -- global-flycheck-mode does not exist until the
+  ;; package is loaded.
+  :config
   (global-flycheck-mode -1))
 
 ;; https://github.com/flycheck/flycheck-inline
@@ -1962,6 +1970,7 @@ https://github.com/karthink/gptel
   :config
   (require 'gptel-integrations)
   (require 'gptel-org)
+  (require 'gptel-gemini)                ; defines gptel-make-gemini, used below
 
   ;; Register a backend
   ;; :key can be a function that returns the API key.
@@ -2324,6 +2333,8 @@ The package also contains auxiliary modes:
 (use-package diff-hl
   :config
   (global-diff-hl-mode 1)
+  ;; This mode lives in diff-hl-show-hunk.el, which diff-hl.el does not load.
+  (require 'diff-hl-show-hunk)
   (global-diff-hl-show-hunk-mouse-mode 1)
   ;; When using Magit 2.4 or newer, add this to your init script:
   (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
@@ -5248,6 +5259,8 @@ https://github.com/tecosaur/org-pandoc-import
              :files ("*.el" "filters" "preprocessors"))
     :after org
     :config
+    ;; the mode is defined in org-pandoc-import-transient.el
+    (require 'org-pandoc-import-transient)
     (org-pandoc-import-transient-mode -1))
 #+end_src
 
