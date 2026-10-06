@@ -2904,17 +2904,22 @@ https://github.com/kaorahi/howm
 #+begin_src emacs-lisp :lexical no
 (use-package howm
   :init
-  ;; Format
-  (require 'howm-org) ;; Write notes in Org-mode. (*2)
-
-  ;; Preferences
+  ;; Preferences.  These are read by howm when it loads, so they belong in
+  ;; :init, which runs first.
   (setq howm-directory "~/Documents/public/notes/howm") ;; Where to store the files?
   (setq howm-follow-theme t) ;; Use your Emacs theme colors. (*3)
 
   ;; Performance
   (setq howm-menu-expiry-hours 1)       ;; Cache menu N hours. (*4)
   (setq howm-menu-refresh-after-save t) ;; nil to Speed up note saving. (*5)
-  )
+
+  :config
+  ;; Format: write notes in Org-mode. (*2)
+  ;;
+  ;; This require was in :init, which runs before the package is loaded and
+  ;; therefore before howm's directory is on `load-path' -- on a fresh install
+  ;; it fails with: no such file or directory "howm-org".
+  (require 'howm-org))
 
 #+end_src
 
