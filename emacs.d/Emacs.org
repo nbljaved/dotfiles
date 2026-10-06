@@ -60,15 +60,15 @@ To update things like Melpa do =M-x elpaca-update-menus=
 #+end_src
 
 #+begin_src emacs-lisp
-(defvar elpaca-installer-version 0.11)
+(defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
                               :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
        (default-directory repo))
@@ -110,8 +110,8 @@ To update things like Melpa do =M-x elpaca-update-menus=
   (elpaca elpaca-use-package
     ;; Enable :elpaca use-package keyword.
     (elpaca-use-package-mode)
-    ;; Assume :elpaca t unless otherwise specified.
-    (setq elpaca-use-package-by-default t))
+    ;; Assume :ensure t unless otherwise specified.
+    (setq use-package-always-ensure t))
 
   ;; Block until current queue processed.
   (elpaca-wait)
@@ -415,7 +415,8 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
   :config
   (setq doom-modeline-bar-width 5
         ;; small scroll-bar like in the bar
-        doom-modeline-hud t)
+        doom-modeline-hud t
+        doom-modeline-workspace-name t)
   (setq-default doom-modeline--pdf-pages t)
 
   ;; to get eyebrowse window number in pdf-view mode (=workspace-name= segment)
@@ -429,16 +430,16 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
     '(bar window-number workspace-name modals buffer-default-directory-simple remote-host)
     '(compilation misc-info battery irc mu4e gnus github debug minor-modes input-method major-mode process time))
 
-  ;; Set default mode-line.  The name has to match the def-modeline above;
-  ;; it used to say 'my-custom-line, which matches nothing.
+  ;; eyebrowse indicator on the right, alongside workspace-name on the left
+  (add-to-list 'mode-line-misc-info
+               '(:eval (when (bound-and-true-p eyebrowse-mode)
+                         (eyebrowse-mode-line-indicator)))
+               t)
+
+  ;; Set default mode-line
   (add-hook 'doom-modeline-mode-hook
             (lambda ()
               (doom-modeline-set-modeline 'my-custom-modeline 'default)))
-
-  ;; Last, so the modelines and the hook above already exist.  This was in
-  ;; :init, which runs *before* the package is loaded: it only worked while
-  ;; the autoloads happened to be in place, and broke on a fresh install
-  ;; with "void-function doom-modeline-mode".
   (doom-modeline-mode 1))
 #+end_src
    
@@ -1025,7 +1026,7 @@ https://github.com/yyoncho/helm-icons
     (helm-icons-enable))
 #+end_src
 
-*** ace-jump-helm-line
+*** COMMENT ace-jump-helm-line
 https://github.com/cute-jumper/ace-jump-helm-line/tree/master
 
 #+begin_src emacs-lisp :lexical no
@@ -1258,8 +1259,6 @@ https://github.com/minad/consult
 
 #+begin_src emacs-lisp
 (use-package flycheck
-  ;; :config, not :init -- global-flycheck-mode does not exist until the
-  ;; package is loaded.
   :config
   (global-flycheck-mode -1))
 
@@ -1928,11 +1927,12 @@ https://github.com/Silex/docker.el
   :bind (("C-c d" . docker)))
 #+end_src
 
-*** docker-compose-mode
+*** COMMENT docker-compose-mode
 https://github.com/emacs-pe/docker-tramp.el
 
 #+begin_src emacs-lisp
-  (use-package docker-compose-mode)
+  (use-package docker-compose-mode
+    :ensure (:host github :repo "meqif/docker-compose-mode"))
 #+end_src
 
 *** dockerfile-mode
@@ -1970,7 +1970,7 @@ https://github.com/karthink/gptel
   :config
   (require 'gptel-integrations)
   (require 'gptel-org)
-  (require 'gptel-gemini)                ; defines gptel-make-gemini, used below
+  (require 'gptel-gemini)
 
   ;; Register a backend
   ;; :key can be a function that returns the API key.
@@ -2333,7 +2333,6 @@ The package also contains auxiliary modes:
 (use-package diff-hl
   :config
   (global-diff-hl-mode 1)
-  ;; This mode lives in diff-hl-show-hunk.el, which diff-hl.el does not load.
   (require 'diff-hl-show-hunk)
   (global-diff-hl-show-hunk-mouse-mode 1)
   ;; When using Magit 2.4 or newer, add this to your init script:
@@ -2904,22 +2903,17 @@ https://github.com/kaorahi/howm
 #+begin_src emacs-lisp :lexical no
 (use-package howm
   :init
-  ;; Preferences.  These are read by howm when it loads, so they belong in
-  ;; :init, which runs first.
+  ;; Format
+  (require 'howm-org) ;; Write notes in Org-mode. (*2)
+
+  ;; Preferences
   (setq howm-directory "~/Documents/public/notes/howm") ;; Where to store the files?
   (setq howm-follow-theme t) ;; Use your Emacs theme colors. (*3)
 
   ;; Performance
   (setq howm-menu-expiry-hours 1)       ;; Cache menu N hours. (*4)
   (setq howm-menu-refresh-after-save t) ;; nil to Speed up note saving. (*5)
-
-  :config
-  ;; Format: write notes in Org-mode. (*2)
-  ;;
-  ;; This require was in :init, which runs before the package is loaded and
-  ;; therefore before howm's directory is on `load-path' -- on a fresh install
-  ;; it fails with: no such file or directory "howm-org".
-  (require 'howm-org))
+  )
 
 #+end_src
 
@@ -3903,7 +3897,7 @@ https://www.antlr.org/index.html
 #+end_src
 
 ** Golang
-*** some go packages to install
+*** COMMENT some go packages to install
 
 #+begin_src emacs-lisp :lexical no
 (unless (executable-find "lazydocker")
@@ -4789,10 +4783,6 @@ https://github.com/Myriad-Dreamin/tinymist/tree/main/editors/emacs#extra-setting
 #+end_src
 
 *** COMMENT latex setup
-Disabled on 2026-10-04, when =texlive= came out of the Guix manifest: the CV
-is typst now, and this block was the rest of the LaTeX story — org's inline
-fragment previews and =org-latex-pdf-process= (xelatex + minted).  To get them
-back, reinstall =texlive-scheme-full= and drop the =COMMENT=.
 
 #+begin_src emacs-lisp
   (setq org-highlight-latex-and-related '(native)
@@ -4904,10 +4894,6 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
 #+end_src
 
 *** COMMENT Auctex
-Disabled with =latex setup= on 2026-10-04.  Without texlive the lookup below
-finds nothing and only =warn=s, once per startup.  =emacs-auctex= came out of the
-Guix manifest the same day, so =.tex= files now open in Emacs's built-in
-=latex-mode=; put the package back before removing this =COMMENT=.
 
 #+begin_src emacs-lisp :lexical yes
   (when guix?
@@ -5004,8 +4990,6 @@ Activate with =C-u C-\ unicode-math RET=. Then TeX commands (e.g., \alpha) are r
 #+end_src
 
 *** COMMENT org-fragtog
-Disabled with =latex setup= on 2026-10-04: it previews a LaTeX fragment
-whenever the cursor leaves it, which needs a TeX engine.
 
 #+begin_src emacs-lisp 
   (use-package org-fragtog
@@ -5264,7 +5248,6 @@ https://github.com/tecosaur/org-pandoc-import
              :files ("*.el" "filters" "preprocessors"))
     :after org
     :config
-    ;; the mode is defined in org-pandoc-import-transient.el
     (require 'org-pandoc-import-transient)
     (org-pandoc-import-transient-mode -1))
 #+end_src
