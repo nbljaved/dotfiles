@@ -1,0 +1,218 @@
+#+startup: overview
+
+Your current profile and other stuff (like channels.scm) is in ~/.config/guix/
+
+#+CAPTION: To update this repository by fetching the config files from appropriate locations
+#+begin_src shell
+make
+#+end_src
+
+#+CAPTION: Link this repo's channel.scm file to your actual one
+#+begin_src shell
+
+ln -sf ~/guix-config/channels.scm ~/.config/guix/channels.scm
+
+#+end_src
+
+** Reproducibility: pinned channels
+=channels.scm= floats to each channel's HEAD on =guix pull=, so it alone
+cannot reproduce a profile. =channels-lock.scm= captures the exact channel
+commits currently in use (=guix describe -f channels=). Together with the
+package manifest this pins an exact environment.
+
+#+CAPTION: Refresh the lock after a `guix pull` you want to keep
+#+begin_src shell
+guix describe -f channels > ~/guix-config/channels-lock.scm
+#+end_src
+
+#+CAPTION: Reproduce that exact environment elsewhere
+#+begin_src shell
+guix time-machine -C ~/guix-config/channels-lock.scm -- \
+     package -m ~/guix-config/current-profile-manifest -L ~/guix-config/modules
+#+end_src
+
+* ./scripts
+./scripts/ is a folder that contains, you guessed it, useful scripts :)
+
+- To solve binaries breaking due to expectations of FHS:
+  * =./scripts/uv-guix-shell.sh= runs =uv= in a container with linux's File System Heirarchy (FHS)
+  * =./scripts/fix-foreign-binary.sh= fixes a binary that is failing due to Guix not abiding by the FHS
+
+* Guix as your OS
+
+#+CAPTION: To reconfigure the system with my custom packages
+The config imports custom modules under =(nbl ...)= (e.g. =(nbl packages
+tailscale)=). Those live in =modules/nbl/=, so the load path must point at
+=modules/= via =-L= (its parent). Without it, the reconfigure fails to
+resolve those modules. Note: point =-L= at =modules/=, NOT the repo root —
+the root holds loose non-module files (=channels.scm=, =config-*.scm=) that
+guix would try (and fail) to load as modules.
+#+begin_src sh
+
+sudo guix system reconfigure -L ~/guix-config/modules /etc/config.scm
+
+#+end_src
+
+* TODO Guix Home
+https://guix.gnu.org/manual/devel/en/html_node/Declaring-the-Home-Environment.html
+
+#+CAPTION: To set it up
+#+begin_src sh
+
+# The guix home import command reads some of the “dot files” such as ~/.bashrc found in your home directory and copies them to the given directory, ~/guix-config/guix-home in this case; it also reads the contents of your profile, ~/.guix-profile, and, based on that, it populates ~/guix-config/guix-home/home-configuration.scm with a Home configuration that resembles your current configuration. 
+
+guix home import ~/guix-config/guix-home
+
+#+end_src
+
+#+CAPTION: To reconfigure
+#+begin_src sh
+guix home reconfigure ~/guix-config/guix-home/home-configuration.scm
+#+end_src
+
+#+CAPTION: Once the configuration looks good, you can first test it in a throw-away “container”
+#+begin_src sh
+
+guix home container path-to-home-config.scm
+
+#+end_src
+
+* Nix
+I use Nix for packages that aren't currently available in Guix, or those I might need at a moments notice.
+
+** Install Nix in non-guix linux distro
+https://nix.dev/manual/nix/2.28/installation/index.html
+Install the multi-user one.
+
+https://nix.dev/manual/nix/2.28/quick-start.html
+
+** Install Nix in Guix system
+#+CAPTION: Enable nix service in Guix
+(see [[https://guix.gnu.org/manual/en/html_node/Miscellaneous-Services.html][Guix Miscellaneous Services]])
+#+begin_src lisp :eval no
+;; Add this service in services /etc/config.scm
+(service nix-service-type)
+#+end_src
+
+After guix system reconfigure configure Nix for your user:
+
+ * Add a Nix channel and update it. See [[https://nixos.org/nix/manual/][Nix Package Manager Guide]].
+ * Create a symlink to your profile and activate Nix profile: 
+
+ #+CAPTION: This is what the Guix manual says, but I just did the source step
+ #+begin_src shell :eval no
+ ln -s "/nix/var/nix/profiles/per-user/$USER/profile" ~/.nix-profile
+ source /run/current-system/profile/etc/profile.d/nix.sh
+ #+end_src
+
+** Nix Channel setup
+First see https://nixos.wiki/wiki/Nix_channels
+
+#+CAPTION: https://nixos.wiki/wiki/Nix_channels
+#+begin_src shell
+  ## Common nix-channel commands
+
+  # Listing current channels
+  nix-channel --list
+
+  # Adding a primary channel
+  nix-channel --add https://nixos.org/channels/channel-name nixos
+  # For eg: nix-channel --add https://nixos.org/channels/nixos-26.05 nixos
+  # For eg: nix-channel --add https://nixos.org/channels/nixos-unstable nixos-unstable  
+
+  # Adding other channels
+  nix-channel --add https://some.channel/url my-alias
+
+  # Remove a channel
+  nix-channel --remove channel-alias
+
+  # Updating a channel
+  nix-channel --update channel-alias
+
+  # Updating all channels
+  nix-channel --update
+
+  # Note that updating channels won't cause a rebuild in itself; if you
+  # want to update channels and rebuild, you can use nixos-rebuild with
+  # the --upgrade flag to do both in one step.
+
+  # Also need to load the <attribnute-name> channel
+  nix-channel --add channel-url <attribute-name>
+#+end_src
+
+** nix-env cheatsheet
+
+#+begin_src shell :results output
+curl cheat.sh/nix-env
+#+end_src
+
+#+RESULTS:
+#+begin_example
+# nix-env
+# Manipulate or query Nix user environments.
+# More information: <https://nixos.org/manual/nix/stable/#sec-nix-env>.
+
+# List all installed packages:
+nix-env -q
+
+# Query installed packages:
+nix-env -q search_term
+
+# Query available packages:
+nix-env -qa search_term
+
+# Install package:
+nix-env -iA nixos.pkg_name
+
+# Install a package from a URL:
+nix-env -i pkg_name --file example.com
+
+# Uninstall package:
+nix-env -e pkg_name
+
+# Upgrade one package:
+nix-env -u pkg_name
+
+# Upgrade all packages:
+nix-env -u
+#+end_example
+
+** nix-env quickstart
+
+#+CAPTION: https://nix.dev/manual/nix/2.18/quick-start
+#+begin_src shell
+# See what installable packages are currently available in the channel:
+nix-env --query --available --attr-path
+
+# Install a package from the channel
+nix-env --install --attr nixos.hello
+
+# Uninstall a package:
+nix-env --uninstall hello
+
+# Test packages without installing them
+nix-shell --packages hello
+
+# To keep up-to-date with the channel, do:
+nix-channel --update nixos
+nix-env --upgrade '*'
+
+# The latter command will upgrade each installed package for which
+# there is a “newer” version (as determined by comparing the version
+# numbers).
+
+# If you're unhappy with the result of a nix-env action (e.g., an
+# upgraded package turned out not to work properly), you can go back:
+
+nix-env --rollback
+
+You should periodically run the Nix garbage collector to get rid of unused packages, since uninstalls or upgrades don't actually delete them:
+
+ nix-collect-garbage --delete-old
+#+end_src
+
+#+RESULTS:
+
+* Miscellaneous
+
+You can also search for third-party Guix package/service definitions at https://toys.whereis.social/.
