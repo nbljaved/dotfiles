@@ -332,6 +332,7 @@ https://github.com/NixOS/nix-mode
 (setq display-time-24hr-format t)
 (display-time-mode -1)
 
+(line-number-mode 1)
 (column-number-mode 1)
 
 (setq-default fill-column 80)
@@ -420,8 +421,10 @@ For icons in doom-modeline do ~M-x nerd-icons-install-fonts~
   (setq-default doom-modeline--pdf-pages t)
 
   ;; to get eyebrowse window number in pdf-view mode (=workspace-name= segment)
+  ;; buffer-position draws line/column (line-number-mode, column-number-mode)
+  ;; and the nyan cat when nyan-mode is on; without it neither shows.
   (doom-modeline-def-modeline 'my-custom-modeline
-    '(bar window-number workspace-name matches debug buffer-info pdf-pages)
+    '(bar window-number workspace-name matches debug buffer-info buffer-position pdf-pages)
     '(misc-info major-mode process vcs))
   (doom-modeline-def-modeline 'pdf
     '(bar window-number workspace-name modals matches buffer-info pdf-pages)
@@ -2949,7 +2952,7 @@ https://depp.brause.cc/nov.el/
     (parrot-mode 1))
 #+end_src
 
-*** nyan
+*** COMMENT nyan
 
 #+begin_src emacs-lisp
 (use-package nyan-mode
