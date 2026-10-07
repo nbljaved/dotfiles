@@ -3,7 +3,7 @@ if [ -f ~/.profile ]; then . ~/.profile; fi
 
 # Merge search-paths from multiple profiles, the order matters.
 if [ ! -e /run/.containerenv ] && [ ! -e /.dockerenv ]; then
-    eval "$(guix package --search-paths \
+    eval "$(guix package --search-paths=prefix \
                          -p $HOME/.config/guix/current \
                          -p $HOME/.guix-home/profile \
                          -p $HOME/.guix-profile \
