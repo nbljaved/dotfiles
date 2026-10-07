@@ -2,9 +2,19 @@
 
 Two machines share this repo:
 - *pc* — Guix System, logs in through GDM, which starts the StumpWM session itself.
-- *thinkpad* — Debian 13 with Guix on top (see =guix-config/other/reinstall-os/REINSTALL-thinkpad.org=). X comes from apt, StumpWM from a Guix profile, and the session is started by =startx= after a tty1 login.
+- *thinkpad* — Debian 13 with Guix on top (see =~/dotfiles/guix-config/other/reinstall-os/REINSTALL-thinkpad.org=). X comes from apt, StumpWM from a Guix profile, and the session is started by =startx= after a tty1 login.
 
 =init.lisp= sets =pc?= from the hostname, and everything machine-specific keys off it. Nothing here needs editing to work on the other machine.
+
+* Where StumpWM finds it
+StumpWM looks for =~/.stumpwmrc=, then =~/.stumpwm.d/init.lisp=, then =~/.config/stumpwm/config=. This directory is =~/dotfiles/stumpwm.d=, so the third one points here:
+#+begin_src shell
+mkdir -p ~/.config/stumpwm
+ln -sf ~/dotfiles/stumpwm.d/init.lisp ~/.config/stumpwm/config
+#+end_src
+=init.lisp= sets =*config-dir*= to =~/dotfiles/stumpwm.d/= and loads everything else from there.
+
+=~/.stumpwm.d/= still exists: StumpWM creates it at startup, unconditionally, as =*data-dir*=. It holds runtime state only — =stumpwm.log=, the =command-history= module's =history=, =winner-layouts/= — and nothing in it is tracked. Do not put an =init.lisp= there: it would win over =~/.config/stumpwm/config=.
 
 * Layout
 | Path                   | What it is                                                                 |
@@ -30,14 +40,14 @@ git submodule update --init --recursive
 #+end_src
 
 * The =config/= directory
-These are *not* symlinked into =~/.config=. Every command passes the path explicitly, so the copy in this repo is the only copy — edit the file in place and restart the program, nothing to install or link. The lisp finds them through =*data-dir*=, which is =~/.stumpwm.d/=.
+These are *not* symlinked into =~/.config=. Every command passes the path explicitly, so the copy in this repo is the only copy — edit the file in place and restart the program, nothing to install or link. The lisp finds them through =*config-dir*=, which is =~/dotfiles/stumpwm.d/=.
 
 | Program      | Started by                            | Path it is given                                   |
 |--------------+---------------------------------------+----------------------------------------------------|
-| =picom=        | =picom-start=, from =startup.lisp=        | =--config ~/.stumpwm.d/config/picom/picom.conf=      |
-| =udiskie=      | =udiskie-start=, from =startup.lisp=      | =--config ~/.stumpwm.d/config/udiskie/udiskie.conf=  |
-| =xsettingsd=   | =xsettingsd-start=, *pc only*           | =-c ~/.stumpwm.d/config/xsettingsd/.xsettingsd=      |
-| =rofi=         | =rofi= command, bound to =s-d=            | =-config ~/.stumpwm.d/config/rofi/config.rasi=       |
+| =picom=        | =picom-start=, from =startup.lisp=        | =--config ~/dotfiles/stumpwm.d/config/picom/picom.conf=      |
+| =udiskie=      | =udiskie-start=, from =startup.lisp=      | =--config ~/dotfiles/stumpwm.d/config/udiskie/udiskie.conf=  |
+| =xsettingsd=   | =xsettingsd-start=, *pc only*           | =-c ~/dotfiles/stumpwm.d/config/xsettingsd/.xsettingsd=      |
+| =rofi=         | =rofi= command, bound to =s-d=            | =-config ~/dotfiles/stumpwm.d/config/rofi/config.rasi=       |
 | =polybar=      | nothing, today                        | =launch-polybar= runs =sh ~/.config/polybar/launch.sh=, a path that does not exist on either machine, so =config/polybar/= is unused. Point the command at =config/polybar/launch.sh= if you want it back |
 
 =config/xsettingsd/.xsettingsd= is what actually applies the pc's HiDPI settings to GTK applications: =Xft/DPI 147456= is 144 × 1024. It is started only =(when pc?)=, from =startup.lisp=.
@@ -52,9 +62,9 @@ These are *not* symlinked into =~/.config=. Every command passes the path explic
 * Starting the session
 ** thinkpad (Debian): =startx= from tty1
 #+begin_src sh
-ln -sf ~/.stumpwm.d/xinitrc ~/.xinitrc
+ln -sf ~/dotfiles/stumpwm.d/xinitrc ~/.xinitrc
 #+end_src
-Then add this to =~/shell-config/.bash_profile= (it is already there since 2026-10). The hostname test keeps it inert on the pc, where GDM owns the session:
+Then add this to =~/dotfiles/shell-config/.bash_profile= (it is already there since 2026-10). The hostname test keeps it inert on the pc, where GDM owns the session:
 #+begin_src sh
 # thinkpad (Debian): start X after logging in on tty1.  `exec` means leaving
 # X also ends the login session, so no shell is left behind.
@@ -77,7 +87,7 @@ Nothing to do. GDM runs the StumpWM session from the system profile, and =startu
 
 Rebuild it instead of restoring it. The script checks the installer's OpenPGP signature, installs into =~/quicklisp=, links =clx-truetype= into =local-projects= and quickloads it once:
 #+begin_src shell
-bash ~/.stumpwm.d/bootstrap-quicklisp.sh
+bash ~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh
 #+end_src
 Needs =sbcl=, =curl=, =gpg= and the network; it never calls =guix=.
 

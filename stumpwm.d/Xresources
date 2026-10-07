@@ -1,4 +1,4 @@
-! Shared X resources.  ~/.stumpwm.d/xinitrc merges this file and then
+! Shared X resources.  ~/dotfiles/stumpwm.d/xinitrc merges this file and then
 ! Xresources.$(hostname), so per-machine values live in those and anything
 ! machine-independent lives here.
 !

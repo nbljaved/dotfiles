@@ -75,7 +75,7 @@ The reinstall trades those unattended hours, and the fiddly step 4, for about 1�
 | =~/.claude= (incl. this project's memory), =~/.gemini=, =~/.zai=, opencode      | 265M  | AI tool history, settings, credentials                            |
 | =~/.librewolf=, =~/.config/google-chrome=                                    | 2.7G  | sessions; bookmarks and passwords unless Chrome sync has them     |
 | =~/.telega=, =~/.local/share/TelegramDesktop=                                | 369M  | Telegram sessions; re-login from the phone                        |
-| =~/.roswell=, =~/quicklisp=                                                  | 178M  | rebuildable: =~/.stumpwm.d/bootstrap-quicklisp.sh= (3.9)            |
+| =~/.roswell=, =~/quicklisp=                                                  | 178M  | rebuildable: =~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh= (3.9)            |
 | =~/Calibre Library=, =~/.config/calibre=                                     | 2.5M  | the e-book library. Small enough to commit instead                |
 | =~/Downloads= (=test=, loose documents)                                      | ~200M | scratch work and saved files                                      |
 | =~/.bash_history=, =~/.org-timestamps=, =~/.fehbg=, =~/.local/share/fonts=       | ~104M | history, publish timestamps, wallpaper line, user fonts           |
@@ -109,6 +109,8 @@ ls -ld /gnu/store                                # expect: root root
 #+end_src
 
 ** TODO 1.1 Git repos: commit, push, rescue [0/10]
+*Since 2026-10-07 =guix-config=, =shell-config=, =.emacs.d= and =.stumpwm.d= are one repo, =nbljaved/dotfiles= (built from the thinkpad's copies), and the four old GitHub repos are archived.* The paths in this table are the pc's old clones. Their unpushed commits and stashes can no longer be pushed where they came from: carry each one into =~/dotfiles= as a patch, with =git am --directory=<dir>= for commits or =git apply --directory=<dir>= for a =git stash show -p=. Then move the pc over to =~/dotfiles= (see =~/dotfiles/README.org=) before the steps below, which use the new paths.
+
 Snapshot of what is at risk (the survey script is in [[*C. At-risk survey script][Appendix C]]). With no backup ([[*D3 — Backups: none (chosen 2026-10-04)][D3]]) this table /is/ the backup plan: Phase 3 *clones fresh* from GitHub, so anything not pushed is deleted — stashes included, because they live in =.git= and never travel.
 
 | Repo                                                    | At risk                                                                                                                                                                           | Action                                                                          |
@@ -147,9 +149,9 @@ git switch -                                     # back to your branch; repeat w
 
 Option A is now the *only* rescue: with no drive, a patch file in =$HOME= dies with the disk. If you want the patches as files rather than branches, they still have to end up inside a repo that you push:
 #+begin_src sh
-r=$(basename "$PWD"); n=$(git stash list | wc -l); mkdir -p ~/guix-config/other/stashes
-for i in $(seq 0 $((n-1))); do git stash show -p "stash@{$i}" > ~/guix-config/other/stashes/"$r-$i.patch"; done
-cd ~/guix-config && git add other/stashes && git commit -m "rescued stashes as patches" && git push
+r=$(basename "$PWD"); n=$(git stash list | wc -l); mkdir -p ~/dotfiles/guix-config/other/stashes
+for i in $(seq 0 $((n-1))); do git stash show -p "stash@{$i}" > ~/dotfiles/guix-config/other/stashes/"$r-$i.patch"; done
+cd ~/dotfiles && git add guix-config/other/stashes && git commit -m "rescued stashes as patches" && git push
 #+end_src
 There were *10 stashes* on 2026-10-04: 5 in =.emacs.d=, 2 in =shell-config=, 1 each in =.stumpwm.d=, =leetcode= and =personal-documents=.
 
@@ -158,7 +160,7 @@ There were *10 stashes* on 2026-10-04: 5 in =.emacs.d=, 2 in =shell-config=, 1 e
 ** TODO 1.2 Capture live state into guix-config
 =make sync= refreshes =current-profile-manifest=, =nix-config/manifest.nix= and =attribute-manifest.nix=. It also *overwrites =config-pc.scm= from =/etc/config.scm=*. Today the two are identical, including the TEMP lines, and 1.3 fixes them next.
 #+begin_src sh
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 make sync
 git diff --stat
 #+end_src
@@ -206,13 +208,13 @@ Third, =resume_offset=: leave the old number (=122318848=) in place. Step 2.7 re
 *Safety:* give the *current* root file system the same label, so this config is also valid for the running machine. This is non-destructive and works on a mounted file system. Then validate:
 #+begin_src sh
 sudo e2label /dev/nvme0n1p3 guix-root
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 guix system build -n --no-substitutes -L modules config-pc.scm   # dry-run only: catches typos, builds nothing
 #+end_src
 
 ** TODO 1.4 Commit and push guix-config, including this file
 #+begin_src sh
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 git add REINSTALL-pc.org config-pc.scm current-profile-manifest nix-config/
 git add REINSTALL-thinkpad.org thinkpad-manifest.scm Makefile   # the T460 → Debian plan
 git add retry.sh scripts/claude-sandbox verify.md            # only the ones you want
@@ -379,8 +381,8 @@ echo "resume_offset=$OFF"          # a number; used in 2.8
 The ISO has no =git=, so =guix shell= fetches it through the patched daemon.
 #+begin_src sh
 mkdir -p /mnt/root && cd /mnt/root
-guix shell git -- git clone https://github.com/nbljaved/guix-config.git
-cd /mnt/root/guix-config
+guix shell git -- git clone https://github.com/nbljaved/dotfiles.git
+cd /mnt/root/dotfiles/guix-config
 git log -1 --oneline               # must be your 1.4 commit
 grep -n 'guix-root\|use-substitutes\|privileged' config-pc.scm   # guix-root present; no use-substitutes
 sed -i "s/resume_offset=[0-9]*/resume_offset=$OFF/" config-pc.scm
@@ -433,7 +435,7 @@ cp config-pc.scm /mnt/etc/config.scm                   # copy again after editin
 ** 2.9 Authorize nonguix, then pull guix and nonguix
 Only these two channels are needed here. =config-pc.scm= and =modules/nbl= import nothing from rde or guix-science, which you get later for your user profile. *Do not use =channels-lock.scm=.*
 #+begin_src sh
-guix archive --authorize < /mnt/root/guix-config/signing-key.pub   # nonguix substitute key
+guix archive --authorize < /mnt/root/dotfiles/guix-config/signing-key.pub   # nonguix substitute key
 
 cat > /tmp/install-channels.scm <<'EOF'
 (cons (channel
@@ -456,8 +458,8 @@ Passing the nonguix URL on the command line works with the patched daemon: clien
 
 ** 2.10 guix system init
 #+begin_src sh
-guix system init -L /mnt/root/guix-config/modules \
-     /mnt/root/guix-config/config-pc.scm /mnt \
+guix system init -L /mnt/root/dotfiles/guix-config/modules \
+     /mnt/root/dotfiles/guix-config/config-pc.scm /mnt \
      --substitute-urls="$SUBS"
 #+end_src
 - This downloads several GB and builds your =(nbl packages tailscale)= from source (Go), plus small system derivations.
@@ -525,10 +527,8 @@ ssh -T git@github.com            # "Hi nbljaved! …"
 ** TODO 3.5 Clone your repos — where each one goes
 |  # | Location                                                      | Clone from                                                           | Visibility | Submodules                                                 |
 |----+---------------------------------------------------------------+----------------------------------------------------------------------+------------+------------------------------------------------------------|
-|  1 | =~/guix-config=                                                 | =git@github.com:nbljaved/guix-config.git=                              | public     | —                                                          |
-|  2 | =~/shell-config=                                                | =git@github.com:nbljaved/shell-config.git=                             | public     | —                                                          |
-|  3 | =~/.emacs.d=                                                    | =git@github.com:nbljaved/emacs-config.git=                             | public     | — (2nd remote =downstream=: =nbl-natsoft/emacs-config=)        |
-|  4 | =~/.stumpwm.d=                                                  | =git@github.com:nbljaved/stumpwm-config.git=                           | public     | =clx-truetype= (goose121), =modules= (stumpwm-contrib)         |
+|  1 | =~/dotfiles= (=emacs.d=, =shell-config=, =stumpwm.d=, =guix-config=) | =git@github.com:nbljaved/dotfiles.git=                                 | public     | =emacs-pde=, =clx-truetype= (goose121), =modules= (stumpwm-contrib) |
+|  — | =~/guix-config=, =~/shell-config=, =~/.emacs.d=, =~/.stumpwm.d=     | merged into =dotfiles= 2026-10-07; old repos archived                 | public     | —                                                          |
 |  5 | =~/org/roam=                                                    | =git@github.com:nbljaved/org-roam-files.git=                           | private    | —                                                          |
 |  6 | =~/Documents/leetcode=                                          | =git@github.com:nbljaved/leetcode.git=                                 | private    | —                                                          |
 |  7 | =~/Documents/islam=                                             | =git@github.com:nbljaved/islam.git=                                    | private    | —                                                          |
@@ -541,11 +541,8 @@ Visibility was checked on 2026-09-21 with anonymous HTTPS. Things that re-downlo
 
 #+begin_src sh
 cd ~
-git clone                      git@github.com:nbljaved/guix-config.git          ~/guix-config
-git clone                      git@github.com:nbljaved/shell-config.git         ~/shell-config
-git clone                      git@github.com:nbljaved/emacs-config.git         ~/.emacs.d
-git -C ~/.emacs.d remote add downstream git@github.com:nbl-natsoft/emacs-config.git
-git clone --recurse-submodules git@github.com:nbljaved/stumpwm-config.git       ~/.stumpwm.d
+git clone --recurse-submodules git@github.com:nbljaved/dotfiles.git            ~/dotfiles
+ln -sfn ~/dotfiles/emacs.d ~/.emacs.d
 git clone                      git@github.com:nbljaved/org-roam-files.git       ~/org/roam
 git clone                      git@github.com:nbljaved/leetcode.git             ~/Documents/leetcode
 git clone                      git@github.com:nbljaved/islam.git                ~/Documents/islam
@@ -553,29 +550,31 @@ git clone --recurse-submodules git@github.com:nbljaved/public.git               
 git clone                      git@github.com:nbljaved/diary.git                ~/Documents/personal/diary
 git clone --recurse-submodules git@github.com:nbljaved/personal-documents.git   ~/Documents/personal/personal-documents
 #+end_src
-- Clone =~/.emacs.d= *before* starting Emacs for the first time.
+- Create the =~/.emacs.d= link *before* starting Emacs for the first time.
 - Submodules on a detached HEAD are normal.
 - If the HF submodule fails (your key isn't registered on huggingface.co), the parent clone still succeeds. Run =git submodule update --init= later, or switch that submodule's URL to =https://huggingface.co/spaces/nbljaved/agent_couse_Final_Assignment_Template= (it's public).
 
 ** TODO 3.6 Recreate symlinks
 These are the symlinks that existed on 2026-09-21:
 #+begin_src sh
-ln -sf  ~/shell-config/.bashrc                ~/.bashrc
-ln -sf  ~/shell-config/.bash_profile          ~/.bash_profile
-ln -sf  ~/shell-config/.blerc                 ~/.blerc
-ln -sfn ~/shell-config/kitty                  ~/.config/kitty
-ln -sf  ~/shell-config/starship/starship.toml ~/.config/starship.toml
+ln -sf  ~/dotfiles/shell-config/.bashrc                ~/.bashrc
+ln -sf  ~/dotfiles/shell-config/.bash_profile          ~/.bash_profile
+ln -sf  ~/dotfiles/shell-config/.blerc                 ~/.blerc
+ln -sfn ~/dotfiles/shell-config/kitty                  ~/.config/kitty
+ln -sf  ~/dotfiles/shell-config/starship/starship.toml ~/.config/starship.toml
 mkdir -p ~/.config/guix
-ln -sf  ~/guix-config/channels.scm            ~/.config/guix/channels.scm
-ln -sf  ~/guix-config/nix-config/nix-channels ~/.nix-channels
-ln -sf  ~/shell-config/.sbclrc                ~/.sbclrc
-ln -sf  ~/shell-config/.gitconfig             ~/.gitconfig
+ln -sf  ~/dotfiles/guix-config/channels.scm            ~/.config/guix/channels.scm
+ln -sf  ~/dotfiles/guix-config/nix-config/nix-channels ~/.nix-channels
+ln -sf  ~/dotfiles/shell-config/.sbclrc                ~/.sbclrc
+ln -sf  ~/dotfiles/shell-config/.gitconfig             ~/.gitconfig
 mkdir -p ~/.config/git
-ln -sf  ~/shell-config/git/ignore             ~/.config/git/ignore
+ln -sf  ~/dotfiles/shell-config/git/ignore             ~/.config/git/ignore
 mkdir -p ~/.claude/skills/screenshot
-ln -sf  ~/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md ~/.claude/skills/screenshot/SKILL.md
+ln -sf  ~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md ~/.claude/skills/screenshot/SKILL.md
+mkdir -p ~/.config/stumpwm
+ln -sf  ~/dotfiles/stumpwm.d/init.lisp        ~/.config/stumpwm/config
 # after ~/quicklisp is restored (3.9):
-ln -sfn ~/.stumpwm.d/clx-truetype             ~/quicklisp/local-projects/clx-truetype
+ln -sfn ~/dotfiles/stumpwm.d/clx-truetype             ~/quicklisp/local-projects/clx-truetype
 #+end_src
 Open a new terminal afterwards so the new =.bashrc= loads.
 
@@ -583,13 +582,13 @@ Open a new terminal afterwards so the new =.bashrc= loads.
 #+begin_src sh
 guix pull                                   # full channels.scm: guix, nonguix, rde, guix-science(+nonfree), guix-past
 hash -r; guix describe
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 guix describe -f channels > channels-lock.scm   # replaces the lock that pinned unpatched 35e88b7
 make apply-guix-profile                     # guix package -m current-profile-manifest -L modules
 #+end_src
 Reconfiguring later: root has never pulled, and the bare system guix cannot load your config because nonguix is missing. So reconfigure with *your* guix:
 #+begin_src sh
-sudo ~/.config/guix/current/bin/guix system reconfigure -L ~/guix-config/modules /etc/config.scm
+sudo ~/.config/guix/current/bin/guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 #+end_src
 
 ** TODO 3.8 Emacs
@@ -600,14 +599,14 @@ emacs      # first start: elpaca clones and builds ~200 packages. Let it finish,
 #+end_src
 
 ** TODO 3.9 StumpWM and Common Lisp
-=~/.stumpwm.d/Readme.org= documents the rest: the =config/= directory (picom, udiskie, xsettingsd, rofi get their paths passed explicitly, nothing is symlinked into =~/.config=), the X resources, and why this machine needs no =~/.xinitrc= — GDM builds the session.
-There is no backup to restore from (D3), so rebuild =~/quicklisp= from upstream with =bash ~/.stumpwm.d/bootstrap-quicklisp.sh=, which checks the installer's signature and makes the =clx-truetype= link itself. =~/.sbclrc= is no longer backup material: it lives in =shell-config= and 3.6 symlinks it. Quicklisp exists here only for =clx-truetype=, which =load-fonts.lisp= needs for the StumpWM font on this screen, and for =alert-me=.
+=~/dotfiles/stumpwm.d/Readme.org= documents the rest: the =config/= directory (picom, udiskie, xsettingsd, rofi get their paths passed explicitly, nothing is symlinked into =~/.config=), the X resources, and why this machine needs no =~/.xinitrc= — GDM builds the session.
+There is no backup to restore from (D3), so rebuild =~/quicklisp= from upstream with =bash ~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh=, which checks the installer's signature and makes the =clx-truetype= link itself. =~/.sbclrc= is no longer backup material: it lives in =shell-config= and 3.6 symlinks it. Quicklisp exists here only for =clx-truetype=, which =load-fonts.lisp= needs for the StumpWM font on this screen, and for =alert-me=.
 
 ** TODO 3.10 Nix
 #+begin_src sh
 source /run/current-system/profile/etc/profile.d/nix.sh
 nix-channel --update
-cd ~/guix-config && make apply-nix-profile
+cd ~/dotfiles/guix-config && make apply-nix-profile
 #+end_src
 
 ** TODO 3.11 Tailscale, SSH host keys, Wi-Fi (sudo)
@@ -624,23 +623,23 @@ sudo nmcli device wifi connect "<SSID>" --ask     # retype the password you prin
 
 ** TODO 3.12 Containers
 #+begin_src sh
-cd ~/guix-config && make distrobox          # rebuilds the Arch image and recreates the 'arch' container
+cd ~/dotfiles/guix-config && make distrobox          # rebuilds the Arch image and recreates the 'arch' container
 #+end_src
-The shot-scraper image: see =~/guix-config/.config/useful-docker-images/shot-scraper/=.
+The shot-scraper image: see =~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/=.
 
 ** TODO 3.13 What isn't coming back
 There is no archive (D3). This is the re-login and re-create list, and it is the price of the choice:
 - *Chrome*: sign in, let sync restore bookmarks and passwords (you checked this in 1.8). *LibreWolf* starts empty.
 - *Telegram*: scan the QR from the phone — both the desktop app and =.telega=.
 - *Claude Code, gemini, zai, opencode, rclone, Mullvad*: log in again. The Mullvad account number is on your paper from 1.6. This project's Claude memory under =~/.claude/projects/= is gone; the runbooks in git are the record that matters.
-- *Lisp*: =bash ~/.stumpwm.d/bootstrap-quicklisp.sh= for =~/quicklisp= (3.9), and =ros setup= if you still use Roswell.
+- *Lisp*: =bash ~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh= for =~/quicklisp= (3.9), and =ros setup= if you still use Roswell.
 - *Fonts*: re-download the ones you miss into =~/.local/share/fonts=, then =fc-cache -f=.
 - *Gone unless you committed them first*: =~/Calibre Library=, =~/Downloads= (incl. =test=), =~/.bash_history=, =~/.org-timestamps=, =~/.fehbg=, the loose =~/qa-questions.org=, =~/ai-questions.org= and =~/guix-home-config.scm=, and the gitignored =guix-config/.claude/=, =.stumpwm.d/winner-layouts=, =.stumpwm.d/history=, =Documents/public/.claude/=. The ignored ones rebuild themselves as you work.
 - There is nothing to diff the new =~= against any more. [[*C. At-risk survey script][Appendix C]] is the only check left, and it only sees repos.
 
 ** TODO 3.14 Commit the post-install changes
 #+begin_src sh
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 git diff                         # expect: resume_offset, channels-lock.scm, maybe manifests
 git add -A config-pc.scm channels-lock.scm && git commit -m "pc: post-reinstall resume offset + fresh channel lock" && git push
 #+end_src
@@ -658,7 +657,7 @@ git add -A config-pc.scm channels-lock.scm && git commit -m "pc: post-reinstall 
 - [ ] =distrobox enter arch=, podman
 - [ ] Nix packages on =PATH=
 - [ ] Emacs starts cleanly; the StumpWM session works
-- [ ] xremap: =sudo xremap --watch=device,config ~/guix-config/.config/xremap/xremap.yaml= (you started it by hand from a terminal before; no launcher exists in your repos)
+- [ ] xremap: =sudo xremap --watch=device,config ~/dotfiles/guix-config/.config/xremap/xremap.yaml= (you started it by hand from a terminal before; no launcher exists in your repos)
 
 * Appendix
 ** A. Repo inventory (2026-09-21)
@@ -688,7 +687,7 @@ Since D3 there is no archive, so the last column says what actually happens to e
 | =~/.sbclrc=, =~/.gitconfig=                                | small  | small configs                         | in =shell-config= since 2026-10-04; 3.6 symlinks them |
 | =~/.Xresources=, =~/.Xdefaults=                            | small  | DPI, cursor size, font rendering      | moved into =stumpwm-config= 2026-10-04. Nothing on this machine reads them: GDM never runs =xrdb=, and =xsettingsd= (=.stumpwm.d/config/xsettingsd/.xsettingsd=) applies 144 dpi instead |
 | =~/.slynkrc=                                             | small  | slynk settings                        | tangled from =Emacs.org= (3.8)       |
-| =~/quicklisp=                                            | 13M    | Lisp setup                            | rebuilt by =~/.stumpwm.d/bootstrap-quicklisp.sh= (3.9) |
+| =~/quicklisp=                                            | 13M    | Lisp setup                            | rebuilt by =~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh= (3.9) |
 | =~/.roswell=                                             | 165M   | Lisp setup                            | lost; =ros setup= if still used      |
 | SSH host keys, =/var/lib/tailscale=, NM profiles         | small  | host identity, tailnet node, Wi-Fi    | regenerated (1.7, 3.11)            |
 | =~/.local/share/containers=                              | 13G    | rebuilt with =make distrobox=           | no                                 |

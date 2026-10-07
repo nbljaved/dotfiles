@@ -1,0 +1,46 @@
+#+TITLE: dotfiles
+
+One repo for the configs that used to be four. Each directory keeps its own =Readme.org=.
+
+| Directory       | What                                          | Was                       |
+|-----------------+-----------------------------------------------+---------------------------|
+| =emacs.d/=      | Emacs; =Emacs.org= tangles =init.el=          | =nbljaved/emacs-config=   |
+| =shell-config/= | bash, ble.sh, kitty, starship, git, sbcl      | =nbljaved/shell-config=   |
+| =stumpwm.d/=    | StumpWM, X session, Xresources                | =nbljaved/stumpwm-config= |
+| =guix-config/=  | Guix System and profiles, Nix, reinstall runbooks | =nbljaved/guix-config=    |
+
+The old repos are archived; their full history is in this one (=git log -- emacs.d/=).
+
+* Install
+#+begin_src shell
+git clone --recurse-submodules git@github.com:nbljaved/dotfiles.git ~/dotfiles
+#+end_src
+
+* Symlinks
+Nothing else in =$HOME= points into this repo.
+#+begin_src shell
+# Emacs only looks in ~/.emacs.d (or ~/.config/emacs)
+ln -sfn ~/dotfiles/emacs.d                        ~/.emacs.d
+
+# shell
+ln -sf  ~/dotfiles/shell-config/.bashrc           ~/.bashrc
+ln -sf  ~/dotfiles/shell-config/.bash_profile     ~/.bash_profile
+ln -sf  ~/dotfiles/shell-config/.blerc            ~/.blerc
+ln -sfn ~/dotfiles/shell-config/kitty             ~/.config/kitty
+ln -sf  ~/dotfiles/shell-config/starship/starship.toml ~/.config/starship.toml
+ln -sf  ~/dotfiles/shell-config/.sbclrc           ~/.sbclrc
+ln -sf  ~/dotfiles/shell-config/.gitconfig        ~/.gitconfig
+mkdir -p ~/.config/git
+ln -sf  ~/dotfiles/shell-config/git/ignore        ~/.config/git/ignore
+
+# StumpWM: ~/.stumpwm.d/ is created by StumpWM itself and only holds logs and history
+mkdir -p ~/.config/stumpwm
+ln -sf  ~/dotfiles/stumpwm.d/init.lisp            ~/.config/stumpwm/config
+ln -sf  ~/dotfiles/stumpwm.d/xinitrc              ~/.xinitrc          # thinkpad only
+ln -sfn ~/dotfiles/stumpwm.d/clx-truetype         ~/quicklisp/local-projects/clx-truetype  # after bootstrap-quicklisp.sh
+
+# Guix / Nix
+mkdir -p ~/.config/guix
+ln -sf  ~/dotfiles/guix-config/channels.scm       ~/.config/guix/channels.scm
+ln -sf  ~/dotfiles/guix-config/nix-config/nix-channels ~/.nix-channels   # pc only
+#+end_src

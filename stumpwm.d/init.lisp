@@ -7,6 +7,11 @@
 (asdf:load-system :stumpwm)
 (in-package :stumpwm)
 
+(defparameter *config-dir* (merge-pathnames "dotfiles/stumpwm.d/" (user-homedir-pathname))
+  "This repo.  StumpWM finds init.lisp through the ~/.config/stumpwm/config
+symlink; *data-dir* (~/.stumpwm.d/) only holds runtime state: logs, history,
+winner-layouts.")
+
 (defparameter pc? (string-equal "pc" (string-trim '(#\Newline) (run-shell-command "hostname" t)))
   "Boolean is T when hostname is \"pc\".")
 
@@ -61,15 +66,15 @@
 ;;(remove-all-hooks *destroy-window-hook*)
 
 ;; Load other configuration files
-(load "/home/nabeel/.stumpwm.d/modules.lisp")
-(load "/home/nabeel/.stumpwm.d/defcommands.lisp")
-(load "/home/nabeel/.stumpwm.d/keybinding.lisp")
+(load (merge-pathnames "modules.lisp" *config-dir*))
+(load (merge-pathnames "defcommands.lisp" *config-dir*))
+(load (merge-pathnames "keybinding.lisp" *config-dir*))
 
 (when *initializing*
   (progn
-    (load "/home/nabeel/.stumpwm.d/startup.lisp")))
+    (load (merge-pathnames "startup.lisp" *config-dir*))))
 
 ;; Load mode-line configuration 
-(load "/home/nabeel/.stumpwm.d/modeline.lisp")
+(load (merge-pathnames "modeline.lisp" *config-dir*))
 
 

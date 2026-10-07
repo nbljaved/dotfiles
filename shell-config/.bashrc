@@ -114,8 +114,8 @@ alias rm='echo "Use trash-cli instead of: rm"'
 
 # shot-scraper
 # https://shot-scraper.datasette.io/
-# See ~/guix-config/.config/useful-docker-images/shot-scraper/
-export PATH=$PATH:"$HOME/guix-config/.config/useful-docker-images/shot-scraper/bin"
+# See ~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/
+export PATH=$PATH:"$HOME/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/bin"
 
 # Golang
 export PATH=$PATH:/usr/local/go/bin

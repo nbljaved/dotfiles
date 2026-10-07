@@ -1,7 +1,7 @@
 #!/usr/bin/env -S sh
 
 ## Example setting
-# alias uv="$HOME/guix-config/scripts/uv-guix-shell.sh"
+# alias uv="$HOME/dotfiles/guix-config/scripts/uv-guix-shell.sh"
 
 # `curl` requires `nss-certs`
 # guix shell -CNF -E PATH --share=$HOME gcc-toolchain bash which coreutils curl nss-certs -- curl blah-blah....

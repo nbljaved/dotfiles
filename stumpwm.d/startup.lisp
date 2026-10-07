@@ -35,7 +35,7 @@
 
 (when pc?
   ;; to avoid reader error of 'package doesn't exist'
-  (load "/home/nabeel/.stumpwm.d/load-fonts.lisp"))
+  (load (merge-pathnames "load-fonts.lisp" *config-dir*)))
 
 (defparameter *battery-low-timer*
   (run-with-timer 1                     ; delay of x no. of seconds

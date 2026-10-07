@@ -109,7 +109,7 @@ This plan works before or after =REINSTALL-pc.org=. The pc only helps, with the 
 
 Push what the T460 needs after the wipe. Don't stage =config-pc.scm=: the pc runbook's steps 1.3 and 1.4 own it. On 2026-10-03 it had no pending changes, while =/etc/config.scm= on the pc may still carry the TEMP lines.
 #+begin_src sh
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 git status --porcelain                            # see what else is pending before you stage
 git add other/reinstall-os/ thinkpad-manifest.scm Makefile
 git commit -m "Add the T460 → Debian + Guix plan and the pc reinstall runbook"
@@ -191,7 +191,7 @@ ssh nabeel@"$T460" 'cd /home && tar -cpf - --exclude=nabeel/.cache --exclude=nab
 Optionally, save your Wi-Fi profiles so you don't retype passwords (route A; with route B, run the =sudo tar= over SSH the same way):
 #+begin_src sh
 sudo tar -cpf - /etc/NetworkManager/system-connections | age -p > "$BK/thinkpad-wifi.tar.age"
-cp ~/guix-config/other/reinstall-os/REINSTALL-thinkpad.org "$BK/"
+cp ~/dotfiles/guix-config/other/reinstall-os/REINSTALL-thinkpad.org "$BK/"
 #+end_src
 - Use the same passphrase for both archives. *Write it on paper.*
 - If the drive is FAT32, no single file can exceed 4 GiB. Pipe through =split -b 3900M - "$BK/thinkpad-home….part-"= as in the pc runbook.
@@ -347,7 +347,7 @@ sudo apt install needrestart                          # hooks into apt and repor
 cat /var/run/reboot-required 2>/dev/null              # present = restart to finish applying updates
 sudo needrestart -r l                                 # list services that want restarting
 #+end_src
-- You don't have to remember to check the marker: =~/shell-config/.bashrc= does it in every new terminal when =$HOSTNAME= is =thinkpad=, and prints the packages that asked for the reboot. It lives in =.bashrc= and not =.bash_profile= because the tty1 login shell runs =exec startx= straight away, so a login-time message would never be seen.
+- You don't have to remember to check the marker: =~/dotfiles/shell-config/.bashrc= does it in every new terminal when =$HOSTNAME= is =thinkpad=, and prints the packages that asked for the reboot. It lives in =.bashrc= and not =.bash_profile= because the tty1 login shell runs =exec startx= straight away, so a login-time message would never be seen.
 - If you'd rather it handled itself, add =Unattended-Upgrade::Automatic-Reboot "true";= and =Unattended-Upgrade::Automatic-Reboot-Time "04:00";= to =/etc/apt/apt.conf.d/50unattended-upgrades=. On a laptop that's rarely awake at 04:00, the marker plus a habit works better.
 - Logs live in =/var/log/unattended-upgrades/=, and =apt-listchanges= shows what changed.
 
@@ -594,20 +594,17 @@ age -d ~/Documents/personal/diary/diary.org.age | head -1   # after 6.2; proves 
 
 ** TODO 6.2 Clone your repos
 #+begin_src sh
-git clone                      git@github.com:nbljaved/guix-config.git     ~/guix-config
-git clone                      git@github.com:nbljaved/shell-config.git    ~/shell-config
-git clone                      git@github.com:nbljaved/emacs-config.git    ~/.emacs.d
-git -C ~/.emacs.d remote add downstream git@github.com:nbl-natsoft/emacs-config.git
-git clone --recurse-submodules git@github.com:nbljaved/stumpwm-config.git  ~/.stumpwm.d
+git clone --recurse-submodules git@github.com:nbljaved/dotfiles.git      ~/dotfiles
+ln -sfn ~/dotfiles/emacs.d ~/.emacs.d                                       # before Emacs first starts
 git clone                      git@github.com:nbljaved/org-roam-files.git  ~/org/roam
-git -C ~/guix-config log -1 --oneline -- other/reinstall-os/REINSTALL-thinkpad.org   # this file is in the repo
+git -C ~/dotfiles/guix-config log -1 --oneline -- other/reinstall-os/REINSTALL-thinkpad.org   # this file is in the repo
 #+end_src
 Clone any other repos you want on the laptop from the table in =REINSTALL-pc.org= step 3.5.
 
 ** DONE 6.3 nonguix substitutes
 Your manifest includes nonguix packages, such as =google-chrome-stable=. =signing-key.pub= is *nonguix's* key.
 #+begin_src sh
-sudo guix archive --authorize < ~/guix-config/signing-key.pub
+sudo guix archive --authorize < ~/dotfiles/guix-config/signing-key.pub
 sudo chown -R guix-daemon:guix-daemon /etc/guix      # the unprivileged daemon must read the ACL
 sudo systemctl edit guix-daemon
 #+end_src
@@ -626,20 +623,20 @@ ps -o user=,args= -C guix-daemon | cut -c1-200       # guix-daemon … substitut
 This is the subset of the pc's step 3.6 that applies here:
 #+begin_src sh
 mv ~/.profile ~/.profile.debian      # Debian's default; your .bash_profile would source it plus .bashrc twice
-ln -sf  ~/shell-config/.bashrc                ~/.bashrc
-ln -sf  ~/shell-config/.bash_profile          ~/.bash_profile
-ln -sf  ~/shell-config/.blerc                 ~/.blerc
+ln -sf  ~/dotfiles/shell-config/.bashrc                ~/.bashrc
+ln -sf  ~/dotfiles/shell-config/.bash_profile          ~/.bash_profile
+ln -sf  ~/dotfiles/shell-config/.blerc                 ~/.blerc
 mkdir -p ~/.config/guix
-ln -sfn ~/shell-config/kitty                  ~/.config/kitty
-ln -sf  ~/shell-config/starship/starship.toml ~/.config/starship.toml
-ln -sf  ~/guix-config/channels.scm            ~/.config/guix/channels.scm
+ln -sfn ~/dotfiles/shell-config/kitty                  ~/.config/kitty
+ln -sf  ~/dotfiles/shell-config/starship/starship.toml ~/.config/starship.toml
+ln -sf  ~/dotfiles/guix-config/channels.scm            ~/.config/guix/channels.scm
 # used to come off the backup; they are in shell-config now (D8):
-ln -sf  ~/shell-config/.sbclrc                ~/.sbclrc
-ln -sf  ~/shell-config/.gitconfig             ~/.gitconfig
+ln -sf  ~/dotfiles/shell-config/.sbclrc                ~/.sbclrc
+ln -sf  ~/dotfiles/shell-config/.gitconfig             ~/.gitconfig
 mkdir -p ~/.config/git
-ln -sf  ~/shell-config/git/ignore             ~/.config/git/ignore
+ln -sf  ~/dotfiles/shell-config/git/ignore             ~/.config/git/ignore
 #+end_src
-- *No =~/.Xresources= symlink.* The X resources live in =~/.stumpwm.d= (=Xresources= plus =Xresources.thinkpad=) and =xinitrc= merges them from there, so there is nothing to link: [[*6.6 StumpWM session][6.6]]. Check the DPI that file guesses once X is up — =xdpyinfo | grep -B1 dimensions= prints the resolution and the physical size; 96 suits a 1366x768 T460 panel, 144 a 1920x1080 one.
+- *No =~/.Xresources= symlink.* The X resources live in =~/dotfiles/stumpwm.d= (=Xresources= plus =Xresources.thinkpad=) and =xinitrc= merges them from there, so there is nothing to link: [[*6.6 StumpWM session][6.6]]. Check the DPI that file guesses once X is up — =xdpyinfo | grep -B1 dimensions= prints the resolution and the physical size; 96 suits a 1366x768 T460 panel, 144 a 1920x1080 one.
 - =~/.slynkrc= is *not* symlinked: =Emacs.org= tangles it ([[*6.7 Emacs, StumpWM and Quicklisp][6.7]]).
 Your =.bashrc= already has a branch for distros other than Guix System. It sets =GUIX_LOCPATH=, =SSL_CERT_*= and sources the profile. Log out and back in afterwards.
 
@@ -647,7 +644,7 @@ Your =.bashrc= already has a branch for distros other than Guix System. It sets 
 #+begin_src sh
 guix pull                            # full channels.scm: guix, nonguix, rde, guix-science(+nonfree)
 hash -r; guix describe
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 make apply-guix-profile              # = guix package -m current-profile-manifest -m thinkpad-manifest.scm -L modules
 #+end_src
 - Don't regenerate or use =channels-lock.scm= here. The pc owns the lock, and until the pc runbook's step 3.7 it pins an unpatched Guix.
@@ -657,13 +654,15 @@ make apply-guix-profile              # = guix package -m current-profile-manifes
 - Then open a new login shell and run =fc-cache -f= (Guix's fontconfig, from =thinkpad-manifest.scm=).
 
 ** DONE 6.6 StumpWM session
-This step used to write =~/.xinitrc= by hand. It now lives in the =stumpwm-config= repo, hostname-guarded so the pc is unaffected, and documented in its =Readme.org= under "Starting the session":
+This step used to write =~/.xinitrc= by hand. It now lives in =~/dotfiles/stumpwm.d=, hostname-guarded so the pc is unaffected, and documented in its =Readme.org= under "Starting the session":
 #+begin_src sh
-ln -sf ~/.stumpwm.d/xinitrc ~/.xinitrc
+ln -sf ~/dotfiles/stumpwm.d/xinitrc ~/.xinitrc
+mkdir -p ~/.config/stumpwm
+ln -sf ~/dotfiles/stumpwm.d/init.lisp ~/.config/stumpwm/config
 #+end_src
-- What it does: exports =DISPLAY= and =XAUTHORITY= into the systemd user session so PipeWire and the portals see them; merges =~/.stumpwm.d/Xresources= and =Xresources.$(hostname)= with =xrdb=; sets the keyboard layout; starts =xss-lock= with =/usr/bin/i3lock=, Debian's own copy, because the locker authenticates through *Debian's* PAM; then =exec stumpwm=.
+- What it does: exports =DISPLAY= and =XAUTHORITY= into the systemd user session so PipeWire and the portals see them; merges =~/dotfiles/stumpwm.d/Xresources= and =Xresources.$(hostname)= with =xrdb=; sets the keyboard layout; starts =xss-lock= with =/usr/bin/i3lock=, Debian's own copy, because the locker authenticates through *Debian's* PAM; then =exec stumpwm=.
 - =Xresources.thinkpad= currently guesses =Xft.dpi: 96=. Fix it there, in the repo, if 4.7's panel turns out to be 1920x1080.
-Append this to =~/shell-config/.bash_profile=, then commit and push it in =shell-config=. The =hostname= check keeps it inert on the pc:
+Append this to =~/dotfiles/shell-config/.bash_profile=, then commit and push it in =dotfiles=. The =hostname= check keeps it inert on the pc:
 #+begin_src sh
 # thinkpad (Debian): start X after logging in on tty1.  `exec` means
 # leaving X also ends the login session, so no shell is left behind.
@@ -688,10 +687,10 @@ ls -l ~/.slynkrc                     # tangled, not symlinked
 *Quicklisp, rebuilt instead of restored (D8).* It is 13 MB of upstream libraries plus one symlink, so it was never backup material. Nothing in it is yours:
 - =~/.sbclrc= (symlinked in 6.4) loads =~/quicklisp/setup.lisp= only =(when (probe-file …))=, and =init.lisp= wraps the same load in =ignore-errors=, so StumpWM starts fine with no Quicklisp at all.
 - What you lose without it: =alert-me= (=modules.lisp= quickloads it, so =alert-me-at= disappears; every other module there comes from =load-module=), and nothing else *on this machine* — =load-fonts.lisp= is the only other user and =startup.lisp= loads it =(when pc?)=.
-To have it anyway, run the script in =~/.stumpwm.d=. It verifies the installer's OpenPGP signature against the Quicklisp release key, installs into =~/quicklisp=, links the =clx-truetype= submodule into =local-projects=, and quickloads it once so its nine dependency libraries land in the dist:
+To have it anyway, run the script in =~/dotfiles/stumpwm.d=. It verifies the installer's OpenPGP signature against the Quicklisp release key, installs into =~/quicklisp=, links the =clx-truetype= submodule into =local-projects=, and quickloads it once so its nine dependency libraries land in the dist:
 #+begin_src sh
-bash ~/.stumpwm.d/bootstrap-quicklisp.sh
-ls -l ~/quicklisp/local-projects/    # clx-truetype -> /home/nabeel/.stumpwm.d/clx-truetype
+bash ~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh
+ls -l ~/quicklisp/local-projects/    # clx-truetype -> /home/nabeel/dotfiles/stumpwm.d/clx-truetype
 #+end_src
 - It needs =sbcl= (=thinkpad-manifest.scm=), =curl= and =gpg= (both from 4.5), and the network. It never calls =guix=, so it is also safe to run on the pc before its reinstall.
 - If you ever want the TrueType font on the laptop too, =load-fonts.lisp= hard-codes =/run/current-system/profile/share/fonts/=, which does not exist on Debian. It would have to become =~/.guix-profile/share/fonts/= (plus =/usr/share/fonts/=) before lifting the =(when pc?)= guard is worth trying.
@@ -701,7 +700,7 @@ There is no archive (D8). This is what the old T460 home had that GitHub doesn't
 | What                                                             | What to do about it                                                                 |
 |------------------------------------------------------------------+-------------------------------------------------------------------------------------|
 | =.sbclrc=, =.gitconfig=, =.config/git/ignore=                          | symlinked from =shell-config= in 6.4                                                  |
-| =.Xresources=, =.Xdefaults=                                          | now =Xresources= / =Xresources.thinkpad= in =stumpwm-config=, merged by its =xinitrc= (6.6) |
+| =.Xresources=, =.Xdefaults=                                          | now =Xresources= / =Xresources.thinkpad= in =dotfiles/stumpwm.d=, merged by its =xinitrc= (6.6) |
 | =~/.slynkrc=                                                       | tangled from =Emacs.org= in 6.7                                                       |
 | =~/quicklisp=                                                      | rebuilt from upstream in 6.7                                                        |
 | =~/.age/key=                                                       | only if you want the diary here: 6.1                                                |
@@ -751,15 +750,15 @@ Then check, in a *new* login session:
 id -nG | tr ' ' '\n' | grep -x input     # must print: input
 ls -l /dev/uinput /dev/input/event0      # group input (or you, via uaccess)
 xremap --version                         # 0.10.17; the binary is "xremap", the package "xremap-x11"
-xremap --watch=device,config ~/guix-config/.config/xremap/xremap.yaml
+xremap --watch=device,config ~/dotfiles/guix-config/.config/xremap/xremap.yaml
 #+end_src
-To start it with the session, add this to =~/.stumpwm.d/xinitrc= before =exec stumpwm= — that file *is* =~/.xinitrc= since [[*6.6 StumpWM session][6.6]], and it is shared with the pc, so keep it behind the hostname test it already defines:
+To start it with the session, add this to =~/dotfiles/stumpwm.d/xinitrc= before =exec stumpwm= — that file *is* =~/.xinitrc= since [[*6.6 StumpWM session][6.6]], and it is shared with the pc, so keep it behind the hostname test it already defines:
 #+begin_src sh
 if [ "$host" = thinkpad ] && command -v xremap > /dev/null 2>&1; then
-    xremap --watch=device,config "$HOME/guix-config/.config/xremap/xremap.yaml" &
+    xremap --watch=device,config "$HOME/dotfiles/guix-config/.config/xremap/xremap.yaml" &
 fi
 #+end_src
-Then commit it in =stumpwm-config=.
+Then commit it in =dotfiles=.
 The trade-off: membership in the =input= group can read every keyboard. Under X11, any program you run can already log keystrokes, so this adds little on this machine.
 
 ** TODO 7.3 Containers (only if you need them)
@@ -769,7 +768,7 @@ The trade-off: membership in the =input= group can read every keyboard. Under X1
 ** TODO 8.1 Retire config-thinkpad.scm
 The =Makefile= already ignores it on Debian. Git history keeps it.
 #+begin_src sh
-cd ~/guix-config
+cd ~/dotfiles/guix-config
 git rm config-thinkpad.scm
 git commit -m "thinkpad: now Debian + Guix; drop its Guix System config"
 git push
@@ -787,7 +786,7 @@ git push
 - [ ] =tailscale status= works, and the old node is deleted
 - [X] Emacs starts cleanly; =magit= can push
 - [X] =sudo systemctl hibernate= powers off, and the next boot asks the LUKS passphrase and restores the session (4.7)
-- [X] Nothing is still waiting on a backup: =ls -l ~/.sbclrc ~/.Xresources ~/.gitconfig= point into =shell-config=, and =bash ~/repo-risk.sh= says =ok= on every line (D8)
+- [X] Nothing is still waiting on a backup: =ls -l ~/.sbclrc ~/.Xresources ~/.gitconfig= point into =dotfiles/shell-config=, and =bash ~/repo-risk.sh= says =ok= on every line (D8)
 
 * Appendix
 ** A. Keeping it patched
@@ -1021,7 +1020,7 @@ The survey behind [[*D8 — Backups][D8]]. It was run *on the pc*, which still h
 | =~/qa-questions.org=, =~/ai-questions.org=, =~/guix-home-config.scm=          | small | loose files in =~= with no repo                                                                |
 | =~/.claude= 258M, =~/.librewolf= 1.1G, =~/.telega= 369M, =~/.config/google-chrome= 1.6G, =~/.mullvad=, =~/.roswell=, =~/.gemini=, =~/.zai=, =~/.config/opencode= | GB | sessions, histories, credentials. Not git material. Without a drive, a reinstall means signing in to all of them again |
 
-*Already handled, for the record (2026-10-04):* =~/.sbclrc=, =~/.gitconfig= and =~/.config/git/ignore= went into =shell-config=; =~/.Xresources= and =~/.Xdefaults= went into =stumpwm-config= as =Xresources=, =Xresources.pc= and =Xresources.thinkpad=, because only the X session reads them and =xinitrc= is what merges them; =~/.slynkrc= is tangled from =Emacs.org=; =~/quicklisp= is rebuilt by =~/.stumpwm.d/bootstrap-quicklisp.sh=. =~/.stumpwm.d/Readme.org= documents all of it, including the =config/= directory that had no instructions anywhere.
+*Already handled, for the record (2026-10-04):* =~/.sbclrc=, =~/.gitconfig= and =~/.config/git/ignore= went into =shell-config=; =~/.Xresources= and =~/.Xdefaults= went into =stumpwm-config= as =Xresources=, =Xresources.pc= and =Xresources.thinkpad=, because only the X session reads them and =xinitrc= is what merges them; =~/.slynkrc= is tangled from =Emacs.org=; =~/quicklisp= is rebuilt by =~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh=. =~/dotfiles/stumpwm.d/Readme.org= documents all of it, including the =config/= directory that had no instructions anywhere.
 
 *Regenerable, ignore:* =~/.local= (15G), =~/.npm= (3.6G), =~/.rustup=, =~/.bun=, =~/.cargo=, =~/go=, =~/node_modules=, =~/.emacs.d/elpaca=, =~/.fonts/font-cache.sexp=, =~/.config/guix= (symlinks), =~/.guile= (Guix's sample snippet), and =~/.profile= / =~/.zprofile= (Guix System artifacts; 6.4 renames Debian's own =.profile=).
 

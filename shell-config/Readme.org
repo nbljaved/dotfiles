@@ -7,10 +7,10 @@ My shell setup
 
   #+CAPTION: Create links forcefully (overwrite existing files)
   #+begin_src shell
-  ln -sf ~/shell-config/.bashrc ~/.bashrc
-  ln -sf ~/shell-config/.bash_profile ~/.bash_profile
-  ln -sf ~/shell-config/kitty   ~/.config/
-  ln -sf ~/shell-config/.blerc  ~/.blerc
-  ln -sf ~/shell-config/starship/starship.toml ~/.config/
+  ln -sf ~/dotfiles/shell-config/.bashrc ~/.bashrc
+  ln -sf ~/dotfiles/shell-config/.bash_profile ~/.bash_profile
+  ln -sf ~/dotfiles/shell-config/kitty   ~/.config/
+  ln -sf ~/dotfiles/shell-config/.blerc  ~/.blerc
+  ln -sf ~/dotfiles/shell-config/starship/starship.toml ~/.config/
   #+end_src
   

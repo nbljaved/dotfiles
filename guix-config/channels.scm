@@ -31,6 +31,9 @@
           "58661b110325fd5d9b40e6f0177cc486a615817e"
           (openpgp-fingerprint
            "CA4F 8CF4 37D7 478F DA05  5FD4 4213 7701 1A37 8446"))))
+       ;; Out of date since the move into ~/dotfiles: the channel root is now
+       ;; ~/dotfiles, so this needs "/dotfiles", (directory "guix-config/modules")
+       ;; and a .guix-channel at the top of the dotfiles repo.
        ;; (channel
        ;;  (name 'nbl)
        ;;  (url (string-append "file://" (getenv "HOME")

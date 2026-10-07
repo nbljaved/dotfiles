@@ -12,7 +12,7 @@ build:
 skill:
 	# Add screenshot skill to Claude Code
 	mkdir -p $(HOME)/.claude/skills/screenshot
-	ln -sf $(HOME)/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md $(HOME)/.claude/skills/screenshot/SKILL.md
+	ln -sf $(HOME)/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md $(HOME)/.claude/skills/screenshot/SKILL.md
 	@echo ""
 
 check:
@@ -22,6 +22,6 @@ check:
 	else \
 		echo "✗ shot-scraper is not available on PATH"; \
 		echo "Add the following to your shell configuration:"; \
-		echo "export PATH=\"\$$PATH:\$$HOME/guix-config/.config/useful-docker-images/shot-scraper/bin\""; \
+		echo "export PATH=\"\$$PATH:\$$HOME/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/bin\""; \
 		exit 1; \
 	fi

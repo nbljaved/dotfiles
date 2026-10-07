@@ -10,6 +10,6 @@ polybar-msg cmd quit
 
 # Launch bar
 echo "---" | tee -a /tmp/polybar.log
-polybar --reload -c ~/.stumpwm.d/config/polybar/polybar.config.ini | tee -a /tmp/polybar.log & disown
+polybar --reload -c ~/dotfiles/stumpwm.d/config/polybar/polybar.config.ini | tee -a /tmp/polybar.log & disown
 
 echo "Bars launched..."

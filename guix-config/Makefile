@@ -65,7 +65,7 @@ endif
 	@echo ""
 # cat /etc/xremap.yaml > xremap.yaml
 	# Guix: Configure channels
-	ln -sf ~/guix-config/channels.scm ~/.config/guix/channels.scm
+	ln -sf ~/dotfiles/guix-config/channels.scm ~/.config/guix/channels.scm
 	# Guix: Get current profile
 	# The following command doesn't work:
 	# guile ./scripts/sort-manifest.scm  current-profile-manifest > current-profile-manifest
@@ -89,7 +89,7 @@ endif
 sync-nix: ## Capture Nix channels symlink and current Nix profile manifest (if nix is installed)
 ifdef NIX
 	# Nix: Configure channels
-	ln -sf ~/guix-config/nix-config/nix-channels ~/.nix-channels
+	ln -sf ~/dotfiles/guix-config/nix-config/nix-channels ~/.nix-channels
 	# Nix: Get current profile
 	cat ~/.nix-profile/manifest.nix > ./nix-config/manifest.nix
 	bash ./scripts/extract-nix-packages.sh

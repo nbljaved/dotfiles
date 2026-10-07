@@ -1,6 +1,6 @@
 (in-package :stumpwm)
 
-(setf *module-dir* #P"/home/nabeel/.stumpwm.d/modules/")
+(setf *module-dir* (merge-pathnames "modules/" *config-dir*))
 (init-load-path *module-dir*)
 ;; modeline
 ;; (load-module "cpu")

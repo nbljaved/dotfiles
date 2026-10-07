@@ -10,7 +10,7 @@ make
 #+CAPTION: Link this repo's channel.scm file to your actual one
 #+begin_src shell
 
-ln -sf ~/guix-config/channels.scm ~/.config/guix/channels.scm
+ln -sf ~/dotfiles/guix-config/channels.scm ~/.config/guix/channels.scm
 
 #+end_src
 
@@ -22,13 +22,13 @@ package manifest this pins an exact environment.
 
 #+CAPTION: Refresh the lock after a `guix pull` you want to keep
 #+begin_src shell
-guix describe -f channels > ~/guix-config/channels-lock.scm
+guix describe -f channels > ~/dotfiles/guix-config/channels-lock.scm
 #+end_src
 
 #+CAPTION: Reproduce that exact environment elsewhere
 #+begin_src shell
-guix time-machine -C ~/guix-config/channels-lock.scm -- \
-     package -m ~/guix-config/current-profile-manifest -L ~/guix-config/modules
+guix time-machine -C ~/dotfiles/guix-config/channels-lock.scm -- \
+     package -m ~/dotfiles/guix-config/current-profile-manifest -L ~/dotfiles/guix-config/modules
 #+end_src
 
 * ./scripts
@@ -49,7 +49,7 @@ the root holds loose non-module files (=channels.scm=, =config-*.scm=) that
 guix would try (and fail) to load as modules.
 #+begin_src sh
 
-sudo guix system reconfigure -L ~/guix-config/modules /etc/config.scm
+sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 
 #+end_src
 
@@ -59,15 +59,15 @@ https://guix.gnu.org/manual/devel/en/html_node/Declaring-the-Home-Environment.ht
 #+CAPTION: To set it up
 #+begin_src sh
 
-# The guix home import command reads some of the “dot files” such as ~/.bashrc found in your home directory and copies them to the given directory, ~/guix-config/guix-home in this case; it also reads the contents of your profile, ~/.guix-profile, and, based on that, it populates ~/guix-config/guix-home/home-configuration.scm with a Home configuration that resembles your current configuration. 
+# The guix home import command reads some of the “dot files” such as ~/.bashrc found in your home directory and copies them to the given directory, ~/dotfiles/guix-config/guix-home in this case; it also reads the contents of your profile, ~/.guix-profile, and, based on that, it populates ~/dotfiles/guix-config/guix-home/home-configuration.scm with a Home configuration that resembles your current configuration. 
 
-guix home import ~/guix-config/guix-home
+guix home import ~/dotfiles/guix-config/guix-home
 
 #+end_src
 
 #+CAPTION: To reconfigure
 #+begin_src sh
-guix home reconfigure ~/guix-config/guix-home/home-configuration.scm
+guix home reconfigure ~/dotfiles/guix-config/guix-home/home-configuration.scm
 #+end_src
 
 #+CAPTION: Once the configuration looks good, you can first test it in a throw-away “container”

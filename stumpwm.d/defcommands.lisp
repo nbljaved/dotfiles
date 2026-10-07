@@ -23,16 +23,16 @@
       (message "Make sure acpi, grep, cut and dunstify are on PATH")))
 
 (defcommand wallpaper () ()
-  "Applies wallpaper from ~/.stumpwm.d/wallpapers"
+  "Applies wallpaper from ~/dotfiles/stumpwm.d/wallpapers"
   (if (executable? "feh")
-      (command-is-successful? (format nil "feh --bg-scale --randomize ~awallpapers/*" *data-dir*))
+      (command-is-successful? (format nil "feh --bg-scale --randomize ~awallpapers/*" *config-dir*))
       (message "Install feh")))
 
 (defcommand picom-start () ()
   "Picom is our composter"
   (cond ((not (executable? "picom"))
          (message "Install picom"))
-        ((command-is-successful? (format nil "picom -bc --config ~a/config/picom/picom.conf" *data-dir*))
+        ((command-is-successful? (format nil "picom -bc --config ~aconfig/picom/picom.conf" *config-dir*))
          (message ":)"))
         (t (message ":( Failed to start picom"))))
 
@@ -42,7 +42,7 @@
          (message "Already running"))
         ((not (executable? "udiskie"))
          (message "Install udiskie"))
-        ((command-is-successful? (format nil "udiskie --config ~a/config/udiskie/udiskie.conf &" *data-dir*))
+        ((command-is-successful? (format nil "udiskie --config ~aconfig/udiskie/udiskie.conf &" *config-dir*))
          (message ":)"))
         (t (message ":( Failed to start udiskie"))))
 
@@ -136,7 +136,7 @@ systemctl instead."
 (defcommand xsettingsd-start () ()
   (if (not (executable? "xdpyinfo"))
       (message "Install `xdpyinfo`")
-      (if (command-is-successful? "xsettingsd -c ~/.stumpwm.d/config/xsettingsd/.xsettingsd &")
+      (if (command-is-successful? (format nil "xsettingsd -c ~aconfig/xsettingsd/.xsettingsd &" *config-dir*))
           (message "xsettingsd started :)")
           (message ":( Failed"))))
 
@@ -211,8 +211,8 @@ systemctl instead."
 (defcommand rofi () ()
   "rofi"
   (if pc?
-      (run-or-raise (format nil "rofi -dpi 140 -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi"))
-      (run-or-raise (format nil "rofi -show combi -config ~aconfig/rofi/config.rasi" *data-dir*) '(:class "rofi"))))
+      (run-or-raise (format nil "rofi -dpi 140 -show combi -config ~aconfig/rofi/config.rasi" *config-dir*) '(:class "rofi"))
+      (run-or-raise (format nil "rofi -show combi -config ~aconfig/rofi/config.rasi" *config-dir*) '(:class "rofi"))))
 
 ;; Rofi (for window switching)
 (defcommand window-mini () ()

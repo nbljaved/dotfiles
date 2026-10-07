@@ -42,14 +42,14 @@ if [ -e "$HOME/quicklisp" ]; then
 fi
 
 # ql:add-to-init-file is skipped on purpose: ~/.sbclrc is a symlink into
-# shell-config and already loads ~/quicklisp/setup.lisp.
+# dotfiles/shell-config and already loads ~/quicklisp/setup.lisp.
 sbcl --non-interactive \
      --load quicklisp.lisp \
      --eval '(quicklisp-quickstart:install)'
 
 # clx-truetype is the goose121 fork, vendored as a submodule of this repo.
 mkdir -p "$HOME/quicklisp/local-projects"
-ln -sfn "$HOME/.stumpwm.d/clx-truetype" "$HOME/quicklisp/local-projects/clx-truetype"
+ln -sfn "$HOME/dotfiles/stumpwm.d/clx-truetype" "$HOME/quicklisp/local-projects/clx-truetype"
 
 # Pull in the dependency libraries now, so the first StumpWM start is offline-safe.
 sbcl --non-interactive \

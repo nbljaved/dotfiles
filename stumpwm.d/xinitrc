@@ -1,5 +1,5 @@
 #!/bin/sh
-# Symlink this to ~/.xinitrc:  ln -sf ~/.stumpwm.d/xinitrc ~/.xinitrc
+# Symlink this to ~/.xinitrc:  ln -sf ~/dotfiles/stumpwm.d/xinitrc ~/.xinitrc
 #
 # `startx` reads it.  Only the thinkpad needs it: that machine runs Debian,
 # where Xorg comes from apt and StumpWM comes from a Guix profile, started by
@@ -16,9 +16,9 @@ fi
 
 # X resources: the shared file, then this host's, if xrdb is installed.
 if command -v xrdb > /dev/null 2>&1; then
-    [ -f "$HOME/.stumpwm.d/Xresources" ] && xrdb -merge "$HOME/.stumpwm.d/Xresources"
-    [ -f "$HOME/.stumpwm.d/Xresources.$host" ] &&
-        xrdb -merge "$HOME/.stumpwm.d/Xresources.$host"
+    [ -f "$HOME/dotfiles/stumpwm.d/Xresources" ] && xrdb -merge "$HOME/dotfiles/stumpwm.d/Xresources"
+    [ -f "$HOME/dotfiles/stumpwm.d/Xresources.$host" ] &&
+        xrdb -merge "$HOME/dotfiles/stumpwm.d/Xresources.$host"
 fi
 
 setxkbmap us -variant altgr-intl
