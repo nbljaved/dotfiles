@@ -1,0 +1,16 @@
+My shell setup
+
+- Install [[https://sw.kovidgoyal.net/kitty/][kitty]], [[https://github.com/akinomyoga/ble.sh][ble.sh]], [[https://starship.rs/][starship]]
+
+- To link the files to your home folder
+  (Before creating a soft-link, you should remove the file existing at that location (for backup), probably save them somewhere else.)
+
+  #+CAPTION: Create links forcefully (overwrite existing files)
+  #+begin_src shell
+  ln -sf ~/shell-config/.bashrc ~/.bashrc
+  ln -sf ~/shell-config/.bash_profile ~/.bash_profile
+  ln -sf ~/shell-config/kitty   ~/.config/
+  ln -sf ~/shell-config/.blerc  ~/.blerc
+  ln -sf ~/shell-config/starship/starship.toml ~/.config/
+  #+end_src
+  

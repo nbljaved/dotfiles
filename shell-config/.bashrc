@@ -1,0 +1,278 @@
+#!/bin/bash
+
+##############################################################################
+## ble.sh
+#BLESH=$( guix package -I blesh | awk '{print $4}')
+#BLESH="$BLESH/share/blesh/ble.sh"
+BLESH=$( guix locate ble.sh | awk '{print $2}')
+# Add this lines at the top of .bashrc:
+[[ $- == *i* ]] && source "$BLESH" --noattach
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+##########
+
+# # Note: If you want to combine fzf-completion with bash_completion, you need to
+# # load bash_completion earlier than fzf-completion.  This is required
+# # regardless of whether to use ble.sh or not.
+# source /etc/profile.d/bash_completion.sh
+
+# ble-import integration/fzf-completion
+# ble-import integration/fzf-key-bindings
+
+if [[ $- != *i* ]]
+then
+    # We are being invoked from a non-interactive shell.  If this
+    # is an SSH session (as in "ssh host command"), source
+    # /etc/profile so we get PATH and other essential variables.
+    [[ -n "$SSH_CLIENT" ]] && source /etc/profile
+
+    # Don't do anything else.
+    return
+fi
+
+# Source the system-wide file.
+if [ -f /etc/bashrc ]; then
+    source /etc/bashrc
+fi
+if [ -f /etc/bash.bashrc ]; then
+    source /etc/bash.bashrc
+fi
+
+# Bash initialization for interactive non-login shells and
+# for remote shells (info "(bash) Bash Startup Files").
+
+# Export 'SHELL' to child processes.  Programs such as 'screen'
+# honor it and otherwise use /bin/sh.
+export SHELL
+
+# history
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+
+## Kitty
+if command -v "kitty" >/dev/null 2>&1; then
+    export PATH="$HOME/.local/kitty.app/bin:$PATH"
+    source <(kitty + complete setup bash)
+fi
+
+export TERM=xterm-256color # otherwise ssh has keyboard problems
+
+## Common Lisp
+# SBCL
+# export SBCL_HOME="/home/nabeel/.guix-profile/lib/sbcl/"
+# Roswell
+#export PATH="$PATH:/home/nabeel/.roswell/bin"
+
+alias python='python3'
+alias em='emacsclient --alternate-editor="" --create-frame --no-wait'
+
+
+# lazy
+alias ld='lazydocker'
+alias lg='lazygit'
+alias ls='ls -alh'
+alias cat='bat'
+alias du='dust'
+alias l='eza --color=auto --icons -l'
+alias rgi='rg --no-ignore --hidden -i'
+
+# Distrobox
+arch() {
+    if [ $# -eq 0 ]; then
+        distrobox enter arch
+    else
+        distrobox enter arch -- "$@"
+    fi
+}
+
+# Set up fzf key bindings and fuzzy completion
+# fuzzy completion using **<TAB>
+# CTRL-T - Paste the selected files and directories onto the command-line
+# CTRL-R - Paste the selected command from history onto the command-line
+if command -v "fzf" >/dev/null 2>&1 ; then
+    eval "$(fzf --bash)"
+    # Print tree structure in the preview window
+    export FZF_ALT_C_OPTS="
+  --walker-skip .git,node_modules,target
+  --preview 'tree -C {}'"
+    # Preview file content using bat (https://github.com/sharkdp/bat)
+    export FZF_CTRL_T_OPTS="
+  --walker-skip .git,node_modules,target
+  --preview 'bat -n --color=always {}'
+  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+    # Options to fzf command
+    export FZF_COMPLETION_OPTS='--border --info=inline'
+    # Options for path completion (e.g. vim **<TAB>)
+    export FZF_COMPLETION_PATH_OPTS='--walker file,dir,follow,hidden'
+    # Options for directory completion (e.g. cd **<TAB>)
+    export FZF_COMPLETION_DIR_OPTS='--walker dir,follow'    
+fi
+
+#safety
+alias rm='echo "Use trash-cli instead of: rm"'
+
+# shot-scraper
+# https://shot-scraper.datasette.io/
+# See ~/guix-config/.config/useful-docker-images/shot-scraper/
+export PATH=$PATH:"$HOME/guix-config/.config/useful-docker-images/shot-scraper/bin"
+
+# Golang
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:"$HOME/go/bin"
+
+
+# Adjust the prompt depending on whether we're in 'guix environment'.
+if [ -n "$GUIX_ENVIRONMENT" ]
+then
+    PS1='\u@\h \w [guix-env]\$ '
+else
+    PS1='\u@\h \w\$ '
+fi
+
+## Guix
+GUIX=$(command -v "guix")
+GUIX_SYSTEM=$(grep '^ID=guix' /etc/os-release)
+if [ -z "$GUIX_SYSTEM" ] && [ -n "$GUIX" ]; then
+    # -z : zero length
+    # -n : non-zero length
+    export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+    export GUIX_PROFILE="$HOME/.guix-profile"
+    source "$GUIX_PROFILE/etc/profile"
+    export GUIX_CHECKOUT="$HOME/src/guix"
+    #
+    export PKG_CONFIG_PATH=$GUIX_PROFILE/lib/pkgconfig
+    # SSL certificate
+    export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
+    export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
+    export GIT_SSL_CAINFO="$SSL_CERT_FILE"
+fi
+
+
+# Nix
+if command -v "nix" >/dev/null 2>&1 && [ -n "$GUIX_SYSTEM" ]; then
+    source /run/current-system/profile/etc/profile.d/nix.sh
+fi
+
+##########
+## Emacs-start
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='emacsclient --alternate-editor="" --create-frame --no-wait'
+else
+  export EDITOR='emacsclient --alternate-editor="" --create-frame --no-wait'
+fi
+
+## Vterm - https://github.com/akermu/emacs-libvterm
+# vterm shell-side configuration
+vterm_printf() {
+    if [ -n "$TMUX" ] \
+        && { [ "${TERM%%-*}" = "tmux" ] \
+            || [ "${TERM%%-*}" = "screen" ]; }; then
+        # Tell tmux to pass the escape sequences through
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+    elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+    else
+        printf "\e]%s\e\\" "$1"
+    fi
+}
+# vterm-clear-scrollback (C-c C-l)
+if [ "$INSIDE_EMACS" = 'vterm' ]; then
+    clear() {
+        vterm_printf "51;Evterm-clear-scrollback";
+        tput clear;
+    }
+fi
+# https://github.com/akermu/emacs-libvterm?tab=readme-ov-file#vterm-buffer-name-string
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }"'echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
+# https://github.com/akermu/emacs-libvterm#message-passing
+vterm_cmd() {
+    local vterm_elisp
+    vterm_elisp=""
+    while [ $# -gt 0 ]; do
+        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+        shift
+    done
+    vterm_printf "51;E$vterm_elisp"
+}
+# https://github.com/akermu/emacs-libvterm#how-can-i-get-the-directory-tracking-in-a-more-understandable-way
+vterm_set_directory() {
+    vterm_cmd update-pwd "$PWD/"
+}
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }vterm_set_directory"
+
+## Emacs-end
+######
+
+# zoxide
+eval "$(zoxide init --cmd cd bash)"
+# Direnv
+eval "$(direnv hook bash)"
+# starship
+export PATH="$PATH":/usr/local/bin
+eval "$(starship init bash)"
+
+## npm
+# To allow global package installations for the current user
+if command -v "npm" >/dev/null 2>&1; then
+    PATH="$HOME/.local/bin:$PATH"
+    export npm_config_prefix="$HOME/.local"
+    command npm config set ignore-scripts true --global
+    # Example on how to temporarily enable script execution:
+    # npm install -g bun --ignore-scripts=false
+fi
+
+#bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+# bun, by default, blocks post install scripts (unless you have trusted them
+# manually)
+alias npm='echo "Use bun (https://bun.sh/docs) instead of: npm"'
+
+# # nvm
+# export NVM_DIR="$HOME/.config/nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# uv (If on non-FHS compliant system, use distrobox)
+export PATH="$HOME/.local/bin:$PATH"
+# export UV_PYTHON_DOWNLOADS="manual"
+# export UV_PYTHON_PREFERENCE="system"
+
+if [ -f "$HOME/.cargo/env" ]; then
+    source "$HOME/.cargo/env"
+fi
+
+## typst
+# do fc-list to look at available fonts
+export TYPST_FONT_PATHS="$HOME/.guix-profile/share/fonts/:$HOME/.local/share/fonts"
+
+# Dark theme for pavucontrol
+export GTK_THEME=Adwaita:dark
+
+# when facing gdk_pixbuf_errors
+# unset GDK_PIXBUF_MODULE_FILE
+#
+# when facing errors relating to 'gio'
+# unset GIO_EXTRA_MODULES
+#
+# ip link set dev wlp128s20f3 mtu 1279
+
+# vscode
+# code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
+
+# thinkpad (Debian): unattended-upgrades never reboots on its own, so say
+# when an update is waiting for one (REINSTALL-thinkpad.org, 4.3).
+if [ "$HOSTNAME" = thinkpad ] && [ -f /var/run/reboot-required ]; then
+    echo "Reboot required to finish applying updates:"
+    sed 's/^/  /' /var/run/reboot-required.pkgs 2>/dev/null | sort -u
+fi
+
+##############################################################################
+## ble.sh
+# Add this line at the end of .bashrc:
+[[ ${BLE_VERSION-} ]] && ble-attach
+

@@ -1,0 +1,11 @@
+;;; Written by ql:add-to-init-file.  Kept in shell-config so a fresh
+;;; machine can symlink it instead of restoring it: see
+;;; guix-config/other/reinstall-os/REINSTALL-thinkpad.org 6.4 and 6.7.
+
+;;; The following lines added by ql:add-to-init-file:
+#-quicklisp
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                       (user-homedir-pathname))))
+  (when (probe-file quicklisp-init)
+    (load quicklisp-init)))
+
