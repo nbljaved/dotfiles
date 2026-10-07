@@ -5060,23 +5060,63 @@ https://gitlab.com/phillord/org-drill
 (use-package org-drill)
 #+end_src
 
-** org-roam
-https://www.orgroam.com/manual.html#Installation
+** denote
+https://github.com/protesilaos/denote
 
-Install =sqlite3= on the system
-install
+Manual: https://protesilaos.com/emacs/denote
+
+No database is needed,
+The file name (=IDENTIFIER--title__keywords.org=) carries the metadata.
+
 #+begin_src emacs-lisp
 (make-directory "~/org/roam" :parents)
 #+end_src
 #+begin_src emacs-lisp
-  (use-package org-roam
-    :demand t
-    :init
-    (setq org-roam-v2-ack t)
-    :custom
-    (org-roam-directory (file-truename "~/org/roam/"))
-    :config
-    (org-roam-db-autosync-mode 1))
+(use-package denote
+  :demand t
+  :hook
+  ((text-mode . denote-fontify-links-mode)
+   (dired-mode . denote-dired-mode))
+  :bind
+  ( :map global-map
+    ("C-c n n" . denote)
+    ("C-c n o" . denote-open-or-create)
+    ("C-c n d" . denote-dired)
+    ("C-c n l" . denote-link)
+    ("C-c n L" . denote-add-links)
+    ("C-c n b" . denote-backlinks)
+    ("C-c n r" . denote-rename-file)
+    ("C-c n R" . denote-rename-file-using-front-matter)
+    :map dired-mode-map
+    ("C-c C-d C-i" . denote-dired-link-marked-notes)
+    ("C-c C-d C-r" . denote-dired-rename-files)
+    ("C-c C-d C-k" . denote-dired-rename-marked-files-with-keywords)
+    ("C-c C-d C-R" . denote-dired-rename-marked-files-using-front-matter))
+  :custom
+  (denote-directory (file-truename "~/notes/"))
+  (denote-infer-keywords t)
+  (denote-sort-keywords t)
+  (denote-prompts '(title keywords))
+  (denote-date-prompt-use-org-read-date t)
+  :config
+  (denote-rename-buffer-mode 1))
+#+end_src
+
+*** consult-denote
+https://github.com/protesilaos/consult-denote
+
+=consult-denote-mode= makes Denote's file prompts use Consult (with
+preview) and adds Denote notes as a source to =consult-buffer=.
+
+#+begin_src emacs-lisp
+(use-package consult-denote
+  :after denote
+  :demand t
+  :bind
+  (("C-c n f" . consult-denote-find)
+   ("C-c n g" . consult-denote-grep))
+  :config
+  (consult-denote-mode 1))
 #+end_src
 
 ** Other packages
