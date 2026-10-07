@@ -1,0 +1,7 @@
+! pc: 32" 4K panel, 3840x2160 -> ~138 dpi, rounded up to 144.
+! Nothing reads this today: the pc's session comes from GDM, which does not
+! run xrdb.  What actually applies there is Xft/DPI 147456 (= 144 * 1024) in
+! config/xsettingsd/.xsettingsd.  The two are kept equal on purpose; the old
+! ~/.Xresources said 192 and had never been read by anything.
+Xft.dpi: 144
+Xcursor.size: 48

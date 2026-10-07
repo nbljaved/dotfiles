@@ -1,0 +1,8 @@
+
+configuration {
+  modes: [ combi ];
+  combi-modes: [ run, window ];
+}
+
+@theme "/home/nabeel/.guix-profile/share/rofi/themes/purple.rasi"
+

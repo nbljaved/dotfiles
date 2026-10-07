@@ -1,0 +1,21 @@
+! Shared X resources.  ~/.stumpwm.d/xinitrc merges this file and then
+! Xresources.$(hostname), so per-machine values live in those and anything
+! machine-independent lives here.
+!
+! Only a session that runs `xrdb` reads this.  That means the thinkpad, which
+! starts X with `startx` and our xinitrc.  The pc logs in through GDM, which
+! never runs xrdb, so on the pc these settings come from xsettingsd instead
+! (config/xsettingsd/.xsettingsd) and this file is inert.
+
+! Font rendering.
+Xft.autohint: 0
+Xft.lcdfilter: lcddefault
+Xft.hintstyle: hintfull
+Xft.hinting: 1
+Xft.antialias: 1
+Xft.rgba: rgb
+
+! Was ~/.Xdefaults.  A client only reads ~/.Xdefaults when nobody has run
+! xrdb, so these two lines were silently dropped the moment xinitrc ran.
+XTerm*utf8: always
+XTerm*metaSendsEscape: true

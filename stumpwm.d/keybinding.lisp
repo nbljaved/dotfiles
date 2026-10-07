@@ -1,0 +1,167 @@
+(in-package :stumpwm)
+
+;; stumpwm prefix key
+(stumpwm:set-prefix-key (stumpwm:kbd "s-w"))
+
+;; Keyboard
+(define-key *top-map* (kbd "s-!") "exec")
+;; (define-key *top-map* (kbd "s-:") "eval") ; eval is dangerous, can crash Stumpwm, use the Sly repl
+(define-key *top-map* (kbd "s-:") "colon")
+(define-key *top-map* (kbd "C-s-k") "nbl/keyboard")
+(define-key *top-map* (kbd "s-S-Left") "exchange-direction left")
+(define-key *top-map* (kbd "s-S-Down") "exchange-direction down")
+(define-key *top-map* (kbd "s-S-Right") "exchange-direction right")
+(define-key *top-map* (kbd "s-S-Up") "exchange-direction up")
+
+;;; Root map
+(define-key *root-map* (kbd "b") "windowlist")
+(define-key *root-map* (kbd "w") "windowlist") ;;windows
+(define-key *root-map* (kbd "s-n") "renumber")
+(define-key *root-map* (kbd "s-w") "other")
+(define-key *root-map* (kbd "s-p") "global-pull-windowlist")
+(define-key *root-map* (kbd "i") "show-window-properties")
+(define-key *root-map* (kbd "I") "list-window-properties")
+
+;; frame manipulation
+(define-key *top-map* (kbd "C-Q") "send-raw-key") ;; send raw key
+(define-key *top-map* (kbd "s-F") "fullscreen")
+(define-key *top-map* (kbd "s-q") "delete")
+(define-key *top-map* (kbd "s-Q") "kill")
+(define-key *top-map* (kbd "s-d") "rofi")
+(define-key *top-map* (kbd "s-o") "fnext") ;; like other buffer
+(define-key *top-map* (kbd "s-TAB") "pull-hidden-next")
+(define-key *top-map* (kbd "s-S-RET") "expose")
+;; (define-key *top-map* (kbd "s-n") "window-mini") ;; switch to the window
+;; (define-key *top-map* (kbd "s-n") "global-windowlist") ;; switch to the window
+(define-key *top-map* (kbd "s-p") "global-pull-windowlist") ;; pull the the windwo to where you are
+(define-key *menu-map* (kbd "s-n" ) 'menu-down)
+(define-key *menu-map* (kbd "C-j" ) 'menu-down)
+(define-key *menu-map* (kbd "s-p" ) 'menu-up)
+(define-key *menu-map* (kbd "C-k" ) 'menu-up)
+
+(define-key *root-map* (kbd "`") "remove-split")
+(define-key *root-map* (kbd "0") "remove-split")
+(define-key *root-map* (kbd "1") "only")
+(define-key *root-map* (kbd "2") "vsplit")
+(define-key *root-map* (kbd "3") "hsplit")
+;; (define-key *root-map* (kbd "C-`") "pull 0")
+;; (define-key *top-map* (kbd "s-~") "remove-split")
+;; (define-key *top-map* (kbd "s-!") "only")
+;; (define-key *top-map* (kbd "s-@") "vsplit")
+;; (define-key *top-map* (kbd "s-#") "hsplit")
+
+(define-key *top-map* (kbd "s-0") "fclear")
+(define-key *top-map* (kbd "Print") "flameshot")
+(define-key *top-map* (kbd "s-P") "flameshot-gui")
+(define-key *top-map* (kbd "s-Print") "flameshot-gui")
+(define-key *top-map* (kbd "s-SPC") "emacs-everywhere")
+(define-key *top-map* (kbd "s-B") "blueman-manager")
+
+(define-key *top-map* (kbd "s-`") "nbl/select-window-by-number 0")
+(define-key *top-map* (kbd "s-1") "nbl/select-window-by-number 1")
+(define-key *top-map* (kbd "s-2") "nbl/select-window-by-number 2")
+(define-key *top-map* (kbd "s-3") "nbl/select-window-by-number 3")
+(define-key *top-map* (kbd "s-4") "nbl/select-window-by-number 4")
+(define-key *top-map* (kbd "s-5") "nbl/select-window-by-number 5")
+(define-key *top-map* (kbd "s-6") "nbl/select-window-by-number 6")
+(define-key *top-map* (kbd "s-7") "nbl/select-window-by-number 7")
+;; (define-key *top-map* (kbd "s-8") "sound-settings")
+(define-key *top-map* (kbd "s-8") "nbl/select-window-by-number 8")
+(define-key *top-map* (kbd "s-9") "nbl/select-window-by-number 9")
+;; (define-key *top-map* (kbd "s-`") "nbl/emacs")
+;; (define-key *top-map* (kbd "s-2") "firefox")
+
+
+;; GROUP MANIPULATION
+(define-key *top-map* (kbd "s-g") '*groups-map*)
+(define-key *groups-map* (kbd "s-g") "gother")
+(define-key *groups-map* (kbd "g") "grouplist")
+(define-key *groups-map* (kbd "f") "gnew")
+(define-key *groups-map* (kbd "s-n") "grenumber")
+
+
+;; polybar manipulation
+;; (defvar *polybar-map* (make-sparse-keymap))
+;; (define-key *top-map* (kbd "s-P") '*polybar-map*)
+;; (define-key *polybar-map* (kbd "p") "launch-polybar")
+;; (define-key *polybar-map* (kbd "k") "kill-polybar")
+;; (define-key *polybar-map* (kbd "r") "refresh-polybar")
+
+;; xrandr
+(defvar *xrandr-map* (make-sparse-keymap))
+(define-key *top-map* (kbd "s-x") '*xrandr-map*)
+(define-key *xrandr-map* (kbd "s-a") "xrandr-auto")
+(define-key *xrandr-map* (kbd "s-l") "xrandr-laptop")
+(define-key *xrandr-map* (kbd "s-m") "xrandr-monitor")
+(define-key *xrandr-map* (kbd "s-v") "xrandr-vertical")
+(define-key *xrandr-map* (kbd "s-h") "xrandr-horizontal")
+(define-key *xrandr-map* (kbd "s-s") "xrandr-same")
+(define-key *xrandr-map* (kbd "s-r") "xrandr-right-of-laptop")
+(define-key *xrandr-map* (kbd "s-x") "refresh-heads")
+
+;; Launch applications
+;; Add "run-or-raises" programs to root-map
+(define-key *top-map* (kbd "s-RET") "terminal")
+(define-key *top-map* (kbd "s-f") "librewolf")
+(define-key *top-map* (kbd "s-b") "google-chrome")
+(define-key *top-map* (kbd "s-n") "nyxt")
+(define-key *top-map* (kbd "s-m") "mpv")
+(define-key *top-map* (kbd "s-e") "nbl/emacs")
+(define-key *top-map* (kbd "s-E") nil)
+(define-key *top-map* (kbd "s-s") "nbl/slack")
+(define-key *top-map* (kbd "s-z") "nbl/zoom")
+(define-key *top-map* (kbd "s-S") "sound-settings")
+(define-key *top-map* (kbd "s-T") "file-manager")
+(define-key *top-map* (kbd "s-O") "pdf-viewer")
+;; (define-key *top-map* (kbd "s-;") "terminal")
+
+(define-key *top-map* (kbd "s-ESC") "lock-screen")
+
+(define-key *top-map* (kbd "s-A") "battery")
+(define-key *top-map* (kbd "s-a") "time")
+(define-key *top-map* (kbd "s-M") "nbl/toggle-mode-line")
+(define-key *top-map* (kbd "s-W") "wallpaper")
+;; (define-key *top-map* (kbd "s-G") "nbl/toggle-gaps")
+
+;;; Desktop Environment
+;; Brightness
+(define-key *top-map* (kbd "XF86MonBrightnessUp") "backlight-up")
+(define-key *top-map* (kbd "XF86MonBrightnessDown") "backlight-down")
+
+;; Volume
+(define-key *top-map* (kbd "XF86AudioMute") "volume-mute")
+(define-key *top-map* (kbd "XF86AudioRaiseVolume") "volume-up")
+(define-key *top-map* (kbd "XF86AudioLowerVolume") "volume-down")
+(define-key *top-map* (kbd "XF86AudioMicMute") "mic-mute")
+
+;; dunst
+(define-key *top-map* (kbd "C-S-SPC") "clear-notifications")
+;; winner-mode
+(defvar *winner-map* (make-sparse-keymap))
+
+(defvar *message-filters* '("Group dumped.")
+  "Don't show these messages.")
+
+(defun message (fmt &rest args)
+  "Overwritten message function to allow filters"
+  (let ((msg-string (apply 'format nil fmt args)))
+    (unless (member msg-string *message-filters* :test #'string=)
+      (echo-string (current-screen) msg-string))))
+
+(define-key *top-map* (kbd "s-c") '*winner-map*) 
+(define-key *winner-map* (kbd "Left") "winner-undo") 
+(define-key *winner-map* (kbd "Right") "winner-redo") 
+(setf winner-mode:*tmp-folder* "~/.stumpwm.d/winner-layouts/") 
+;; (defun nbl/winner-save (command) 
+;;   (when (member 'command winner-mode:*default-commands*) 
+;;     (winner-mode:dump-group-to-file))) 
+;; (add-hook *post-command-hook* #'nbl/winner-save)
+
+(add-hook *post-command-hook* (lambda (command)
+                                (when (member command winner-mode:*default-commands*)
+                                  (winner-mode:dump-group-to-file))))
+;(remove-all-hooks *post-command-hook*)
+
+
+
+

@@ -1,0 +1,6 @@
+! thinkpad (Debian): read by xinitrc at every startx.
+! Pick the DPI from the panel -- `xdpyinfo | grep -B1 dimensions` prints the
+! resolution and the physical size.  A 14" T460 is either 1366x768 (~112 dpi,
+! leave this at 96) or 1920x1080 (~157 dpi, use 144).
+Xft.dpi: 96
+Xcursor.size: 24
