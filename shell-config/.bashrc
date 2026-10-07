@@ -35,6 +35,9 @@ fi
 if [ -f /etc/bashrc ]; then
     source /etc/bashrc
 fi
+if [ -f /etc/bash.bashrc ]; then
+    source /etc/bash.bashrc
+fi
 
 # Bash initialization for interactive non-login shells and
 # for remote shells (info "(bash) Bash Startup Files").
@@ -260,6 +263,13 @@ export GTK_THEME=Adwaita:dark
 
 # vscode
 # code --verbose  --vmodule="*/components/os_crypt/*=1" --password-store="gnome-libsecret"
+
+# thinkpad (Debian): unattended-upgrades never reboots on its own, so say
+# when an update is waiting for one (REINSTALL-thinkpad.org, 4.3).
+if [ "$HOSTNAME" = thinkpad ] && [ -f /var/run/reboot-required ]; then
+    echo "Reboot required to finish applying updates:"
+    sed 's/^/  /' /var/run/reboot-required.pkgs 2>/dev/null | sort -u
+fi
 
 ##############################################################################
 ## ble.sh

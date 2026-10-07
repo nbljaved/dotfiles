@@ -1,3 +1,11 @@
+# /etc/profile resets PATH, but nix-daemon.sh skips re-adding Nix when
+# __ETC_PROFILE_NIX_SOURCED is inherited from the parent session
+# (e.g. Emacs' exec-path-from-shell started from StumpWM).
+if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+    unset __ETC_PROFILE_NIX_SOURCED
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+
 # Set up Guix Home profile
 if [ -f ~/.profile ]; then . ~/.profile; fi
 
@@ -33,3 +41,10 @@ export PATH=/run/setuid-programs:$PATH
 #         }
 #     fi
 # fi
+
+
+# thinkpad (Debian): start X after logging in on tty1.  `exec` means
+# leaving X also ends the login session, so no shell is left behind.
+if [ -z "$DISPLAY" ] && [ "$(tty)" = /dev/tty1 ] && [ "$(hostname)" = thinkpad ]; then
+    exec startx
+fi
