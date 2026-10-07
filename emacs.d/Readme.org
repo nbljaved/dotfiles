@@ -1,0 +1,5 @@
+
+#+begin_src shell
+# to update and install submodules
+git submodule update --init --recursive ;
+#+end_src

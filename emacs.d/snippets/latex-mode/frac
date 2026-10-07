@@ -1,0 +1,4 @@
+# name: \frac
+# key: fr
+# --
+\frac{${1:numerator}}{${2:denominator}} $0

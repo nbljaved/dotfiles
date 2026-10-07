@@ -1,0 +1,4 @@
+# name: text
+# key: \t
+# --
+\text{$1}$0

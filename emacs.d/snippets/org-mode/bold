@@ -1,0 +1,4 @@
+# name: bold
+# key: bb
+# --
+*$1* $0
