@@ -1,0 +1,9 @@
+[submodule "emacs-pde"]
+	path = emacs.d/manual/emacs-pde
+	url = https://github.com/wenbinye/emacs-pde
+[submodule "stumpwm-contrib"]
+	path = stumpwm.d/modules
+	url = https://github.com/stumpwm/stumpwm-contrib
+[submodule "clx-truetype"]
+	path = stumpwm.d/clx-truetype
+	url = https://github.com/goose121/clx-truetype

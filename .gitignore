@@ -1,0 +1,6 @@
+# Editor backups
+*~
+
+# Emacs runtime state
+/emacs.d/auto-save-list/
+/emacs.d/eln-cache/
