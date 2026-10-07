@@ -23,15 +23,20 @@ fi
 
 setxkbmap us -variant altgr-intl
 
-# Lock on suspend and on `loginctl lock-session`.
+# Lock on suspend/hibernate only.
+#
+# xss-lock also runs the locker when the X screen saver kicks in (after
+# `xset s TIMEOUT CYCLE`, see `screen-blank-time'), but blanking is all we
+# want there.  xss-lock sets $XSS_SLEEP_LOCK_FD only when the system is
+# going to sleep, so the wrapper locks then and does nothing otherwise.
 #
 # On Debian the locker must be Debian's own: it authenticates through
 # Debian's PAM, which a copy out of a Guix profile cannot do.  Our Guix
 # profile comes first in PATH, so name the path instead of trusting PATH.
-if [ -x /usr/bin/i3lock ] && command -v xss-lock > /dev/null 2>&1; then
-    xss-lock --transfer-sleep-lock -- /usr/bin/i3lock --nofork &
-elif command -v i3lock > /dev/null 2>&1 && command -v xss-lock > /dev/null 2>&1; then
-    xss-lock --transfer-sleep-lock -- i3lock --nofork &
+if [ -x /usr/bin/i3lock ]; then i3lock=/usr/bin/i3lock; else i3lock=i3lock; fi
+if command -v "$i3lock" > /dev/null 2>&1 && command -v xss-lock > /dev/null 2>&1; then
+    xss-lock --transfer-sleep-lock -- \
+        sh -c '[ -n "$XSS_SLEEP_LOCK_FD" ] && exec "$0" --nofork -c 2e2e2e' "$i3lock" &
 fi
 
 exec stumpwm

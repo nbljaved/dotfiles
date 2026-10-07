@@ -76,13 +76,39 @@ register.  So there, name Debian's copy by path.  `pc?' is set in init.lisp.")
           (message "$SSH_AUTH_SOCK is now available")
           (message (format nil "Error sourcing ~a" ssh-agent-file))))))
 
+(defun power-command (verb)
+  "Shell command to suspend/hibernate/reboot/poweroff.  On Guix System, elogind's loginctl
+has these verbs; on Debian, systemd's loginctl lacks them and they live in
+systemctl instead."
+  (format nil "~a ~a" (if (executable? "systemctl") "systemctl" "loginctl") verb))
+
 (defcommand hibernate () ()
-  (when (command-is-successful? "loginctl hibernate")
+  (when (command-is-successful? (power-command "hibernate"))
     (message "Hibernating (-_-) zzz")))
 
 (defcommand suspend-and-lock () ()
-  (when (command-is-successful? "loginctl suspend && i3lock -c 2e2e2e")
-    (message "lockin")))
+  (when (command-is-successful? (format nil "~a && i3lock -c 2e2e2e" (power-command "suspend")))
+    (message "suspend and lock")))
+
+;; Session.  Both machines start the session with StumpWM as its last
+;; process (GDM on the pc, `exec stumpwm' in xinitrc on the thinkpad), so
+;; quitting StumpWM is logging out.
+(defcommand logout () ()
+  "Quit StumpWM, ending the X session"
+  (when (y-or-n-p "Log out? ")
+    (quit)))
+
+(defcommand reboot () ()
+  (when (y-or-n-p "Reboot? ")
+    (run-shell-command (power-command "reboot"))))
+
+(defcommand shutdown () ()
+  (when (y-or-n-p "Shut down? ")
+    (run-shell-command (power-command "poweroff"))))
+
+(defcommand poweroff () ()
+  "Same as `shutdown'"
+  (shutdown))
 
 ;; Keyboard
 (defcommand nbl/keyboard () ()
