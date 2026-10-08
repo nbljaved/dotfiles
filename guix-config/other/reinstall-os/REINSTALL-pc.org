@@ -9,7 +9,7 @@
 ** What this does
 It wipes *the whole disk* =/dev/nvme0n1=: the EFI partition, the old swap partition and =/=, =/home=, =/gnu=, =/nix= and =/swapfile= (D2). It then writes a new partition table, reinstalls Guix System from your =guix-config= repo and restores your data and repos.
 
-Nothing on the disk survives, so every UUID in =config-pc.scm= changes. Root uses a label (1.3), and 2.8 writes the new LUKS and EFI UUIDs into the config.
+Nothing on the disk survives, so every UUID in =config-pc.scm= changes. In 2.8 you edit the cloned config: root moves to a label, and the new LUKS and EFI UUIDs go in.
 
 | Phase | Where                       | What                                              | Time          |
 |-------+-----------------------------+---------------------------------------------------+---------------|
@@ -22,11 +22,11 @@ Your daemon is running guix =520785e= from 2026-03-09, which is *unpatched* agai
 
 |                        | Release ISO 1.5.0 (signed)  | Development ISO (*use this one*)                        |
 |------------------------+-----------------------------+---------------------------------------------------------|
-| guix-daemon inside     | predates the fix: vulnerable | =64d4de2= (2026-08-17): security fix + July-5 regression fix |
+| guix-daemon inside     | predates the fix: vulnerable | =5ceffb6= (2026-09-23): security fix + July-5 regression fix |
 | Substitutes during install | unsafe                  | safe                                                    |
 | Integrity check        | GPG signature               | HTTPS from =ci.guix.gnu.org= only (see below)           |
 
-- ISO used for this plan: CI build =24925386=, finished 2026-08-27, built from channel commit =e42227e= (2026-08-26). File size is =1308991488= bytes. Download: https://ci.guix.gnu.org/download/3964
+- ISO used for this plan: CI build =25728517=, finished 2026-09-29, built from channel commit =72dab4c= (2026-09-28); its daemon is =guix-1.5.0-7.5ceffb6=. It was the latest successful x86_64 ISO on 2026-10-08. File size is =1320882176= bytes. Download: https://ci.guix.gnu.org/download/4032
 - Always-latest link: https://ci.guix.gnu.org/search/latest/ISO-9660?query=spec:images+status:success+system:x86_64-linux+image.iso
   If that link now points to a newer build, that is fine. Any ISO built from a commit dated after 2026-07-05 contains both fixes, and step [[*2.4 Verify the ISO is patched — STOP if not][2.4]] confirms it on the machine itself.
 - *Integrity, honestly:* development ISOs are not GPG-signed, and neither build farm publishes a signed hash for them. Your trust rests on HTTPS to =ci.guix.gnu.org=. That's the same party whose signing key you already trust for every substitute. The signed 1.5.0 ISO is verifiable, but it would put you back on a vulnerable daemon, so it's the worse option.
@@ -39,7 +39,7 @@ Your daemon is running guix =520785e= from 2026-03-09, which is *unpatched* agai
 
 ** Machine state when this was written (2026-09-21 ~19:00)
 - *Half-migrated daemon.* =/gnu/store= is owned by =root root= because the privileged-mode reconfigure ran at 18:47. But the *old* daemon is still running as uid 958 (=guix-daemon=) without =--build-users-group=. It cannot write the root-owned store, so every build fails until a reboot. That is fixed by [[*1.0 Reboot once][step 1.0]].
-- =config-pc.scm= and =/etc/config.scm= carry *TEMPORARY* lines: =(privileged? #t)= and =(use-substitutes? #f)=. Step [[*1.3 Prepare config-pc.scm for the new install][1.3]] replaces them.
+- =config-pc.scm= and =/etc/config.scm= carry *TEMPORARY* lines: =(privileged? #t)= and =(use-substitutes? #f)=. They stay out of git (1.2) and are removed on the live USB in [[*2.8 Fetch guix-config and finalise the config][2.8]].
 - =channels-lock.scm= pins guix =35e88b7=, which is *unpatched*. *Do not use it* for the install. It gets refreshed in step [[*3.7 Guix: pull, user profile, refresh the lock][3.7]].
 - =guix-config/signing-key.pub= is *nonguix's substitute key* (=C1FD53E5…=), not a key of this machine. A copy also lives at =/etc/signing-key.pub=, because =config-pc.scm= references =./signing-key.pub= relative to its own location.
 - Secure Boot is off (=SecureBoot=0=). Onboard Ethernet uses =e1000e=, which works on the installer's linux-libre kernel. Wi-Fi uses =iwlwifi=, which does *not*.
@@ -97,9 +97,11 @@ The T460 got LUKS from Debian's installer. This machine gets it by hand, and Gui
 - *One passphrase, not two.* GRUB must unlock the container to read =/boot=, and the initrd must unlock it to mount =/=. Guix closes that gap by itself: =cryptomount= keeps the volume's master key, GRUB's =procfs= exposes it as =(proc)/luks_script=, and the generated =grub.cfg= injects that file into the initrd (=initrd newc:etc/luks_script:(proc)/luks_script … /boot/initrd=). The initrd matches the UUID and runs =cryptsetup open --volume-key-file=, so nothing is asked a second time; if the key is missing or doesn't match it just prompts, so the fallback is safe. *No configuration is required.* See the manual node "Automatic LUKS Master Key Passing"; in the guix you pull in 2.9 the code is =gnu/bootloader/grub.scm= (=newc:etc/luks_script=, =insmod procfs/luks/luks2=, =GRUB_ENABLE_CRYPTODISK=y=) and =gnu/system/mapped-devices.scm= (=luks-script-lookup-key=).
 - *LUKS2 with argon2id, but memory cost lowered to 256 MiB.* cryptsetup's argon2id default costs up to 1 GiB of RAM, and GRUB has to redo that KDF in the pre-boot environment, where allocations are capped below 4 GiB. On firmware that leaves little contiguous low memory, that combination makes a machine *unbootable*: correct passphrases get rejected, or GRUB runs out of memory loading the kernel. So 2.5 passes =--pbkdf-memory 262144 --pbkdf-force-iterations 4=. GRUB *2.14*, which is what Guix ships (=guix show grub-efi= → 2.14), is the first release that can do argon2 at all — that is why older Guix write-ups tell you to use =--type luks1= or =--pbkdf pbkdf2=.
 - *Expect a slow prompt.* GRUB does the KDF and AES without the CPU's crypto instructions; several seconds to half a minute is normal. The kernel's own unlock afterwards is instant.
-- *No swap partition.* The old plain one goes with the D2 wipe and is not recreated. Swap outside the container would hold pages of whatever you ran, and a hibernation image is a verbatim copy of your RAM — writing that in the clear would undo the whole exercise. Hibernation uses the 16 GiB =/swapfile= inside the encrypted root instead (2.7). This machine has 30 GiB of RAM and the manual says hibernation uses at most half of it, so 16 GiB is enough.
+- *No swap partition.* The old plain one goes with the D2 wipe and is not recreated. Swap outside the container would hold pages of whatever you ran, and a hibernation image is a verbatim copy of your RAM — writing that in the clear would undo the whole exercise. Hibernation uses the *32 GiB* =/swapfile= inside the encrypted root instead (2.7). This machine has 32 GB of RAM (about 31 GiB usable). The swap file is the size of RAM, not half of it, for two reasons (checked 2026-10-08):
+  - *The kernel.* The image itself is capped at about half of RAM and aimed at 2/5 by default (=hibernate_preallocate_memory()= and =image_size= in =kernel/power/snapshot.c=). The manual's "hibernation uses at most half the size of the RAM" describes that image. But to get down to that size, the kernel first swaps program memory out into the same swap, so swap has to hold that memory too, plus whatever was already swapped. The kernel's own FAQ (=Documentation/power/swsusp.rst=) says to "prepare big enough swap partition".
+  - *elogind*, which =loginctl hibernate= goes through, refuses with "Not enough suitable swap space for hibernation…" whenever =Active(anon)= in =/proc/meminfo= is more than 98% of the /free/ swap (=hibernation_is_safe()= in =src/shared/hibernate-util.c=). With 16 GiB, that would happen as soon as programs held about 15.7 GiB. With 32 GiB it effectively never does.
 - *What this does not protect*, the same honest list as the T460's D7: the ESP is unencrypted and nothing verifies GRUB, so someone with physical access can still tamper with the boot path. LUKS protects data at rest, which is what you are asking of it. Closing the boot path needs Secure Boot plus TPM measurement, which this plan does not set up.
-- *You type it at GRUB*, so the layout that matters is the one in =bootloader-configuration=; the kernel's own layout (from =operating-system=) only comes into play if the fallback prompt appears. =config-pc.scm= sets both to =us/altgr-intl=, but a plain-ASCII passphrase sidesteps the question entirely. Keep it on paper until the machine has booted successfully.
+- *You type it at GRUB, with GRUB's default US layout.* The keymap from =bootloader-configuration= can't apply at that prompt: =grub-install= builds the =cryptomount= into GRUB's core image (=util/grub-install.c=), so GRUB asks for the passphrase /before/ it can read =grub.cfg=, and =grub.cfg= — inside the encrypted root — is where Guix puts the keymap. That keymap only applies to the GRUB menu afterwards. The fallback prompt in the initrd uses the =operating-system= layout, which the manual says "is in effect as soon as the kernel has booted". =config-pc.scm= sets both to =us/altgr-intl=, which matches plain US for every ASCII key typed without AltGr. So use a plain-ASCII passphrase with no AltGr characters: it is then the same at every prompt. Keep it on paper until the machine has booted successfully.
 - *If GRUB can't unlock it*: boot the installer again, =cryptsetup open /dev/nvme0n1p2 cryptroot=, then =cryptsetup luksConvertKey --pbkdf pbkdf2 /dev/nvme0n1p2=. That rewrites the keyslot's KDF in place — no reinstall — and every GRUB since 2.06 can do pbkdf2. Then re-run 2.10 (or =guix system reconfigure= later) so =grub.cfg= is regenerated.
 - Known cosmetic bug: once the root file system is mounted, =/etc/luks_script= no longer exists, so unlocking any *other* LUKS device later logs "…not found, skipping" (Guix bug #81173). The system boots fine.
 
@@ -120,7 +122,7 @@ Snapshot of what is at risk (the survey script is in [[*C. At-risk survey script
 
 | Repo                                                    | At risk                                                                                                                                                                           | Action                                                                          |
 |---------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-| =~/guix-config=                                           | TEMP edits in =config-pc.scm= (*don't commit*); untracked =retry.sh=, =scripts/claude-sandbox/=, =verify.md=; ignored =.claude/=, =.config/.claude/=                                            | 1.3 replaces the TEMP edits; commit the untracked files you want                |
+| =~/guix-config=                                           | TEMP edits in =config-pc.scm= (*don't commit*); untracked =retry.sh=, =scripts/claude-sandbox/=, =verify.md=; ignored =.claude/=, =.config/.claude/=                                            | leave the TEMP edits uncommitted (1.2); commit the untracked files you want     |
 | =~/.emacs.d=                                              | =Emacs.org= modified (it's the *source* of =init.el=); 5 stashes (2025-07-25 … 2025-11-16)                                                                                              | commit, push to =origin= *and* =downstream=; rescue stashes                           |
 | =~/shell-config=                                          | =.bashrc= modified; 2 stashes (2025-08-31, 2025-11-16)                                                                                                                              | commit + push; rescue stashes                                                   |
 | =~/Documents/public=                                      | 6 modified files in =nbljaved.com/= (=publish.el=, blog post, generated html/atom)                                                                                                    | commit + push                                                                   |
@@ -132,7 +134,7 @@ Snapshot of what is at risk (the survey script is in [[*C. At-risk survey script
 | =~/Downloads/test=                                        | *NO REMOTE*, 0 commits, ~1,000 untracked files (CSV, site assets, marimo), 49 MB without =.venv=                                                                                      | accepted loss (D3), or give it a private repo                                   |
 | =islam=, =diary=, =org/roam=, =nonguix=, =smolagents=, submodules | nothing                                                                                                                                                                           | —                                                                               |
 
-- [ ] =~/guix-config=: handled in 1.3 / 1.4
+- [ ] =~/guix-config=: handled in 1.2 / 1.4
 - [ ] =~/.emacs.d=: commit =Emacs.org=, then =git push origin master && git push downstream master=
 - [ ] =~/.emacs.d=: 5 stashes rescued
 - [ ] =~/shell-config=: commit =.bashrc=, push, rescue 2 stashes
@@ -163,64 +165,34 @@ There were *10 stashes* on 2026-10-04: 5 in =.emacs.d=, 2 in =shell-config=, 1 e
 =brilliant-cv= needed this treatment and got a simpler one on 2026-10-04: its files moved into =~/Documents/personal/personal-documents/resume-papa= and were committed there (=e983dc0=), so it rides along with a repo that already has a remote. Only =~/Downloads/brilliant-cv/.git= is left, holding the old single =init= commit; delete it once =personal-documents= is pushed.
 
 ** DONE 1.2 Capture live state into guix-config
-=make sync= refreshes =current-profile-manifest=, =nix-config/manifest.nix= and =attribute-manifest.nix=. It also *overwrites =config-pc.scm= from =/etc/config.scm=*. Today the two are identical, including the TEMP lines, and 1.3 fixes them next.
+=make sync= refreshes =current-profile-manifest=, =nix-config/manifest.nix= and =attribute-manifest.nix=. It also *overwrites =config-pc.scm= from =/etc/config.scm=*, which brings the TEMP lines into the repo. Throw that part away: every edit to =config-pc.scm= for the new install happens on the live USB, in [[*2.8 Fetch guix-config and finalise the config][2.8]].
 #+begin_src sh
 cd ~/dotfiles/guix-config
 make sync
+git diff config-pc.scm             # expect only the TEMP lines (privileged?, use-substitutes?)
+git restore config-pc.scm          # keep the committed version; 2.8 edits it
 git diff --stat
 #+end_src
+If =git diff config-pc.scm= shows anything besides the TEMP lines, that is a live change made outside the repo: put it in by hand before the =restore=.
 Do *not* regenerate =channels-lock.scm= now. It would pin the unpatched guix again.
 
 *=make sync= is a capture, not a merge.* It rewrites =current-profile-manifest= from the live Guix profile and =nix-config/attribute-manifest.nix= from the live Nix profile (=scripts/extract-nix-packages.sh=), so anything added to those files but *not yet installed* is silently dropped, comments included. As of 2026-10-04 that applies to =pinentry=, which was added for =rage=/=age.el= and can only be installed here after this reinstall. Read =git diff= for deletions you did not intend before committing.
 
-** TODO 1.3 Prepare config-pc.scm for the new install
-Three edits. First, the guix service block, which drops the TEMP lines. The variant below implements D1 = privileged. For unprivileged, add =(privileged? #f)=.
-#+begin_src scheme
-(guix-service-type config => (guix-configuration
-                              (inherit config)
-                              ;; D1: privileged daemon (Guix System default).
-                              ;; For unprivileged instead, add: (privileged? #f)
-                              (substitute-urls
-                               (append
-                                (list
-                                 "https://substitutes.nonguix.org")
-                                %default-substitute-urls))
-                              (authorized-keys
-                               (append
-                                (list
-                                 (local-file
-                                  "./signing-key.pub"))  ; nonguix's key
-                                %default-authorized-guix-keys))))
-#+end_src
+** SKIP 1.3 Prepare config-pc.scm for the new install
+Moved to [[*2.8 Fetch guix-config and finalise the config][2.8]] (2026-10-08). All config edits happen on the live USB, in the fresh clone, and are checked in 2.9 once nonguix is pulled. Nothing to do here, and the current root needs no =guix-root= label.
 
-Second, the root file system by *label* rather than UUID, so its UUID doesn't have to be edited during the install. Leave the EFI and swap entries alone for now: the D2 wipe changes the EFI UUID, and 2.8 updates it and drops the swap partition.
-#+begin_src scheme
-(file-system
- (mount-point "/")
- (device (file-system-label "guix-root"))
- (type "ext4"))
-#+end_src
-Third, =resume_offset=: leave the old number (=122318848=) in place. Step 2.7 replaces it with the new swapfile's offset.
-
-*Safety:* give the *current* root file system the same label, so this config is also valid for the running machine. This is non-destructive and works on a mounted file system. Then validate:
-#+begin_src sh
-sudo e2label /dev/nvme0n1p3 guix-root
-cd ~/dotfiles/guix-config
-guix system build -n --no-substitutes -L modules config-pc.scm   # dry-run only: catches typos, builds nothing
-#+end_src
-
-** TODO 1.4 Commit and push guix-config, including this file
+** DONE 1.4 Commit and push guix-config, including this file
 #+begin_src sh
 cd ~/dotfiles/guix-config
 git add REINSTALL-pc.org config-pc.scm current-profile-manifest nix-config/
 git add REINSTALL-thinkpad.org thinkpad-manifest.scm Makefile   # the T460 → Debian plan
 git add retry.sh scripts/claude-sandbox verify.md            # only the ones you want
-git commit -m "Prepare pc for reinstall: label root fs, drop TEMP daemon settings"
+git commit -m "Prepare pc for reinstall"
 git push
 git log origin/main -1 --oneline                             # must show this commit
 #+end_src
 
-** TODO 1.5 Re-run the at-risk survey
+** DONE 1.5 Re-run the at-risk survey
 Run the script from [[*C. At-risk survey script][Appendix C]]. Every line must say =ok=. There is nothing left to leave things to (D3), so an =uncommitted:=, =stashes:= or =unpushed-commits:= count here is a count of work you are about to delete.
 
 ** DONE 1.6 Carry the irreplaceable secrets off the pc
@@ -263,9 +235,8 @@ Nothing here is saved (D3). This is what Phase 2 erases outside =/home=, and wha
 | =/etc/ssh/ssh_host_*=                    | regenerated at first boot. Other machines refuse once with "host identification has changed"; clear it there with =ssh-keygen -R pc= |
 | =/var/lib/tailscale=                     | =sudo tailscale up= gives a new node; delete the stale =pc= in the admin console (3.11)                                                |
 | =/etc/NetworkManager/system-connections= | retype the passwords you printed in 1.6                                                                                            |
-| =/etc/config.scm=                        | #ERROR                                                                                                                             |
+| =/etc/config.scm=                        | in git as =config-pc.scm=, finalised on the live USB in 2.8                                                                           |
 | =/etc/guix/acl=                          | regenerated from the config; nonguix's key is =signing-key.pub= in git                                                               |
-#+TBLFM: $2=config-pc.scm=, in git, fixed up by 1.3
 
 ** DONE 1.8 Verify you can get back in afterwards
 This replaces "verify the backups". With no archive, the failure that really hurts is being locked out of the place everything now lives.
@@ -278,8 +249,8 @@ This replaces "verify the backups". With no archive, the failure that really hur
 
 ** TODO 1.9 Download the ISO and write the USB stick
 #+begin_src sh
-curl -L -o ~/guix-install.iso https://ci.guix.gnu.org/download/3964
-stat -c %s ~/guix-install.iso                 # 1308991488 for build 24925386
+curl -L -o ~/guix-install.iso https://ci.guix.gnu.org/download/4032
+stat -c %s ~/guix-install.iso                 # 1320882176 for build 25728517
 sha256sum ~/guix-install.iso
 
 lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS      # find the USB stick: TRAN=usb, e.g. sdb
@@ -290,9 +261,9 @@ sudo umount /dev/sdX?* 2>/dev/null
 sudo dd if=~/guix-install.iso of=/dev/sdX bs=4M status=progress conv=fsync
 #+end_src
 
-** TODO 1.10 Pre-flight checklist [0/8]
+** DONE 1.10 Pre-flight checklist [0/8]
 - [ ] The survey (1.5) shows nothing you care about as unsaved
-- [ ] =guix-config= is pushed, with the 1.3 changes and this file (=git log origin/main -1=)
+- [ ] =guix-config= is pushed, with this file (=git log origin/main -1=)
 - [ ] 1.8 passes: GitHub is reachable without this disk, and the age key is proven on the T460
 - [ ] This file is pushed and readable on GitHub from your phone
 - [ ] The USB stick is written
@@ -322,9 +293,9 @@ ping -c 3 gnu.org
 #+begin_src sh
 G=$(ps -o args= -C guix-daemon | awk 'NR==1{print $1}' | sed 's#/bin/guix-daemon$##'); echo "$G"
 grep -c 'define (rename-file\*' "$G/share/guile/site/3.0/guix/scripts/substitute.scm"   # must print 1
-guix describe          # if it prints a commit: e42227e… for build 24925386 (or newer)
+guix describe          # if it prints a commit: 72dab4c… for build 25728517 (or newer)
 #+end_src
-- =$G= should end in =guix-1.5.0-<n>.64d4de2=, or a newer commit.
+- =$G= should end in =guix-1.5.0-7.5ceffb6= for build 25728517, or a newer commit.
 - If grep prints =0=, or the path ends in =.520785e=: *STOP*. It's the wrong ISO. Don't download anything with it.
 
 ** 2.5 Partition and format — DESTRUCTIVE
@@ -364,38 +335,54 @@ mount LABEL=guix-root /mnt         # the label is on /dev/mapper/cryptroot
 mkdir -p /mnt/boot/efi && mount /dev/nvme0n1p1 /mnt/boot/efi
 herd start cow-store /mnt          # store writes now go to the disk, not RAM
 #+end_src
-- No swap partition exists any more (D2, D5). The installer has 30 GiB of RAM and =cow-store= writes to the disk, so it does not need swap.
+- No swap partition exists any more (D2, D5). The machine has 32 GB of RAM and =cow-store= writes to the disk, so the installer does not need swap.
 
 ** 2.7 Swapfile and hibernation offset
 The recipe comes from the Guix manual's "Swap Space" section. The file now lives inside the encrypted root, so it is encrypted along with everything else, and =filefrag= reports its offset *within the mapped device* — which is why =resume== names =/dev/mapper/cryptroot= in 2.8 and not a partition.
 #+begin_src sh
-dd if=/dev/zero of=/mnt/swapfile bs=1MiB count=16384 status=progress
+dd if=/dev/zero of=/mnt/swapfile bs=1MiB count=32768 status=progress   # 32 GiB = RAM (D5)
 chmod 600 /mnt/swapfile && mkswap /mnt/swapfile && swapon /mnt/swapfile
 OFF=$(filefrag -e /mnt/swapfile | grep '^ *0:' | cut -d: -f3 | cut -d. -f1 | tr -d ' ')
 echo "resume_offset=$OFF"          # a number; used in 2.8
 #+end_src
 
 ** 2.8 Fetch guix-config and finalise the config
-The ISO has no =git=, so =guix shell= fetches it through the patched daemon.
+Every =config-pc.scm= change for the new install happens here, in the fresh clone (this used to be step 1.3). Making them in the clone means =git diff= shows all of them; 3.14 copies the result from =/etc/config.scm= into =~/dotfiles= and commits it.
+
+The ISO has no =git=, so =guix shell= fetches it through the patched daemon. The mechanical edits first:
 #+begin_src sh
 mkdir -p /mnt/root && cd /mnt/root
 guix shell git -- git clone https://github.com/nbljaved/dotfiles.git
 cd /mnt/root/dotfiles/guix-config
 git log -1 --oneline               # must be your 1.4 commit
-grep -n 'guix-root\|use-substitutes\|privileged' config-pc.scm   # guix-root present; no use-substitutes
 sed -i "s/resume_offset=[0-9]*/resume_offset=$OFF/" config-pc.scm
 grep -n 'resume_offset' config-pc.scm
-cryptsetup luksUUID /dev/nvme0n1p2 # the UUID the next edit needs
 ESP=$(blkid -s UUID -o value /dev/nvme0n1p1); echo "$ESP"   # the new EFI partition, e.g. 1A2B-3C4D
 sed -i "s/9591-0188/$ESP/" config-pc.scm
 grep -n "$ESP" config-pc.scm       # the /boot/efi file-system now uses the new UUID
-mkdir -p /mnt/etc
-cp config-pc.scm /mnt/etc/config.scm
-cp signing-key.pub /mnt/etc/signing-key.pub   # /etc/config.scm refers to ./signing-key.pub
+cryptsetup luksUUID /dev/nvme0n1p2 # the UUID edit 2 needs
 #+end_src
 
-*The encryption edits (D5).* Four changes to =config-pc.scm=, all of them following the manual's own encrypted-root template. Make them in the clone, so =git diff= shows them and 3.14 commits them:
-1. add =mapped-devices=, with the UUID printed above:
+Then five edits by hand. The installer has =nano=: =nano config-pc.scm=.
+1. *The daemon (D1).* In the =guix-service-type= block, delete the =privileged?= line and any =use-substitutes?= line, leaving:
+#+begin_src scheme
+(guix-service-type config => (guix-configuration
+                              (inherit config)
+                              ;; D1: privileged daemon (Guix System default).
+                              ;; For unprivileged instead, add: (privileged? #f)
+                              (substitute-urls
+                               (append
+                                (list
+                                 "https://substitutes.nonguix.org")
+                                %default-substitute-urls))
+                              (authorized-keys
+                               (append
+                                (list
+                                 (local-file
+                                  "./signing-key.pub"))  ; nonguix's key
+                                %default-authorized-guix-keys))))
+#+end_src
+2. *Encryption (D5):* add =mapped-devices=, with the UUID printed above. This and edits 3–5 follow the manual's own encrypted-root template:
 #+begin_src scheme
  (mapped-devices
   (list (mapped-device
@@ -403,7 +390,7 @@ cp signing-key.pub /mnt/etc/signing-key.pub   # /etc/config.scm refers to ./sign
          (target "cryptroot")
          (type luks-device-mapping))))
 #+end_src
-2. point =/= at the label instead of the old ext4 UUID — =mkfs.ext4= in 2.5 gave it a new UUID anyway — and make it depend on the mapping:
+3. point =/= at the =guix-root= label instead of the old ext4 UUID (=41a31ef0-…=, gone with the D2 wipe), and make it depend on the mapping:
 #+begin_src scheme
                       (file-system
                        (mount-point "/")
@@ -411,25 +398,30 @@ cp signing-key.pub /mnt/etc/signing-key.pub   # /etc/config.scm refers to ./sign
                        (type "ext4")
                        (dependencies mapped-devices))
 #+end_src
-3. drop the =swap-space= for the old swap partition (UUID =27b860cf-…=, gone with the D2 wipe), keeping only the swap file:
+4. drop the =swap-space= for the old swap partition (UUID =27b860cf-…=, also gone), keeping only the swap file:
 #+begin_src scheme
  (swap-devices (list (swap-space (target "/swapfile")
                                  (dependencies (filter (file-system-mount-point-predicate "/")
                                                        file-systems)))))
 #+end_src
-4. resume from the mapped device:
+5. resume from the mapped device. Change only the =resume== line; the =sed= above already set =resume_offset=:
 #+begin_src scheme
  (kernel-arguments
   (cons* "resume=/dev/mapper/cryptroot"
-         (string-append "resume_offset=" "PASTE-$OFF")
+         "resume_offset=…"            ; already updated by the sed
          %default-kernel-arguments))
 #+end_src
-   (or just leave the literal =resume_offset=…= line that the =sed= above already updated, and change only the =resume== device).
+
+Check and copy:
 #+begin_src sh
-grep -n 'mapped-device\|cryptroot\|guix-root\|resume' config-pc.scm
-guix system build -L modules config-pc.scm --dry-run   # catches Scheme errors before 2.10
-cp config-pc.scm /mnt/etc/config.scm                   # copy again after editing
+git diff --stat                    # config-pc.scm only
+grep -n 'privileged\|use-substitutes' config-pc.scm   # only the comment line from edit 1
+grep -n 'mapped-device\|cryptroot\|guix-root\|resume\|9591\|27b860cf\|41a31ef0' config-pc.scm   # no old UUIDs left
+mkdir -p /mnt/etc
+cp config-pc.scm /mnt/etc/config.scm
+cp signing-key.pub /mnt/etc/signing-key.pub   # /etc/config.scm refers to ./signing-key.pub
 #+end_src
+- The Scheme isn't checked yet: the ISO's guix has no nonguix, so it can't load this config. 2.9 checks it right after pulling nonguix.
 - =(dependencies mapped-devices)= refers to the field declared above it; that is how the manual's own template does it.
 - Nothing needs adding to =initrd-modules=: if a module were missing, =guix system= refuses and names it (=check-device-initrd-modules=).
 
@@ -454,7 +446,12 @@ SUBS="https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.
 guix pull -C /tmp/install-channels.scm --substitute-urls="$SUBS"
 export PATH=/root/.config/guix/current/bin:$PATH; hash -r
 guix describe                       # guix + nonguix at recent commits
+
+# Now the config can be loaded: check the 2.8 edits before 2.10.
+cd /mnt/root/dotfiles/guix-config
+guix system build -n -L modules config-pc.scm --substitute-urls="$SUBS"
 #+end_src
+If that reports a Scheme error, fix =config-pc.scm=, repeat the check, and copy it to =/mnt/etc/config.scm= again.
 Passing the nonguix URL on the command line works with the patched daemon: client URLs are allowed but must be =https:=, and =file://= is rejected.
 
 ** 2.10 guix system init
@@ -642,8 +639,9 @@ There is no archive (D3). This is the re-login and re-create list, and it is the
 ** TODO 3.14 Commit the post-install changes
 #+begin_src sh
 cd ~/dotfiles/guix-config
-git diff                         # expect: resume_offset, channels-lock.scm, maybe manifests
-git add -A config-pc.scm channels-lock.scm && git commit -m "pc: post-reinstall resume offset + fresh channel lock" && git push
+cat /etc/config.scm > config-pc.scm   # the 2.8 edits live in /etc/config.scm (and /root/dotfiles), not in this clone
+git diff                         # expect: the 2.8 edits (daemon, LUKS, root label, EFI UUID, swap, resume), channels-lock.scm, maybe manifests
+git add -A config-pc.scm channels-lock.scm && git commit -m "pc: config for the reinstall (LUKS, privileged daemon) + fresh channel lock" && git push
 #+end_src
 
 ** TODO 3.15 Done checklist [0/14]
@@ -728,6 +726,8 @@ done
 - *Tests fail with =OSError: [Errno 22] Invalid argument= / chown:* you're building from source on an *unprivileged* daemon. Use substitutes, or switch D1 to privileged.
 - *Boot stops waiting for =/boot/efi=, or a swap device is missing:* 2.8 wasn't fully applied. =config-pc.scm= must use the new EFI UUID (=blkid /dev/nvme0n1p1=), and the =27b860cf-…= swap partition entry must be gone.
 - *Hibernation doesn't resume:* =resume_offset= is wrong. Recompute it with the 2.7 command (on the running system: =sudo filefrag -e /swapfile=), then reconfigure.
+- *=loginctl hibernate= says "Not enough suitable swap space for hibernation…":* elogind's check from D5 — =Active(anon)= in =/proc/meminfo= is above 98% of the free swap. Compare =grep 'Active(anon)' /proc/meminfo= with =swapon --show=. Close some programs, or make the swap file bigger (then redo the offset, as above).
+- *=loginctl hibernate= says "Specified resume device is missing or is not an active swap device":* elogind found no active swap that matches =/sys/power/resume= and =/sys/power/resume_offset=. Usually the swap file was recreated and =resume_offset= in =config-pc.scm= is now stale: recompute it as above. Check =swapon --show= lists =/swapfile= too. Refusing is the safe outcome: the alternative would be an image that the next boot can't find.
 - *Machine boots into the old GRUB entry, or no entry:* boot the USB, mount as in 2.6, and re-run 2.10. Or inspect with =efibootmgr -v=.
 - *=sudo guix system reconfigure= says =linux: unbound variable=:* that's the system guix without nonguix. Use the command at the end of 3.7.
 
@@ -736,7 +736,7 @@ done
 - Regression (unprivileged daemon, July 2–5): https://codeberg.org/guix/guix/issues/9686 — the workaround: https://lunabee.space/office/guix-daemon.html
 - =--no-substitutes= build failures: https://codeberg.org/guix/guix/issues/9856 · LWN: https://lwn.net/Articles/1081199/
 - Unprivileged-daemon build hazards: https://github.com/bitcoin/bitcoin/issues/36239
-- ISO: CI build 24925386 (eval 2199361), channel commit =e42227e1c7e7055e27cecada52ec801a75e44909=, daemon =64d4de2a920445e5992f020e56490f5fcbdbba7c=, store path =bnx9bv678qj0hcagcn2wmn168na8jn50-image.iso=, 1308991488 bytes
+- ISO: CI build 25728517 (eval 2209748), channel commit =72dab4c822aacc938f202a8c61f13e770b779438=, daemon =guix-1.5.0-7.5ceffb6= (=5ceffb60e55b=, 2026-09-23; its =substitute.scm= has =rename-file*=, checked 2026-10-08), store path =shv24ph6z36nb501ybsswca24y25pv63-image.iso=, 1320882176 bytes. It replaces build 24925386 (=e42227e=, daemon =64d4de2=), which this plan used until 2026-10-08
 - Old daemon on this machine: =guix-1.5.0-2.520785e= (2026-03-09): unpatched
 - Manual-install and swap-offset commands are taken from =doc/guix.texi= at =e42227e= (the ISO's own manual)
 - The thinkpad (=config-thinkpad.scm=) is out of scope. If its daemon also predates July 2026, the same advisory applies to it.
