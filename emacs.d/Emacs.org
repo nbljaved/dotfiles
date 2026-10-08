@@ -2790,17 +2790,122 @@ Login to Copilot by =M-x copilot-login=. You can also check the status by =M-x c
 *** age
 https://github.com/anticomputer/age.el
 
-Identities (private keys) and recipients (public keys) are maintained via the customizable age-default-identity and age-default-recipient variables. By default they are set to ~/.ssh/id_rsa and ~/.ssh/id_rsa.pub respectively.
+**** Concepts
+[[https://age-encryption.org][age]] encrypts files to a key pair:
 
+- The /recipient/ is the public key (=age1…=), kept in =~/.age/key.pub=. It is not secret. Encrypting only needs this key, so *saving never asks for anything*.
+- The /identity/ is the private key (=AGE-SECRET-KEY-1…=). It decrypts, so it is the secret.
+
+*The identity is (in our case) never stored in plaintext.* =~/.age/key.age= is the identity, itself encrypted with a passphrase (age's scrypt passphrase mode). To open a file, rage asks for that passphrase, unwraps the identity in memory and decrypts the file. Nothing unwrapped is written to disk.
+
+What follows from that:
+- *One passphrase for everything.* It is asked on every open, because nothing is cached (on purpose), and never on save.
+- *=key.age= can live in git* (the private =personal-documents= repo). It is useless without the passphrase, and scrypt makes every guess slow. It is exactly as strong as the passphrase, so use a long one, e.g. 5–6 random words.
+- *You need both =key.age= and the passphrase.* Lose either and every file is gone for good. Keep =key.age= in git and the passphrase on paper.
+- *Changing the passphrase rewraps =key.age= only.* The encrypted files stay as they are.
+
+age can also encrypt a single file with a passphrase and no key (=rage -p=). age.el reads each file's header, so such files open too and ask for their own passphrase. This setup doesn't create them.
+
+**** Programs
+- =age= is the reference (Go) program. It reads passphrases only from a terminal, so under Emacs, which talks to it through pipes, it cannot unwrap =key.age=.
+- =rage= is the Rust implementation, installed from Nix (Guix's =rage= is an unrelated video player). It asks for passphrases through /pinentry/, a small separate program that shows a password dialog. Here that is =pinentry-gtk-2=, from the Guix =pinentry= package.
+- Both follow the same spec, so files, and =key.age= itself, work with either. In a terminal, =age= asks at the terminal.
+
+**** Setting up a machine
+=~/.age/= needs =key.age= and =key.pub=, both copied from =personal-documents=. Without them, opening and saving =.age= files fails.
+
+Making =key.age= (once, for all machines):
+#+begin_src sh :tangle no
+mkdir -p ~/.age && chmod 700 ~/.age
+# from an existing plaintext key (asks for the new passphrase twice):
+rage -p -o ~/.age/key.age ~/.age/key
+# ...or a brand-new key, which never touches the disk unwrapped:
+rage-keygen | rage -p -o ~/.age/key.age
+
+# the public key, derived from the wrapped one:
+rage -d ~/.age/key.age | rage-keygen -y > ~/.age/key.pub
+
+# prove it decrypts an existing file, and only then remove the plaintext key:
+rage -d -i ~/.age/key.age ~/Documents/personal/diary/diary.org.age | head -1
+shred -u ~/.age/key
+#+end_src
+
+Changing the passphrase (asks for the old one, then the new one twice):
+#+begin_src sh :tangle no
+rage -d ~/.age/key.age | rage -p -o ~/.age/key.age.new && mv ~/.age/key.age.new ~/.age/key.age
+#+end_src
+
+**** Day-to-day use
+- *Create:* =C-x C-f notes.org.age=, write, =C-x C-s=. Nothing is asked. Keep the =.org= before =.age= so the buffer still gets =org-mode=.
+- *Read:* =C-x C-f notes.org.age=. A GTK dialog asks for the passphrase of =key.age= once, and the buffer shows plaintext.
+- *Save:* nothing is asked.
+- *Done:* =C-x k= the buffer. While it is open, the plaintext is in Emacs' memory.
+- *Wrong passphrase:* you get "Failed to decrypt an encrypted key" and an *empty* buffer. =C-x k= it and open the file again. Typing into that buffer and saving would replace the file's contents.
+- Files are written ASCII-armored (=-----BEGIN AGE ENCRYPTED FILE-----=), i.e. plain text.
+
+What keeps plaintext off the disk:
+- Auto-save is turned off in =.age= buffers (=age-file-inhibit-auto-save=, on by default).
+- Backup files (=file.age~=) are copies of the old /encrypted/ file.
+- undo-tree saves each buffer's undo history to =~/.cache/emacs/var/undo-tree-hist/= on every save, and that history includes *deleted text in plaintext*. =nbl/age-no-undo-history= turns that off for =.age= buffers. Tested: without it, a deleted line showed up in the history file.
+
+From a terminal:
+#+begin_src sh :tangle no
+rage -e -R ~/.age/key.pub -a -o notes.org.age notes.org   # encrypt (then delete notes.org)
+rage -d -i ~/.age/key.age notes.org.age                   # decrypt to stdout
+rage -d -i ~/.age/key.age -o notes.org notes.org.age      # decrypt to a file
+#+end_src
+
+**** Config
 #+begin_src emacs-lisp :lexical no
 (use-package age
   :ensure t
   :demand t
   :custom
-  (age-default-identity "~/.age/key")
+  ;; rage, not age: only rage can ask for a passphrase through pinentry,
+  ;; which unwrapping key.age needs.  age.el picks `age' by default when
+  ;; both are installed.
+  (age-program (executable-find "rage"))
+  ;; The identity, wrapped in a passphrase; never keep it unwrapped.
+  (age-default-identity "~/.age/key.age")
   (age-default-recipient "~/.age/key.pub")
   :config
-  (age-file-disable))
+  ;; rage reads this to pick its pinentry.
+  (setenv "PINENTRY_PROGRAM" "pinentry-gtk-2")
+
+  ;; undo-tree would save the undo history (deleted text included) of
+  ;; .age buffers in plaintext; skip it for them.
+  (defun nbl/age-no-undo-history ()
+    (when (and buffer-file-name
+               (string-match-p age-file-name-regexp buffer-file-name))
+      (setq-local undo-tree-auto-save-history nil)))
+  (add-hook 'find-file-hook #'nbl/age-no-undo-history -90)
+
+  ;; TODO: age.el: check and fix this
+  ;; Upstream bug (age.el afe3bf4): the stderr filter calls `match-string'
+  ;; without checking that `string-match' matched.  rage writes its error
+  ;; in several chunks ("Error: …", then "[ Did rage not do …"), so the
+  ;; later chunk hits stale match data and fails with "No match data",
+  ;; e.g. when creating a new .age file or after a wrong passphrase.
+  ;; Same function, with the match checked.  Drop once fixed upstream.
+  (defun nbl/age--process-stderr-filter (process input)
+    (when age-debug
+      (with-current-buffer
+          (or age-debug-buffer
+              (setq age-debug-buffer (generate-new-buffer "*age-debug*")))
+        (goto-char (point-max))
+        (insert input)))
+    (when (buffer-live-p (process-buffer process))
+      (with-current-buffer (process-buffer process)
+        (unless age-process-filter-running
+          (let ((age-process-filter-running t))
+            (when (string-match "\\(?:age: error:\\|Error:\\) \\(.*\\)" input)
+              (let ((error-msg (match-string 1 input)))
+                (age-context-set-result-for age-context 'error `((age-error ,error-msg)))
+                (age--status-AGE_FAILED age-context error-msg))))))))
+  (advice-add 'age--process-stderr-filter :override #'nbl/age--process-stderr-filter)
+
+  ;; Open and save *.age files transparently.
+  (age-file-enable))
 #+end_src
 
 ** dotenv-mode
