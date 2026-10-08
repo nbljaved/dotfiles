@@ -1,13 +1,17 @@
 # Source-of-truth direction:
 #   * `make sync`  captures the live system INTO the repo
 #                  (/etc/config.scm + profiles  ->  this repo).
+#                  Exception: on the thinkpad the Guix profile is NOT
+#                  captured (the shared manifest would get its host-only
+#                  packages); `sync-guix` only reports differences there.
 #   * `make apply-*` pushes the repo OUT to the live system
 #                  (this repo  ->  /etc/config.scm + reconfigure).
 # Treat the repo as canonical: edit here, then `apply`. Use `sync`
 # only to import ad-hoc changes you made directly on the machine.
 #
 # Target families:
-#   sync-*       live system  ->  repo (capture)
+#   sync-*       live system  ->  repo (capture; report-only for the
+#                thinkpad's Guix profile)
 #   apply-*      repo  ->  live system (install/reconfigure)
 #   check-*      validate without touching the live system
 #   distrobox-*  container image / sandbox management
@@ -17,20 +21,15 @@
 # line (the text after `##` is what `help` prints).
 
 HOSTNAME := $(shell hostname)
-GUIX_SYSTEM := $(shell grep '^ID=guix' /etc/os-release)
 NIX := $(shell command -v nix >/dev/null 2>&1 && echo nix)
 
-# Host config file for the current machine (empty on unknown hosts).
-#
-# The thinkpad is moving from Guix System to Debian + Guix (see
-# REINSTALL-thinkpad.org). On Debian it has no system config, and its
-# profile is the shared manifest plus thinkpad-manifest.scm.
+# Hosts:
+#   thinkpad  Debian + Guix package manager. No system config; its
+#             profile is the shared manifest plus HOST_MANIFEST.
+#   pc        Guix System, configured by HOST_CONFIG.
 ifeq ($(HOSTNAME), thinkpad)
-ifeq ($(GUIX_SYSTEM),)
-EXTRA_MANIFESTS := -m thinkpad-manifest.scm
-else
-HOST_CONFIG := config-thinkpad.scm
-endif
+HOST_MANIFEST := thinkpad-manifest.scm
+EXTRA_MANIFESTS := -m $(HOST_MANIFEST)
 endif
 ifeq ($(HOSTNAME), pc)
 HOST_CONFIG := config-pc.scm
@@ -49,18 +48,11 @@ help: ## Show this help (list of targets and what they do)
 
 all: sync ## Alias for `sync` (the default target)
 
-sync: sync-guix sync-nix ## Capture live system state into the repo (guix + nix)
+sync: sync-guix sync-nix ## Run sync-guix and sync-nix
 
-sync-guix: ## Capture /etc/config.scm, channels symlink, and current Guix profile manifest
-ifeq ($(HOST_CONFIG), config-thinkpad.scm)
-	cat /etc/config.scm > config-thinkpad.scm
-else
-	# not thinkpad
-endif
-ifeq ($(HOSTNAME), pc)
-	cat /etc/config.scm > config-pc.scm
-else
-	# not pc
+sync-guix: ## Link channels.scm; pc: capture /etc/config.scm + Guix profile; thinkpad: report profile vs manifests (writes nothing)
+ifdef HOST_CONFIG
+	cat /etc/config.scm > $(HOST_CONFIG)
 endif
 	@echo ""
 # cat /etc/xremap.yaml > xremap.yaml
@@ -76,11 +68,11 @@ endif
 	# from the pipe before opening the output file for writing
 	#
 	# guile ./scripts/sort-manifest.scm  current-profile-manifest | sponge current-profile-manifest
-ifdef EXTRA_MANIFESTS
-	# This profile is the shared manifest plus $(EXTRA_MANIFESTS), so
+ifdef HOST_MANIFEST
+	# This profile is current-profile-manifest plus $(HOST_MANIFEST), so
 	# capturing it would leak host-only packages into the shared file.
-	# Show the difference instead; copy what you want by hand.
-	guile ./scripts/sort-manifest.scm | diff current-profile-manifest - || true
+	# Report only what needs action instead; fix the manifests by hand.
+	guile ./scripts/check-host-manifest.scm current-profile-manifest $(HOST_MANIFEST)
 else
 	guile ./scripts/sort-manifest.scm > current-profile-manifest
 endif
@@ -94,19 +86,13 @@ ifdef NIX
 	cat ~/.nix-profile/manifest.nix > ./nix-config/manifest.nix
 	bash ./scripts/extract-nix-packages.sh
 else
-	# Not a Guix system, therefore no nix-service-type
+	# nix is not installed on this host
 endif
 	@echo ""
 
-apply-guix-system: ## Copy this host's config to /etc/config.scm and (prompt to) reconfigure
-ifeq ($(HOST_CONFIG), config-thinkpad.scm)
-	sudo cp config-thinkpad.scm /etc/config.scm
-	@printf "Reconfigure system? [y/N] " && read ans; \
-	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
-		sudo guix system reconfigure /etc/config.scm -L modules; \
-	fi
-else ifeq ($(HOSTNAME), pc)
-	sudo cp config-pc.scm /etc/config.scm
+apply-guix-system: ## pc only: copy config-pc.scm to /etc/config.scm and (prompt to) reconfigure
+ifdef HOST_CONFIG
+	sudo cp $(HOST_CONFIG) /etc/config.scm
 	@printf "Reconfigure system? [y/N] " && read ans; \
 	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
 		sudo guix system reconfigure /etc/config.scm -L modules; \
@@ -115,16 +101,16 @@ else
 	@echo "Unsupported host: $(HOSTNAME)"
 endif
 
-check-guix-system: ## Dry-build this host's system config to catch breakage (does NOT activate)
-ifeq ($(HOST_CONFIG),)
-	@echo "Unsupported host: $(HOSTNAME) (no config-$(HOSTNAME).scm)" && exit 1
+check-guix-system: ## pc only: dry-build config-pc.scm to catch breakage (does NOT activate)
+ifndef HOST_CONFIG
+	@echo "Unsupported host: $(HOSTNAME) (no Guix System config)" && exit 1
 else
 	# Dry build of this host's system config (evaluates + builds the
 	# derivation but does NOT activate it) to catch breakage early.
 	guix system build $(HOST_CONFIG) -L modules
 endif
 
-apply-guix-profile: ## Install the captured Guix profile from current-profile-manifest (+ host extras)
+apply-guix-profile: ## Make the Guix profile match current-profile-manifest (+ thinkpad-manifest.scm on thinkpad); removes anything else
 	guix package -m current-profile-manifest $(EXTRA_MANIFESTS) -L modules
 
 apply-nix-profile: ## Install the captured Nix profile from nix-config/attribute-manifest.nix

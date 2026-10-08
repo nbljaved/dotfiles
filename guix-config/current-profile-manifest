@@ -61,6 +61,7 @@
        "font-gnu-freefont"
        "font-gnu-unifont"
        "font-google-roboto"
+       "font-nerd-fira-code"
        "font-sil-gentium"
        "fzf"
        "gcc-toolchain"
