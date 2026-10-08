@@ -592,7 +592,7 @@ age -d ~/Documents/personal/diary/diary.org.age | head -1   # after 6.2; proves 
 #+end_src
   If the pc's =sshd= isn't reachable, carry it on the install USB stick instead — pushing from the pc won't work, because D4 left this laptop without an SSH server. Every extra machine holding that key is another place it can leak from, so skipping it is the safer default: the diary still opens on the pc.
 
-** TODO 6.2 Clone your repos
+** DONE 6.2 Clone your repos
 #+begin_src sh
 git clone --recurse-submodules git@github.com:nbljaved/dotfiles.git      ~/dotfiles
 ln -sfn ~/dotfiles/emacs.d ~/.emacs.d                                       # before Emacs first starts
@@ -765,7 +765,7 @@ The trade-off: membership in the =input= group can read every keyboard. Under X1
 =make distrobox= assumes Guix System, because it mounts =/run/current-system=. On Debian you may not need it at all. If you do, run =sudo apt install podman distrobox=.
 
 * Phase 8 — Wrap up
-** TODO 8.1 Retire config-thinkpad.scm
+** DONE 8.1 Retire config-thinkpad.scm
 The =Makefile= already ignores it on Debian. Git history keeps it.
 #+begin_src sh
 cd ~/dotfiles/guix-config

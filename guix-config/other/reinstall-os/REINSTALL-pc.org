@@ -7,14 +7,14 @@
 
 * Read this first
 ** What this does
-It wipes =/dev/nvme0n1p3=, which holds =/=, =/home=, =/gnu=, =/nix= and =/swapfile=. It then reinstalls Guix System from your =guix-config= repo and restores your data and repos.
+It wipes *the whole disk* =/dev/nvme0n1=: the EFI partition, the old swap partition and =/=, =/home=, =/gnu=, =/nix= and =/swapfile= (D2). It then writes a new partition table, reinstalls Guix System from your =guix-config= repo and restores your data and repos.
 
-The EFI partition (=nvme0n1p1=, UUID =9591-0188=) and the swap partition (=nvme0n1p2=, UUID =27b860cf-…=) are *kept as-is*, so their UUIDs in =config-pc.scm= stay valid.
+Nothing on the disk survives, so every UUID in =config-pc.scm= changes. Root uses a label (1.3), and 2.8 writes the new LUKS and EFI UUIDs into the config.
 
 | Phase | Where                       | What                                              | Time          |
 |-------+-----------------------------+---------------------------------------------------+---------------|
 | [[*Phase 1 — Save everything (current system)][1]]     | current system              | commit/push, carry 4 secrets out, prep config, USB | 1–2 h, hands-on |
-| [[*Phase 2 — Install from the live USB][2]]     | live USB                    | format =nvme0n1p3=, install                        | 1–2 h, mostly waiting |
+| [[*Phase 2 — Install from the live USB][2]]     | live USB                    | wipe =nvme0n1=, partition, install                 | 1–2 h, mostly waiting |
 | [[*Phase 3 — First boot and restore][3]]     | new system                  | passwords, keys, repos, profiles, data            | 1–3 h         |
 
 ** Why a reinstall fixes the problem
@@ -60,10 +60,15 @@ The reinstall trades those unattended hours, and the fiddly step 4, for about 1�
 - *Unprivileged* =(privileged? #f)= is what you chose before, and it's a legitimate choice. The daemon doesn't run as root. But it *owns* =/gnu/store=, so a compromised daemon can already alter every binary you run, and the real gain is smaller than it looks. The cost: anything built locally may fail its test suite, because =chown= to an unmapped UID returns EINVAL instead of EPERM. Python, coreutils, Go and tar are known to hit this. That is exactly what blocked you. With a patched daemon, substitutes make local builds rare.
 - *Either way:* remove =(use-substitutes? #f)=.
 
-** D2 — disk layout
-- *A (recommended):* keep the partition table. Reformat only =nvme0n1p3= with the label =guix-root=.
-- *B (optional):* split =nvme0n1p3= into root (~350 GiB) and a separate =/home= (the rest), so the next reinstall can leave =/home= untouched. It adds steps in [[*2.5 Partition and format — DESTRUCTIVE][2.5]] and one =file-system= entry.
-- *Either way, read [[*D5 — Disk encryption][D5]] first.* With encryption, B is no longer one extra =mkfs=: a second partition outside the container would leave your home directory in the clear, so it needs its own LUKS container — which means a second passphrase at boot, or a key file inside the encrypted root (=#:key-file=, see the manual's Mapped Devices). A is the simple path: one container, =/home= inside it.
+** D2 — disk layout: wipe everything (chosen 2026-10-08)
+Nothing on =nvme0n1= is kept: not the partition table, not the EFI partition, not the old swap partition. [[*2.5 Partition and format — DESTRUCTIVE][2.5]] discards the whole disk and creates two partitions:
+| Partition | Size     | Holds                                                                         |
+|-----------+----------+-------------------------------------------------------------------------------|
+| =nvme0n1p1= | 512 MiB  | EFI system partition, FAT32. Only GRUB's EFI binary; =/boot= is in p2           |
+| =nvme0n1p2= | the rest | LUKS2 container (D5) → ext4 =guix-root=: =/=, =/boot=, =/home=, =/gnu=, =/nix=, =/swapfile= |
+- *Why discard the whole disk first.* Until now =/home= sat on a plain ext4 partition. A new LUKS header doesn't overwrite the data behind it, so without a discard that old plaintext would stay on the flash, readable with forensic tools, under the new encrypted volume. =blkdiscard= tells the SSD that every block is free, and NVMe drives then read back zeros. It is a TRIM, not a certified erase, but it removes the old data from anything a normal read can reach.
+- *No separate =/home=.* With encryption, a second partition needs its own LUKS container, and so a second passphrase or a key file inside the root (manual: Mapped Devices). One container is the simple path.
+- *Other operating systems:* there are none on this disk, and the wipe removes the ESP, so nothing else could boot from it anyway. The firmware's old boot entries are left alone; =efibootmgr -v= lists them if you want to tidy up after 2.10.
 
 ** D3 — Backups: none (chosen 2026-10-04)
 - *No backup drive, the same bet the T460 made (its D8): only what is in a git repo survives.* So the old 1.6/1.7/1.8 are gone — 1.6 now carries four secrets off the machine, 1.7 lists what is being let go, and 1.8 checks you can still get back in.
@@ -88,14 +93,14 @@ The reinstall trades those unattended hours, and the fiddly step 4, for about 1�
 - Fallback: *USB tethering* from your phone shows up as =usb0= or =enp…u…=.
 
 ** D5 — Disk encryption
-The T460 got LUKS from Debian's installer. This machine gets it by hand, and Guix supports it properly. *Chosen 2026-10-04: LUKS2 on =nvme0n1p3=, with =/=, =/boot=, =/gnu= and the swap file all inside the container.* Only the EFI partition stays in the clear, which is unavoidable without coreboot.
+The T460 got LUKS from Debian's installer. This machine gets it by hand, and Guix supports it properly. *Chosen 2026-10-04: LUKS2 on the root partition (=nvme0n1p2= after the D2 wipe), with =/=, =/boot=, =/gnu= and the swap file all inside the container.* Only the EFI partition stays in the clear, which is unavoidable without coreboot.
 - *One passphrase, not two.* GRUB must unlock the container to read =/boot=, and the initrd must unlock it to mount =/=. Guix closes that gap by itself: =cryptomount= keeps the volume's master key, GRUB's =procfs= exposes it as =(proc)/luks_script=, and the generated =grub.cfg= injects that file into the initrd (=initrd newc:etc/luks_script:(proc)/luks_script … /boot/initrd=). The initrd matches the UUID and runs =cryptsetup open --volume-key-file=, so nothing is asked a second time; if the key is missing or doesn't match it just prompts, so the fallback is safe. *No configuration is required.* See the manual node "Automatic LUKS Master Key Passing"; in the guix you pull in 2.9 the code is =gnu/bootloader/grub.scm= (=newc:etc/luks_script=, =insmod procfs/luks/luks2=, =GRUB_ENABLE_CRYPTODISK=y=) and =gnu/system/mapped-devices.scm= (=luks-script-lookup-key=).
 - *LUKS2 with argon2id, but memory cost lowered to 256 MiB.* cryptsetup's argon2id default costs up to 1 GiB of RAM, and GRUB has to redo that KDF in the pre-boot environment, where allocations are capped below 4 GiB. On firmware that leaves little contiguous low memory, that combination makes a machine *unbootable*: correct passphrases get rejected, or GRUB runs out of memory loading the kernel. So 2.5 passes =--pbkdf-memory 262144 --pbkdf-force-iterations 4=. GRUB *2.14*, which is what Guix ships (=guix show grub-efi= → 2.14), is the first release that can do argon2 at all — that is why older Guix write-ups tell you to use =--type luks1= or =--pbkdf pbkdf2=.
 - *Expect a slow prompt.* GRUB does the KDF and AES without the CPU's crypto instructions; several seconds to half a minute is normal. The kernel's own unlock afterwards is instant.
-- *=nvme0n1p2=, the old plain swap partition, is abandoned.* Swap outside the container would hold pages of whatever you ran, and a hibernation image is a verbatim copy of your RAM — writing that in the clear would undo the whole exercise. Hibernation uses the 16 GiB =/swapfile= inside the encrypted root instead (2.7). This machine has 30 GiB of RAM and the manual says hibernation uses at most half of it, so 16 GiB is enough. Leave =p2= untouched; wipe it or add it as a second LUKS device later if you want the space.
+- *No swap partition.* The old plain one goes with the D2 wipe and is not recreated. Swap outside the container would hold pages of whatever you ran, and a hibernation image is a verbatim copy of your RAM — writing that in the clear would undo the whole exercise. Hibernation uses the 16 GiB =/swapfile= inside the encrypted root instead (2.7). This machine has 30 GiB of RAM and the manual says hibernation uses at most half of it, so 16 GiB is enough.
 - *What this does not protect*, the same honest list as the T460's D7: the ESP is unencrypted and nothing verifies GRUB, so someone with physical access can still tamper with the boot path. LUKS protects data at rest, which is what you are asking of it. Closing the boot path needs Secure Boot plus TPM measurement, which this plan does not set up.
 - *You type it at GRUB*, so the layout that matters is the one in =bootloader-configuration=; the kernel's own layout (from =operating-system=) only comes into play if the fallback prompt appears. =config-pc.scm= sets both to =us/altgr-intl=, but a plain-ASCII passphrase sidesteps the question entirely. Keep it on paper until the machine has booted successfully.
-- *If GRUB can't unlock it*: boot the installer again, =cryptsetup open /dev/nvme0n1p3 cryptroot=, then =cryptsetup luksConvertKey --pbkdf pbkdf2 /dev/nvme0n1p3=. That rewrites the keyslot's KDF in place — no reinstall — and every GRUB since 2.06 can do pbkdf2. Then re-run 2.10 (or =guix system reconfigure= later) so =grub.cfg= is regenerated.
+- *If GRUB can't unlock it*: boot the installer again, =cryptsetup open /dev/nvme0n1p2 cryptroot=, then =cryptsetup luksConvertKey --pbkdf pbkdf2 /dev/nvme0n1p2=. That rewrites the keyslot's KDF in place — no reinstall — and every GRUB since 2.06 can do pbkdf2. Then re-run 2.10 (or =guix system reconfigure= later) so =grub.cfg= is regenerated.
 - Known cosmetic bug: once the root file system is mounted, =/etc/luks_script= no longer exists, so unlocking any *other* LUKS device later logs "…not found, skipping" (Guix bug #81173). The system boots fine.
 
 * Phase 1 — Save everything (current system)
@@ -108,7 +113,7 @@ ps -o user=,args= -C guix-daemon | cut -c1-160   # expect: root … --build-user
 ls -ld /gnu/store                                # expect: root root
 #+end_src
 
-** TODO 1.1 Git repos: commit, push, rescue [0/10]
+** DONE 1.1 Git repos: commit, push, rescue [0/10]
 *Since 2026-10-07 =guix-config=, =shell-config=, =.emacs.d= and =.stumpwm.d= are one repo, =nbljaved/dotfiles= (built from the thinkpad's copies), and the four old GitHub repos are archived.* The paths in this table are the pc's old clones. Their unpushed commits and stashes can no longer be pushed where they came from: carry each one into =~/dotfiles= as a patch, with =git am --directory=<dir>= for commits or =git apply --directory=<dir>= for a =git stash show -p=. Then move the pc over to =~/dotfiles= (see =~/dotfiles/README.org=) before the steps below, which use the new paths.
 
 Snapshot of what is at risk (the survey script is in [[*C. At-risk survey script][Appendix C]]). With no backup ([[*D3 — Backups: none (chosen 2026-10-04)][D3]]) this table /is/ the backup plan: Phase 3 *clones fresh* from GitHub, so anything not pushed is deleted — stashes included, because they live in =.git= and never travel.
@@ -157,7 +162,7 @@ There were *10 stashes* on 2026-10-04: 5 in =.emacs.d=, 2 in =shell-config=, 1 e
 
 =brilliant-cv= needed this treatment and got a simpler one on 2026-10-04: its files moved into =~/Documents/personal/personal-documents/resume-papa= and were committed there (=e983dc0=), so it rides along with a repo that already has a remote. Only =~/Downloads/brilliant-cv/.git= is left, holding the old single =init= commit; delete it once =personal-documents= is pushed.
 
-** TODO 1.2 Capture live state into guix-config
+** DONE 1.2 Capture live state into guix-config
 =make sync= refreshes =current-profile-manifest=, =nix-config/manifest.nix= and =attribute-manifest.nix=. It also *overwrites =config-pc.scm= from =/etc/config.scm=*. Today the two are identical, including the TEMP lines, and 1.3 fixes them next.
 #+begin_src sh
 cd ~/dotfiles/guix-config
@@ -188,21 +193,13 @@ Three edits. First, the guix service block, which drops the TEMP lines. The vari
                                 %default-authorized-guix-keys))))
 #+end_src
 
-Second, the root file system by *label* rather than UUID, so no UUID has to be edited during the install. EFI and swap stay on their UUIDs, which don't change.
+Second, the root file system by *label* rather than UUID, so its UUID doesn't have to be edited during the install. Leave the EFI and swap entries alone for now: the D2 wipe changes the EFI UUID, and 2.8 updates it and drops the swap partition.
 #+begin_src scheme
 (file-system
  (mount-point "/")
  (device (file-system-label "guix-root"))
  (type "ext4"))
 #+end_src
-For D2-B only, also add:
-#+begin_src scheme
-(file-system
- (mount-point "/home")
- (device (file-system-label "guix-home"))
- (type "ext4"))
-#+end_src
-
 Third, =resume_offset=: leave the old number (=122318848=) in place. Step 2.7 replaces it with the new swapfile's offset.
 
 *Safety:* give the *current* root file system the same label, so this config is also valid for the running machine. This is non-destructive and works on a mounted file system. Then validate:
@@ -226,7 +223,7 @@ git log origin/main -1 --oneline                             # must show this co
 ** TODO 1.5 Re-run the at-risk survey
 Run the script from [[*C. At-risk survey script][Appendix C]]. Every line must say =ok=. There is nothing left to leave things to (D3), so an =uncommitted:=, =stashes:= or =unpushed-commits:= count here is a count of work you are about to delete.
 
-** TODO 1.6 Carry the irreplaceable secrets off the pc
+** DONE 1.6 Carry the irreplaceable secrets off the pc
 No archive (D3). Four things cannot be re-downloaded or regenerated, and all four are tiny. The T460 is the destination: it is installed, it is staying, and it already holds a GitHub key.
 
 1. *=~/.age/key= — the one that actually matters.* It is the only thing that decrypts =Documents/personal/diary/diary.org.age=. Lose it and the diary is gone for good, GitHub copy or not. It is one line of text:
@@ -259,17 +256,18 @@ sudo grep -h -e '^ssid=' -e '^psk=' /etc/NetworkManager/system-connections/* 2>/
 #+end_src
 Anything else you think of goes to the T460 the same way — but keep the list short. Every copy of a secret is another place it can leak from, which is the reason this step is four items and not a disk image.
 
-** TODO 1.7 What you are letting go outside /home (for the record)
+** DONE 1.7 What you are letting go outside /home (for the record)
 Nothing here is saved (D3). This is what Phase 2 erases outside =/home=, and what replaces it:
-| What                                       | Replacement after the install                                                                     |
-|--------------------------------------------+---------------------------------------------------------------------------------------------------|
-| =/etc/ssh/ssh_host_*=                        | regenerated at first boot. Other machines refuse once with "host identification has changed"; clear it there with =ssh-keygen -R pc= |
-| =/var/lib/tailscale=                         | =sudo tailscale up= gives a new node; delete the stale =pc= in the admin console (3.11)               |
-| =/etc/NetworkManager/system-connections=     | retype the passwords you printed in 1.6                                                           |
-| =/etc/config.scm=                            | =config-pc.scm=, in git, fixed up by 1.3                                                            |
-| =/etc/guix/acl=                              | regenerated from the config; nonguix's key is =signing-key.pub= in git                              |
+| What                                   | Replacement after the install                                                                                                      |
+|----------------------------------------+------------------------------------------------------------------------------------------------------------------------------------|
+| =/etc/ssh/ssh_host_*=                    | regenerated at first boot. Other machines refuse once with "host identification has changed"; clear it there with =ssh-keygen -R pc= |
+| =/var/lib/tailscale=                     | =sudo tailscale up= gives a new node; delete the stale =pc= in the admin console (3.11)                                                |
+| =/etc/NetworkManager/system-connections= | retype the passwords you printed in 1.6                                                                                            |
+| =/etc/config.scm=                        | #ERROR                                                                                                                             |
+| =/etc/guix/acl=                          | regenerated from the config; nonguix's key is =signing-key.pub= in git                                                               |
+#+TBLFM: $2=config-pc.scm=, in git, fixed up by 1.3
 
-** TODO 1.8 Verify you can get back in afterwards
+** DONE 1.8 Verify you can get back in afterwards
 This replaces "verify the backups". With no archive, the failure that really hurts is being locked out of the place everything now lives.
 - [ ] *GitHub, without this machine's SSH key*: you know the password, and the 2FA device is in your hand. Check the password is not only inside the browser profile you are about to erase. Recovery codes on paper are better: https://github.com/settings/security
 - [ ] *Chrome sync is on* and the bookmarks/passwords really are in the account (=chrome://settings/syncSetup=). LibreWolf has no sync here: export what you need now.
@@ -330,43 +328,43 @@ guix describe          # if it prints a commit: e42227e… for build 24925386 (o
 - If grep prints =0=, or the path ends in =.520785e=: *STOP*. It's the wrong ISO. Don't download anything with it.
 
 ** 2.5 Partition and format — DESTRUCTIVE
-Confirm the layout matches first. If anything differs, *STOP*.
+Confirm you have the right disk first. =nvme0n1= must be the only internal disk; the only other one should be the USB stick you booted from. If anything differs, *STOP*.
 #+begin_src sh
-lsblk -f
-# expect: nvme0n1p1 vfat 9591-0188 · nvme0n1p2 swap 27b860cf-… · nvme0n1p3 ext4 41a31ef0-…
+lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MODEL,TRAN
+# expect today: nvme0n1 with p1 vfat · p2 swap · p3 ext4, plus the USB stick (TRAN=usb)
 #+end_src
-*Point of no return.* After the next command, your old =/=, =/home=, =/gnu= and =/nix= are gone.
-
-D2-A (recommended), now with LUKS2 (D5). The =luksFormat= asks for the passphrase twice; =open= asks once:
+*Point of no return.* After the next block the whole disk is empty (D2): EFI, swap, =/=, =/home=, =/gnu=, =/nix=.
+#+begin_src sh
+swapoff -a                                    # in case the installer picked up the old swap partition
+wipefs -a /dev/nvme0n1p1 /dev/nvme0n1p2 /dev/nvme0n1p3 /dev/nvme0n1
+blkdiscard -f /dev/nvme0n1                    # TRIM every block: the old plaintext is gone (D2)
+parted -s /dev/nvme0n1 -- \
+  mklabel gpt \
+  mkpart ESP fat32 1MiB 513MiB set 1 esp on \
+  mkpart guix-root 513MiB 100%
+partprobe /dev/nvme0n1; lsblk /dev/nvme0n1    # expect p1 512M and p2 the rest
+mkfs.fat -F32 -n ESP /dev/nvme0n1p1
+#+end_src
+LUKS2 (D5) on =p2=. The =luksFormat= asks for the passphrase twice; =open= asks once:
 #+begin_src sh
 cryptsetup luksFormat --type luks2 \
   --pbkdf argon2id --pbkdf-memory 262144 --pbkdf-force-iterations 4 \
-  --verify-passphrase /dev/nvme0n1p3
-cryptsetup luksUUID /dev/nvme0n1p3     # WRITE THIS DOWN: 2.8 puts it in config-pc.scm
-cryptsetup open /dev/nvme0n1p3 cryptroot
+  --verify-passphrase /dev/nvme0n1p2
+cryptsetup luksUUID /dev/nvme0n1p2     # WRITE THIS DOWN: 2.8 puts it in config-pc.scm
+cryptsetup open /dev/nvme0n1p2 cryptroot
 mkfs.ext4 -L guix-root /dev/mapper/cryptroot
-cryptsetup luksDump /dev/nvme0n1p3 | grep -A6 'Keyslots:'   # expect argon2id, Memory: 262144
+cryptsetup luksDump /dev/nvme0n1p2 | grep -A6 'Keyslots:'   # expect argon2id, Memory: 262144
 #+end_src
-Do *not* touch =p1=: no =mkfs.fat=. =p2= is left alone too, but is no longer used as swap (D5), so =config-pc.scm= drops it in 2.8.
-
-D2-B (separate =/home=): run =cfdisk /dev/nvme0n1=, delete =nvme0n1p3=, create a new =p3= (~350G, type "Linux filesystem"), create =p4= from the remaining space, then Write and Quit. *Under D5 this needs two containers* — a plain =mkfs.ext4= on =p4= would leave your home directory unencrypted:
-#+begin_src sh
-# p3: as in D2-A above, then:
-cryptsetup luksFormat --type luks2 --pbkdf argon2id --pbkdf-memory 262144 \
-  --pbkdf-force-iterations 4 --verify-passphrase /dev/nvme0n1p4
-cryptsetup open /dev/nvme0n1p4 crypthome
-mkfs.ext4 -L guix-home /dev/mapper/crypthome
-#+end_src
-That is a second passphrase at every boot unless you add a key file that lives inside the encrypted root and reference it with =#:key-file= in the second =mapped-device= (manual: Mapped Devices). If that sounds like more than you want, take D2-A.
+- =set 1 esp on= marks p1 as an EFI system partition, which is what =grub-efi-bootloader= installs into.
+- If =wipefs= complains that a partition is busy, the installer mounted or activated it: =umount= it or =swapoff -a=, then repeat.
 
 ** 2.6 Mount and start cow-store
 #+begin_src sh
 mount LABEL=guix-root /mnt         # the label is on /dev/mapper/cryptroot
 mkdir -p /mnt/boot/efi && mount /dev/nvme0n1p1 /mnt/boot/efi
-# D2-B only:  mkdir -p /mnt/home && mount LABEL=guix-home /mnt/home
 herd start cow-store /mnt          # store writes now go to the disk, not RAM
 #+end_src
-- No =swapon /dev/nvme0n1p2=: that partition is out of the picture (D5). The installer has 30 GiB of RAM and =cow-store= writes to the disk, so it does not need swap.
+- No swap partition exists any more (D2, D5). The installer has 30 GiB of RAM and =cow-store= writes to the disk, so it does not need swap.
 
 ** 2.7 Swapfile and hibernation offset
 The recipe comes from the Guix manual's "Swap Space" section. The file now lives inside the encrypted root, so it is encrypted along with everything else, and =filefrag= reports its offset *within the mapped device* — which is why =resume== names =/dev/mapper/cryptroot= in 2.8 and not a partition.
@@ -387,7 +385,10 @@ git log -1 --oneline               # must be your 1.4 commit
 grep -n 'guix-root\|use-substitutes\|privileged' config-pc.scm   # guix-root present; no use-substitutes
 sed -i "s/resume_offset=[0-9]*/resume_offset=$OFF/" config-pc.scm
 grep -n 'resume_offset' config-pc.scm
-cryptsetup luksUUID /dev/nvme0n1p3 # the UUID the next edit needs
+cryptsetup luksUUID /dev/nvme0n1p2 # the UUID the next edit needs
+ESP=$(blkid -s UUID -o value /dev/nvme0n1p1); echo "$ESP"   # the new EFI partition, e.g. 1A2B-3C4D
+sed -i "s/9591-0188/$ESP/" config-pc.scm
+grep -n "$ESP" config-pc.scm       # the /boot/efi file-system now uses the new UUID
 mkdir -p /mnt/etc
 cp config-pc.scm /mnt/etc/config.scm
 cp signing-key.pub /mnt/etc/signing-key.pub   # /etc/config.scm refers to ./signing-key.pub
@@ -410,7 +411,7 @@ cp signing-key.pub /mnt/etc/signing-key.pub   # /etc/config.scm refers to ./sign
                        (type "ext4")
                        (dependencies mapped-devices))
 #+end_src
-3. drop the =swap-space= for =nvme0n1p2=, keeping only the swap file:
+3. drop the =swap-space= for the old swap partition (UUID =27b860cf-…=, gone with the D2 wipe), keeping only the swap file:
 #+begin_src scheme
  (swap-devices (list (swap-space (target "/swapfile")
                                  (dependencies (filter (file-system-mount-point-predicate "/")
@@ -651,7 +652,7 @@ git add -A config-pc.scm channels-lock.scm && git commit -m "pc: post-reinstall 
 - [ ] Wi-Fi, Bluetooth, sound, printing
 - [ ] PipeWire from Guix Home: =herd status= lists =pipewire=, =wireplumber= and =pipewire-pulseaudio= as running; =pactl info= says =PulseAudio (on PipeWire …)=; =pw-jack scsynth -u 57110= starts
 - [ ] Hibernation: =loginctl hibernate=, then resume — and the LUKS passphrase is asked on the way back
-- [ ] =lsblk -f= shows =crypto_LUKS= on =nvme0n1p3= and the root mounted from =/dev/mapper/cryptroot=; =sudo cryptsetup luksDump /dev/nvme0n1p3= shows argon2id with =Memory: 262144=
+- [ ] =lsblk -f= shows =vfat= on =nvme0n1p1=, =crypto_LUKS= on =nvme0n1p2= and the root mounted from =/dev/mapper/cryptroot=; =sudo cryptsetup luksDump /dev/nvme0n1p2= shows argon2id with =Memory: 262144=
 - [ ] The passphrase was asked *once* at boot (D5)
 - [ ] =tailscale status=
 - [ ] SSH into pc from another machine, after clearing its old host key (1.7)
@@ -722,10 +723,10 @@ done
 - *No network in the installer:* Wi-Fi is expected to fail. Check the cable and =ip -br link=, and try =dhcpcd= on the right interface, or phone tethering.
 - *Black screen on the ISO:* at GRUB press =e= and add =nomodeset= to the =linux= line.
 - *=guix system init= builds the kernel or firmware from source:* the nonguix key isn't authorized, or =$SUBS= was lost (new shell). Re-run the =guix archive --authorize= line and =SUBS=…, then init again.
-- *"no file system with label guix-root":* check =e2label /dev/nvme0n1p3=. The label must match the config exactly.
+- *"no file system with label guix-root":* check =e2label /dev/mapper/cryptroot= (the label is on the opened container, not on =p2=). The label must match the config exactly.
 - *"no such file: signing-key.pub":* it must sit next to whichever config file you pass. See 2.8.
 - *Tests fail with =OSError: [Errno 22] Invalid argument= / chown:* you're building from source on an *unprivileged* daemon. Use substitutes, or switch D1 to privileged.
-- *Swap partition missing at boot:* you ran =mkswap= on =p2= and its UUID changed. Update the =27b860cf-…= UUID from =blkid=.
+- *Boot stops waiting for =/boot/efi=, or a swap device is missing:* 2.8 wasn't fully applied. =config-pc.scm= must use the new EFI UUID (=blkid /dev/nvme0n1p1=), and the =27b860cf-…= swap partition entry must be gone.
 - *Hibernation doesn't resume:* =resume_offset= is wrong. Recompute it with the 2.7 command (on the running system: =sudo filefrag -e /swapfile=), then reconfigure.
 - *Machine boots into the old GRUB entry, or no entry:* boot the USB, mount as in 2.6, and re-run 2.10. Or inspect with =efibootmgr -v=.
 - *=sudo guix system reconfigure= says =linux: unbound variable=:* that's the system guix without nonguix. Use the command at the end of 3.7.
