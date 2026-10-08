@@ -33,11 +33,12 @@ EXTRA_MANIFESTS := -m $(HOST_MANIFEST)
 endif
 ifeq ($(HOSTNAME), pc)
 HOST_CONFIG := config-pc.scm
+HOST_HOME := home-pc.scm
 endif
 
 .PHONY: help all sync sync-guix sync-nix \
-        check-guix-system \
-        apply-guix-system apply-guix-profile apply-nix-profile \
+        check-guix-system check-guix-home \
+        apply-guix-system apply-guix-home apply-guix-profile apply-nix-profile \
         distrobox distrobox-build distrobox-recreate
 
 help: ## Show this help (list of targets and what they do)
@@ -108,6 +109,20 @@ else
 	# Dry build of this host's system config (evaluates + builds the
 	# derivation but does NOT activate it) to catch breakage early.
 	guix system build $(HOST_CONFIG) -L modules
+endif
+
+apply-guix-home: ## pc only: reconfigure Guix Home from home-pc.scm (PipeWire services)
+ifdef HOST_HOME
+	guix home reconfigure $(HOST_HOME) -L modules
+else
+	@echo "Unsupported host: $(HOSTNAME) (no Guix Home config; Debian runs PipeWire itself)"
+endif
+
+check-guix-home: ## pc only: build home-pc.scm to catch breakage (does NOT activate)
+ifndef HOST_HOME
+	@echo "Unsupported host: $(HOSTNAME) (no Guix Home config)" && exit 1
+else
+	guix home build $(HOST_HOME) -L modules
 endif
 
 apply-guix-profile: ## Make the Guix profile match current-profile-manifest (+ thinkpad-manifest.scm on thinkpad); removes anything else

@@ -585,6 +585,7 @@ hash -r; guix describe
 cd ~/dotfiles/guix-config
 guix describe -f channels > channels-lock.scm   # replaces the lock that pinned unpatched 35e88b7
 make apply-guix-profile                     # guix package -m current-profile-manifest -L modules
+make apply-guix-home                        # home-pc.scm: D-Bus + PipeWire user services; log out and back in after
 #+end_src
 Reconfiguring later: root has never pulled, and the bare system guix cannot load your config because nonguix is missing. So reconfigure with *your* guix:
 #+begin_src sh
@@ -644,10 +645,11 @@ git diff                         # expect: resume_offset, channels-lock.scm, may
 git add -A config-pc.scm channels-lock.scm && git commit -m "pc: post-reinstall resume offset + fresh channel lock" && git push
 #+end_src
 
-** TODO 3.15 Done checklist [0/13]
+** TODO 3.15 Done checklist [0/14]
 - [ ] =guix describe= shows recent commits, and 3.2 prints =1=
 - [ ] Substitutes work: =guix build hello= downloads rather than builds
 - [ ] Wi-Fi, Bluetooth, sound, printing
+- [ ] PipeWire from Guix Home: =herd status= lists =pipewire=, =wireplumber= and =pipewire-pulseaudio= as running; =pactl info= says =PulseAudio (on PipeWire …)=; =pw-jack scsynth -u 57110= starts
 - [ ] Hibernation: =loginctl hibernate=, then resume — and the LUKS passphrase is asked on the way back
 - [ ] =lsblk -f= shows =crypto_LUKS= on =nvme0n1p3= and the root mounted from =/dev/mapper/cryptroot=; =sudo cryptsetup luksDump /dev/nvme0n1p3= shows argon2id with =Memory: 262144=
 - [ ] The passphrase was asked *once* at boot (D5)

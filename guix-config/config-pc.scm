@@ -192,7 +192,14 @@
                           (program (file-append i3lock "bin/i3lock"))
                           (using-pam? #t)
                           (using-setuid? #f)))
-                (service nix-service-type))
+                (service nix-service-type)
+                ;; Realtime audio (Ardour, SuperCollider via pw-jack) for
+                ;; the "audio" group, which nabeel is in.  rtprio 95, as
+                ;; PipeWire ships, leaves 96-99 for kernel threads.
+                (service pam-limits-service-type
+                         (list
+                          (pam-limits-entry "@audio" 'both 'rtprio 95)
+                          (pam-limits-entry "@audio" 'both 'memlock 'unlimited))))
           ;; This is the default list of services we
           ;; are appending to.
           (modify-services %desktop-services

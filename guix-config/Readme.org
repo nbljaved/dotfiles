@@ -53,29 +53,17 @@ sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 
 #+end_src
 
-* TODO Guix Home
-https://guix.gnu.org/manual/devel/en/html_node/Declaring-the-Home-Environment.html
+* Guix Home (pc only)
+=home-pc.scm= holds the pc's Guix Home: just =home-dbus-service-type= and =home-pipewire-service-type=, so PipeWire, WirePlumber and =pipewire-pulse= start at login. Packages stay in =current-profile-manifest=.
 
-#+CAPTION: To set it up
+The thinkpad doesn't use Guix Home: Debian's systemd already runs PipeWire, and a second one would fight it for the sound card. JACK apps from the Guix profile (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=.
+
 #+begin_src sh
-
-# The guix home import command reads some of the “dot files” such as ~/.bashrc found in your home directory and copies them to the given directory, ~/dotfiles/guix-config/guix-home in this case; it also reads the contents of your profile, ~/.guix-profile, and, based on that, it populates ~/dotfiles/guix-config/guix-home/home-configuration.scm with a Home configuration that resembles your current configuration. 
-
-guix home import ~/dotfiles/guix-config/guix-home
-
+make check-guix-home   # build only
+make apply-guix-home   # guix home reconfigure home-pc.scm -L modules
 #+end_src
 
-#+CAPTION: To reconfigure
-#+begin_src sh
-guix home reconfigure ~/dotfiles/guix-config/guix-home/home-configuration.scm
-#+end_src
-
-#+CAPTION: Once the configuration looks good, you can first test it in a throw-away “container”
-#+begin_src sh
-
-guix home container path-to-home-config.scm
-
-#+end_src
+https://guix.gnu.org/manual/devel/en/html_node/Sound-Home-Services.html
 
 * Nix
 I use Nix for packages that aren't currently available in Guix, or those I might need at a moments notice.
