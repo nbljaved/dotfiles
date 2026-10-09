@@ -1,8 +1,12 @@
 #+title: Key remapper for X11 and Wayland 
 #+url: https://github.com/xremap/xremap
 
+No sudo needed: the user is in the "input" group, and config-pc.scm
+gives that group write access to /dev/uinput (the 99-uinput.rules
+udev rule).
+
 #+begin_src shell
 
-sudo xremap --watch=config,device ./xremap.yaml 
+xremap --watch=config,device ./xremap.yaml 
 
 #+end_src

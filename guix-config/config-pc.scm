@@ -16,7 +16,7 @@
  (gnu packages admin)
  (gnu packages lisp-xyz)
  (gnu packages rust-apps)
- (gnu packages wm)
+ (gnu packages window-management)
  (gnu packages virtualization)
  (gnu packages rsync)
  (gnu services shepherd)
@@ -39,8 +39,7 @@
  emacs
  fonts
  lisp
- version-control
- wm)
+ version-control)
 
 (use-service-modules
  cups
@@ -189,7 +188,7 @@
                 (service screen-locker-service-type
                          (screen-locker-configuration
                           (name "i3lock")
-                          (program (file-append i3lock "bin/i3lock"))
+                          (program (file-append i3lock "/bin/i3lock"))
                           (using-pam? #t)
                           (using-setuid? #f)))
                 (service nix-service-type)
@@ -199,7 +198,15 @@
                 (service pam-limits-service-type
                          (list
                           (pam-limits-entry "@audio" 'both 'rtprio 95)
-                          (pam-limits-entry "@audio" 'both 'memlock 'unlimited))))
+                          (pam-limits-entry "@audio" 'both 'memlock 'unlimited)))
+                ;; Let the "input" group write /dev/uinput (root-only by
+                ;; default) so xremap runs without sudo: it reads
+                ;; /dev/input/event* (already root:input) and emits the
+                ;; remapped keys through a virtual uinput keyboard.
+                (udev-rules-service 'uinput
+                                    (udev-rule
+                                     "99-uinput.rules"
+                                     "KERNEL==\"uinput\", GROUP=\"input\", MODE=\"0660\", OPTIONS+=\"static_node=uinput\"\n")))
           ;; This is the default list of services we
           ;; are appending to.
           (modify-services %desktop-services
@@ -235,27 +242,31 @@
               (targets (list "/boot/efi"))
               (keyboard-layout keyboard-layout)))
 
+ ;; Specify a mapped device for the encrypted root partition.
+ ;; The UUID is that returned by 'cryptsetup luksUUID'
+(mapped-devices
+ (list (mapped-device
+        (source (uuid "3a148436-3828-49a4-a5d0-af62c3925a40"))
+        (target "cryptroot")
+        (type luks-device-mapping))))
 
  ;; The list of file systems that get "mounted".  The unique
  ;; file system identifiers there ("UUIDs") can be obtained
  ;; by running 'blkid' in a terminal.
  (file-systems (cons* (file-system
                        (mount-point "/boot/efi")
-                       (device (uuid "9591-0188"
+                       (device (uuid "F2C5-824E"
                                      'fat32))
                        (type "vfat"))
                       (file-system
                        (mount-point "/")
-                       (device (uuid
-                                "41a31ef0-566b-4496-99aa-e4ce821def30"
-                                'ext4))
-                       (type "ext4")) %base-file-systems))
+		       (device (file-system-label "guix-root"))
+                       (type "ext4")
+		       (dependencies mapped-devices))
+		      %base-file-systems))
 
  ;; https://guix.gnu.org/manual/devel/en/html_node/Swap-Space.html
- (swap-devices (list (swap-space
-                      (target (uuid
-                               "27b860cf-aa15-4be6-b08f-6592fc8f0dc8")))
-                     (swap-space (target "/swapfile")
+ (swap-devices (list (swap-space (target "/swapfile")
                                  (dependencies (filter (file-system-mount-point-predicate "/")
                                                        file-systems)))))
 
@@ -266,6 +277,6 @@
  ;; See https://guix.gnu.org/manual/devel/en/html_node/Swap-Space.html to
  ;; understand how to get these values
  (kernel-arguments
-  (cons* "resume=/dev/nvme0n1p3"        ;device that holds /swapfile
-         "resume_offset=122318848"      ;offset of /swapfile on device
+  (cons* "resume=/dev/mapper/cryptroot"        ;device that holds /swapfile
+         "resume_offset=34816"      ;offset of /swapfile on device
          %default-kernel-arguments)))

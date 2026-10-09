@@ -71,6 +71,7 @@
        "glibc-locales"
        "gnome-themes-extra"
        "gnucobol"
+       "gnupg"
        "go"
        "google-chrome-stable"
        "guile"
