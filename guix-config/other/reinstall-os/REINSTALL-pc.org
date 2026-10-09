@@ -55,10 +55,10 @@ Only if you change your mind:
 The reinstall trades those unattended hours, and the fiddly step 4, for about 1–2 h of careful pushing and checking (Phase 1).
 
 * Decisions to make before starting
-** D1 — daemon mode after the reinstall
-- *Privileged (recommended; it's the Guix System default).* Just delete the =privileged?= line. Builds run as the =guixbuild= users, like on the build farm, so =--no-substitutes= builds work. That is exactly your fallback the next time an advisory lands.
-- *Unprivileged* =(privileged? #f)= is what you chose before, and it's a legitimate choice. The daemon doesn't run as root. But it *owns* =/gnu/store=, so a compromised daemon can already alter every binary you run, and the real gain is smaller than it looks. The cost: anything built locally may fail its test suite, because =chown= to an unmapped UID returns EINVAL instead of EPERM. Python, coreutils, Go and tar are known to hit this. That is exactly what blocked you. With a patched daemon, substitutes make local builds rare.
-- *Either way:* remove =(use-substitutes? #f)=.
+** D1 — daemon mode after the reinstall: unprivileged (chosen 2026-10-09)
+- *Unprivileged* =(privileged? #f)=, *chosen*. The committed =config-pc.scm= already says so, so 2.8 leaves the line alone. The manual ("Build Environment Setup") calls this "the second and preferred option", because it reduces "the harm that can be done should a build process manage to exploit a vulnerability in the daemon". The daemon doesn't run as root, but it still *owns* =/gnu/store=, so a compromised daemon can still alter every binary you run. The cost: anything built locally may fail its test suite, because =chown= to an unmapped UID returns EINVAL instead of EPERM. Python, coreutils, Go and tar are known to hit this, and it is what blocked you before. With a patched daemon, substitutes make local builds rare.
+- *Privileged* is the Guix System default. =privileged?= defaults to =#t=, but the manual calls this "the historical approach" and says the default "may eventually be changed to #f". Builds run as the =guixbuild= users, like on the build farm, so =--no-substitutes= builds work. *Fallback* if local builds keep failing: delete the =privileged?= line and reconfigure. The =guix-ownership= service hands the store back to root.
+- *Either way:* no =(use-substitutes? #f)=. The committed config has none.
 
 ** D2 — disk layout: wipe everything (chosen 2026-10-08)
 Nothing on =nvme0n1= is kept: not the partition table, not the EFI partition, not the old swap partition. [[*2.5 Partition and format — DESTRUCTIVE][2.5]] discards the whole disk and creates two partitions:
@@ -279,14 +279,17 @@ Insert the stick, power on, press *F12* (the ThinkCentre boot menu) and pick the
 On the installer's welcome screen choose *"Install using the shell based process"*, which switches to a root shell on TTY3. =Ctrl+Alt+F3= also works at any time.
 
 ** 2.3 Network
+The installer already runs *ConnMan* (=connman-service-type= in =gnu/system/install.scm=). It configures the Ethernet port by itself as soon as the cable has a link, so don't start =dhcpcd= next to it.
 #+begin_src sh
 ip -br link                       # onboard Ethernet starts with "e" (today: enp128s31f6)
-ip link set enp128s31f6 up
-dhcpcd enp128s31f6
+ip -br addr                       # an inet address on it means ConnMan has done the work
 ping -c 3 gnu.org
 #+end_src
+- *No address? Check the link first.* If =ip -br link= shows =NO-CARRIER= instead of =LOWER_UP=, or =cat /sys/class/net/enp128s31f6/carrier= prints =0=, the port sees no cable, and no DHCP client can fix that. =dhcpcd= reports the same thing as "waiting for carrier … timed out". Make sure the other end is in one of the router's LAN ports, not its WAN/internet port, and that the port LEDs light up at both ends. Then try another cable or router port. =dmesg | grep -i e1000e= should print "NIC Link is Up". If it prints an error instead, switch the pc off at the wall for 30 s and boot the USB again.
+- *Link but no address*: =connmanctl services= should list a wired service. If ConnMan won't get a lease, run =herd stop connman= and then =dhcpcd enp128s31f6=.
+- *Already ran =dhcpcd=?* Stop it with =pkill dhcpcd=. Any later =dhcpcd= just prints "sending commands to dhcpcd process" and hands its arguments to the first one. "no such user dhcpcd" is harmless: =dhcpcd= simply runs without privilege separation.
 - Wi-Fi will not appear, because Intel Wi-Fi needs non-free firmware. That's expected.
-- Phone tethering: plug in the phone, enable USB tethering, check =ip -br link= for the new interface, then run =dhcpcd <iface>=.
+- Phone tethering: plug in the phone, enable USB tethering and check =ip -br addr= for the new interface. ConnMan should configure it like the Ethernet port. If it doesn't, use the =herd stop connman= / =dhcpcd <iface>= fallback above.
 - Optional: finish the install over SSH from another machine with =passwd=, then =herd start ssh-daemon=.
 
 ** 2.4 Verify the ISO is patched — STOP if not
@@ -328,6 +331,7 @@ cryptsetup luksDump /dev/nvme0n1p2 | grep -A6 'Keyslots:'   # expect argon2id, M
 #+end_src
 - =set 1 esp on= marks p1 as an EFI system partition, which is what =grub-efi-bootloader= installs into.
 - If =wipefs= complains that a partition is busy, the installer mounted or activated it: =umount= it or =swapoff -a=, then repeat.
+- =blkdiscard -f= always prints "operation forced, data will be lost!". That is the warning =-f= asks for, not an error. Success is otherwise silent.
 
 ** 2.6 Mount and start cow-store
 #+begin_src sh
@@ -363,13 +367,13 @@ grep -n "$ESP" config-pc.scm       # the /boot/efi file-system now uses the new 
 cryptsetup luksUUID /dev/nvme0n1p2 # the UUID edit 2 needs
 #+end_src
 
-Then five edits by hand. The installer has =nano=: =nano config-pc.scm=.
-1. *The daemon (D1).* In the =guix-service-type= block, delete the =privileged?= line and any =use-substitutes?= line, leaving:
+Then one check and four edits by hand. The installer has =nano=: =nano config-pc.scm=.
+1. *The daemon (D1): no edit, just check.* The committed =guix-service-type= block already has =(privileged? #f)= and no =use-substitutes?= line. Leave it like this:
 #+begin_src scheme
 (guix-service-type config => (guix-configuration
                               (inherit config)
-                              ;; D1: privileged daemon (Guix System default).
-                              ;; For unprivileged instead, add: (privileged? #f)
+                              ;; run guix-daemon without root privileges
+                              (privileged? #f)
                               (substitute-urls
                                (append
                                 (list
@@ -415,7 +419,7 @@ Then five edits by hand. The installer has =nano=: =nano config-pc.scm=.
 Check and copy:
 #+begin_src sh
 git diff --stat                    # config-pc.scm only
-grep -n 'privileged\|use-substitutes' config-pc.scm   # only the comment line from edit 1
+grep -n 'privileged\|use-substitutes' config-pc.scm   # the comment and (privileged? #f), nothing else
 grep -n 'mapped-device\|cryptroot\|guix-root\|resume\|9591\|27b860cf\|41a31ef0' config-pc.scm   # no old UUIDs left
 mkdir -p /mnt/etc
 cp config-pc.scm /mnt/etc/config.scm
@@ -477,7 +481,7 @@ reboot          # pull the USB stick out at the Lenovo logo
 #+end_src
 
 * Phase 3 — First boot and restore
-** TODO 3.1 Set passwords
+** DONE 3.1 Set passwords
 *The first boot now starts with the LUKS prompt (D5).* GRUB asks once, slowly — it has no AES acceleration — and the kernel should not ask again. Asked twice? The key passing didn't happen; check the =grub.cfg= greps at the end of 2.10. GRUB rescue prompt instead? =cryptomount= is missing, or GRUB can't do argon2id on this firmware: see D5's =luksConvertKey= fallback.
 
 At the GDM screen press =Ctrl+Alt+F3=, log in as =root= (the password is empty; SSH password logins are disabled in your config, so this isn't exposed), then:
@@ -487,7 +491,7 @@ passwd nabeel
 #+end_src
 Log out, switch back to GDM (=Ctrl+Alt+F7=, or F1), and log in as =nabeel= (StumpWM or Xfce).
 
-** TODO 3.2 Verify the installed daemon
+** DONE 3.2 Verify the installed daemon
 #+begin_src sh
 ps -o user=,args= -C guix-daemon | cut -c1-160
 ls -ld /gnu/store
@@ -498,10 +502,10 @@ grep -c 'define (rename-file\*' "$G/share/guile/site/3.0/guix/scripts/substitute
 - D1 unprivileged: the user is =guix-daemon=, and the store is =guix-daemon guix-daemon=. The first boot logs "Changing to unprivileged guix-daemon."
 - There must be *no* =--no-substitutes= in the args.
 
-** TODO 3.3 Network
+** DONE 3.3 Network
 Wi-Fi now works (nonguix kernel + =linux-firmware=). Either use =nmcli device wifi connect "<SSID>" --ask=, or restore your old profiles in 3.11.
 
-** TODO 3.4 Put the two keys back
+** DONE 3.4 Put the two keys back
 No archive (D3). =~/.gitconfig= and =~/.config/git/ignore= come from =shell-config= in 3.6, so only the keys need hands here.
 
 =~/.age/key=: this machine has no network secrets yet, and the T460 has no SSH server, so *push it from the T460* (or retype the one line from your paper, or unwrap the =key.age= from your repo with =age -d -o ~/.age/key key.age=, see 1.6):
@@ -522,12 +526,12 @@ cat ~/.ssh/id_ed25519.pub        # add at https://github.com/settings/keys, then
 ssh -T git@github.com            # "Hi nbljaved! …"
 #+end_src
 
-** TODO 3.5 Clone your repos — where each one goes
+** DONE 3.5 Clone your repos — where each one goes
 |  # | Location                                                      | Clone from                                                           | Visibility | Submodules                                                 |
 |----+---------------------------------------------------------------+----------------------------------------------------------------------+------------+------------------------------------------------------------|
 |  1 | =~/dotfiles= (=emacs.d=, =shell-config=, =stumpwm.d=, =guix-config=) | =git@github.com:nbljaved/dotfiles.git=                                 | public     | =emacs-pde=, =clx-truetype= (goose121), =modules= (stumpwm-contrib) |
 |  — | =~/guix-config=, =~/shell-config=, =~/.emacs.d=, =~/.stumpwm.d=     | merged into =dotfiles= 2026-10-07; old repos archived                 | public     | —                                                          |
-|  5 | =~/org/roam=                                                    | =git@github.com:nbljaved/org-roam-files.git=                           | private    | —                                                          |
+|  5 | =~/notes/                                               | =git@github.com:nbljaved/notes.git=                      | private    | —                                                          |
 |  6 | =~/Documents/leetcode=                                          | =git@github.com:nbljaved/leetcode.git=                                 | private    | —                                                          |
 |  7 | =~/Documents/islam=                                             | =git@github.com:nbljaved/islam.git=                                    | private    | —                                                          |
 |  8 | =~/Documents/public=                                            | =git@github.com:nbljaved/public.git=                                   | public     | HF space =agent_couse_Final_Assignment_Template= (=git@hf.co=) |
