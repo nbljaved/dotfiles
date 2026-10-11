@@ -46,6 +46,11 @@ mkdir -p ~/.config/guix
 ln -sf  ~/dotfiles/guix-config/channels.scm       ~/.config/guix/channels.scm
 ln -sf  ~/dotfiles/guix-config/nix-config/nix-channels ~/.nix-channels   # where Nix is installed; `make sync-nix` does this too
 
+# SuperCollider: only the two config files, the rest of that directory is cache
+mkdir -p ~/.config/SuperCollider
+ln -sf  ~/dotfiles/guix-config/.config/SuperCollider/sc_ide_conf.yaml ~/.config/SuperCollider/sc_ide_conf.yaml
+ln -sf  ~/dotfiles/guix-config/.config/SuperCollider/sclang_conf.yaml ~/.config/SuperCollider/sclang_conf.yaml
+
 # Claude Code: the shot-scraper skill
 mkdir -p ~/.claude/skills/screenshot
 ln -sf  ~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md ~/.claude/skills/screenshot/SKILL.md

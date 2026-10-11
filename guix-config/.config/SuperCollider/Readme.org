@@ -1,0 +1,58 @@
+#+title: SuperCollider: audio synthesis and algorithmic composition
+#+url: https://supercollider.github.io
+
+=supercollider= and =supercollider:ide= come from =current-profile-manifest=.
+
+* Files
+Both are symlinked into =~/.config/SuperCollider/= (see =~/dotfiles/README.org=):
+
+| File               | What                                                          |
+|--------------------+---------------------------------------------------------------|
+| =sc_ide_conf.yaml= | IDE preferences: editor theme and font, shortcuts, post window |
+| =sclang_conf.yaml= | interpreter include/exclude paths (Quarks, extensions)        |
+
+scide also saves its recently opened files (=IDE/recentDocuments=) in
+=sc_ide_conf.yaml=, so after normal use it shows up as changed in git; leave
+those lines out of commits (=git add -p=).
+
+Not kept here: =sessions/= (open documents, with paths into this machine),
+=tmp/= (autosaves), =webengine-cache/= (help browser cache), and everything
+under =~/.local/share/SuperCollider/= (downloaded Quarks, extensions,
+synthdefs, help cache).  =startup.scd= would belong here too, if one is
+ever written; sclang runs it on every start.
+
+* Run
+The Guix =scsynth= links =jack2='s =libjack=, which looks for a =jackd= that
+never runs here.  =pw-jack= puts PipeWire's =libjack= first on
+=LD_LIBRARY_PATH=; the =sclang= that scide starts and the =scsynth= that
+=s.boot= starts inherit it.  PipeWire itself comes from Guix Home on the pc
+(=../../home-pc.scm=) and from Debian on the thinkpad.
+
+#+begin_src shell
+
+pw-jack scide            # IDE: Ctrl+B boots the server, Ctrl+Enter evaluates, Ctrl+. stops sound
+pw-jack sclang           # REPL, no IDE
+pw-jack scsynth -u 57110 # just the server
+
+#+end_src
+
+#+CAPTION: Lower latency: ask PipeWire for a 256-sample period (the default is 1024, ~21 ms at 48 kHz)
+#+begin_src shell
+
+pw-jack -p 256 scide
+
+#+end_src
+
+* Dark theme
+The editor and post window use scide's own themes (=dark=, =dracula=,
+=solarizedDark=, ...): Edit → Preferences → Editor → Fonts & Colors.  The
+rest of the window is Qt 6, which ignores =GTK_THEME=; the =gtk3= platform
+theme (shipped in Guix's =qtbase=) makes it follow Adwaita-dark like
+pavucontrol does.  The help pages stay white: their stylesheet has no dark
+mode.
+
+#+begin_src shell
+
+QT_QPA_PLATFORMTHEME=gtk3 pw-jack scide
+
+#+end_src

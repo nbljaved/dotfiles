@@ -1,5 +1,6 @@
 #+startup: overview
 
+Guix manual: https://guix.gnu.org/manual/devel/en/guix.html
 Your current profile and other stuff (like channels.scm) is in ~/.config/guix/
 
 #+CAPTION: To update this repository by fetching the config files from appropriate locations
@@ -56,7 +57,7 @@ sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 * Guix Home (pc only)
 =home-pc.scm= holds the pc's Guix Home: just =home-dbus-service-type= and =home-pipewire-service-type=, so PipeWire, WirePlumber and =pipewire-pulse= start at login. Packages stay in =current-profile-manifest=.
 
-The thinkpad doesn't use Guix Home: Debian's systemd already runs PipeWire, and a second one would fight it for the sound card. JACK apps from the Guix profile (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=.
+The thinkpad doesn't use Guix Home: Debian's systemd already runs PipeWire, and a second one would fight it for the sound card. JACK apps from the Guix profile (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=. SuperCollider's config and how to run it are in =.config/SuperCollider/Readme.org=.
 
 #+begin_src sh
 make check-guix-home   # build only

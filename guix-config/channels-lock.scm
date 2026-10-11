@@ -2,7 +2,7 @@
        (name 'nonguix)
        (url "https://gitlab.com/nonguix/nonguix")
        (branch "master")
-       (commit "bf39542ca537fde8839b209ac21d6f3254469b15")
+       (commit "0de6bf4b8f67297724e12d8e8b9c7532dd6d0751")
        (introduction
         (make-channel-introduction
          "897c1a470da759236cc11798f4e0a5f7d4d59fbc"
@@ -12,7 +12,7 @@
        (name 'rde)
        (url "https://git.sr.ht/~abcdw/rde")
        (branch "master")
-       (commit "740d510ecd697a966be1d10da2a18162a4234cb3")
+       (commit "6821d6f604caf3e2bb8ddd38ca55c0aa5756b0e1")
        (introduction
         (make-channel-introduction
          "257cebd587b66e4d865b3537a9a88cccd7107c95"
@@ -22,7 +22,7 @@
        (name 'guix-science)
        (url "https://codeberg.org/guix-science/guix-science.git")
        (branch "master")
-       (commit "8e78e358bc979bffe4f0e8fc25db0bc41cd4612a")
+       (commit "443f9bbc029ff55d532d9e1525cf879486230b4b")
        (introduction
         (make-channel-introduction
          "b1fe5aaff3ab48e798a4cce02f0212bc91f423dc"
@@ -32,7 +32,7 @@
        (name 'guix-science-nonfree)
        (url "https://codeberg.org/guix-science/guix-science-nonfree.git")
        (branch "master")
-       (commit "f30ef0318dd1c26bcb9d952a50cfa777429ab4e9")
+       (commit "b9cc745a1d756cf94de355a12d5742c71230fe7d")
        (introduction
         (make-channel-introduction
          "58661b110325fd5d9b40e6f0177cc486a615817e"
@@ -42,7 +42,7 @@
        (name 'guix)
        (url "https://git.guix.gnu.org/guix.git")
        (branch "master")
-       (commit "35e88b7ff2f9c51cccdb3efac121e1854c4362bd")
+       (commit "86a4aafd49bea8bb3cd7ba91ea0d96b93ced133b")
        (introduction
         (make-channel-introduction
          "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -52,7 +52,7 @@
        (name 'guix-past)
        (url "https://codeberg.org/guix-science/guix-past.git")
        (branch "master")
-       (commit "a0ea643f565d5aaa70e50e6a83865389aa5d80ba")
+       (commit "1ef1e5172f2631ee21cfc59656a64be3b5f0f8b3")
        (introduction
         (make-channel-introduction
          "0c119db2ea86a389769f4d2b9c6f5c41c027e336"

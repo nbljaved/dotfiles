@@ -556,7 +556,7 @@ git clone --recurse-submodules git@github.com:nbljaved/personal-documents.git   
 - Submodules on a detached HEAD are normal.
 - If the HF submodule fails (your key isn't registered on huggingface.co), the parent clone still succeeds. Run =git submodule update --init= later, or switch that submodule's URL to =https://huggingface.co/spaces/nbljaved/agent_couse_Final_Assignment_Template= (it's public).
 
-** TODO 3.6 Recreate symlinks
+** DONE 3.6 Recreate symlinks
 These are the symlinks that existed on 2026-09-21:
 #+begin_src sh
 ln -sf  ~/dotfiles/shell-config/.bashrc                ~/.bashrc
@@ -573,6 +573,9 @@ mkdir -p ~/.config/git
 ln -sf  ~/dotfiles/shell-config/git/ignore             ~/.config/git/ignore
 mkdir -p ~/.claude/skills/screenshot
 ln -sf  ~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md ~/.claude/skills/screenshot/SKILL.md
+mkdir -p ~/.config/SuperCollider
+ln -sf  ~/dotfiles/guix-config/.config/SuperCollider/sc_ide_conf.yaml ~/.config/SuperCollider/sc_ide_conf.yaml
+ln -sf  ~/dotfiles/guix-config/.config/SuperCollider/sclang_conf.yaml ~/.config/SuperCollider/sclang_conf.yaml
 mkdir -p ~/.config/stumpwm
 ln -sf  ~/dotfiles/stumpwm.d/init.lisp        ~/.config/stumpwm/config
 # after ~/quicklisp is restored (3.9):
@@ -580,7 +583,7 @@ ln -sfn ~/dotfiles/stumpwm.d/clx-truetype             ~/quicklisp/local-projects
 #+end_src
 Open a new terminal afterwards so the new =.bashrc= loads.
 
-** TODO 3.7 Guix: pull, user profile, refresh the lock
+** DONE 3.7 Guix: pull, user profile, refresh the lock
 #+begin_src sh
 guix pull                                   # full channels.scm: guix, nonguix, rde, guix-science(+nonfree), guix-past
 hash -r; guix describe
@@ -594,18 +597,20 @@ Reconfiguring later: root has never pulled, and the bare system guix cannot load
 sudo ~/.config/guix/current/bin/guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 #+end_src
 
-** TODO 3.8 Emacs
+** DONE 3.8 Emacs
 =Emacs.org= tangles =init.el=, =early-init.el=, =~/.roswell/init.lisp= and =~/.slynkrc=.
 #+begin_src sh
 emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "~/.emacs.d/Emacs.org")'
 emacs      # first start: elpaca clones and builds ~200 packages. Let it finish, then restart Emacs.
 #+end_src
 
-** TODO 3.9 StumpWM and Common Lisp
+** DONE 3.9 StumpWM and Common Lisp
 =~/dotfiles/stumpwm.d/Readme.org= documents the rest: the =config/= directory (picom, udiskie, xsettingsd, rofi get their paths passed explicitly, nothing is symlinked into =~/.config=), the X resources, and why this machine needs no =~/.xinitrc= — GDM builds the session.
 There is no backup to restore from (D3), so rebuild =~/quicklisp= from upstream with =bash ~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh=, which checks the installer's signature and makes the =clx-truetype= link itself. =~/.sbclrc= is no longer backup material: it lives in =shell-config= and 3.6 symlinks it. Quicklisp exists here only for =clx-truetype=, which =load-fonts.lisp= needs for the StumpWM font on this screen, and for =alert-me=.
 
-** TODO 3.10 Nix
+** DONE 3.10 Nix
+Read guix-config/Readme.org
+
 #+begin_src sh
 source /run/current-system/profile/etc/profile.d/nix.sh
 nix-channel --update
@@ -630,7 +635,7 @@ cd ~/dotfiles/guix-config && make distrobox          # rebuilds the Arch image a
 #+end_src
 The shot-scraper image: see =~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/=.
 
-** TODO 3.13 What isn't coming back
+** DONE 3.13 What isn't coming back
 There is no archive (D3). This is the re-login and re-create list, and it is the price of the choice:
 - *Chrome*: sign in, let sync restore bookmarks and passwords (you checked this in 1.8). *LibreWolf* starts empty.
 - *Telegram*: scan the QR from the phone — both the desktop app and =.telega=.
@@ -640,7 +645,7 @@ There is no archive (D3). This is the re-login and re-create list, and it is the
 - *Gone unless you committed them first*: =~/Calibre Library=, =~/Downloads= (incl. =test=), =~/.bash_history=, =~/.org-timestamps=, =~/.fehbg=, the loose =~/qa-questions.org=, =~/ai-questions.org= and =~/guix-home-config.scm=, and the gitignored =guix-config/.claude/=, =.stumpwm.d/winner-layouts=, =.stumpwm.d/history=, =Documents/public/.claude/=. The ignored ones rebuild themselves as you work.
 - There is nothing to diff the new =~= against any more. [[*C. At-risk survey script][Appendix C]] is the only check left, and it only sees repos.
 
-** TODO 3.14 Commit the post-install changes
+** DONE 3.14 Commit the post-install changes
 #+begin_src sh
 cd ~/dotfiles/guix-config
 cat /etc/config.scm > config-pc.scm   # the 2.8 edits live in /etc/config.scm (and /root/dotfiles), not in this clone
@@ -648,21 +653,21 @@ git diff                         # expect: the 2.8 edits (daemon, LUKS, root lab
 git add -A config-pc.scm channels-lock.scm && git commit -m "pc: config for the reinstall (LUKS, privileged daemon) + fresh channel lock" && git push
 #+end_src
 
-** TODO 3.15 Done checklist [0/14]
-- [ ] =guix describe= shows recent commits, and 3.2 prints =1=
-- [ ] Substitutes work: =guix build hello= downloads rather than builds
-- [ ] Wi-Fi, Bluetooth, sound, printing
+** TODO 3.15 Done checklist [10/14]
+- [X] =guix describe= shows recent commits, and 3.2 prints =1=
+- [X] Substitutes work: =guix build hello= downloads rather than builds
+- [X] Wi-Fi, Bluetooth, sound, printing
 - [ ] PipeWire from Guix Home: =herd status= lists =pipewire=, =wireplumber= and =pipewire-pulseaudio= as running; =pactl info= says =PulseAudio (on PipeWire …)=; =pw-jack scsynth -u 57110= starts
-- [ ] Hibernation: =loginctl hibernate=, then resume — and the LUKS passphrase is asked on the way back
-- [ ] =lsblk -f= shows =vfat= on =nvme0n1p1=, =crypto_LUKS= on =nvme0n1p2= and the root mounted from =/dev/mapper/cryptroot=; =sudo cryptsetup luksDump /dev/nvme0n1p2= shows argon2id with =Memory: 262144=
-- [ ] The passphrase was asked *once* at boot (D5)
+- [X] Hibernation: =loginctl hibernate=, then resume — and the LUKS passphrase is asked on the way back
+- [X] =lsblk -f= shows =vfat= on =nvme0n1p1=, =crypto_LUKS= on =nvme0n1p2= and the root mounted from =/dev/mapper/cryptroot=; =sudo cryptsetup luksDump /dev/nvme0n1p2= shows argon2id with =Memory: 262144=
+- [X] The passphrase was asked *once* at boot (D5)
 - [ ] =tailscale status=
 - [ ] SSH into pc from another machine, after clearing its old host key (1.7)
-- [ ] The age key is back and the diary decrypts: =age -d ~/Documents/personal/diary/diary.org.age | head -1= (3.4)
+- [X] The age key is back and the diary decrypts: =age -d ~/Documents/personal/diary/diary.org.age | head -1= (3.4)
 - [ ] =distrobox enter arch=, podman
-- [ ] Nix packages on =PATH=
-- [ ] Emacs starts cleanly; the StumpWM session works
-- [ ] xremap: =sudo xremap --watch=device,config ~/dotfiles/guix-config/.config/xremap/xremap.yaml= (you started it by hand from a terminal before; no launcher exists in your repos)
+- [X] Nix packages on =PATH=
+- [X] Emacs starts cleanly; the StumpWM session works
+- [X] xremap: =xremap --watch=device,config ~/dotfiles/guix-config/.config/xremap/xremap.yaml= (you started it by hand from a terminal before; no launcher exists in your repos)
 
 * Appendix
 ** A. Repo inventory (2026-09-21)
