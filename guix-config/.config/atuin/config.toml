@@ -1,0 +1,36 @@
+# Atuin, installed and placed at ~/.config/atuin/config.toml by Guix Home
+# (../../home.scm).  .bashrc runs `atuin init bash'.
+# do `atuin import bash` to get the non-atuin bash history
+#
+# Local only: history stays in ~/.local/share/atuin/history.db on each
+# machine.  Never run `atuin register' or `atuin login'; those are what
+# would start syncing.  Back that directory up to keep the history across
+# a reinstall.
+#
+# All options: https://docs.atuin.sh/configuration/config/
+
+# Sync only happens after a login, but say so anyway.
+auto_sync = false
+
+# Don't ask the sync server for new versions; Guix does the updates.  The
+# Guix package is built without the update check, so this is a safeguard.
+update_check = false
+
+# Tab opens the inspector and Tab closes it again.  The default for that is
+# ctrl-o, which kitty takes for switching windows, so atuin never sees it.
+# Tab used to put the command on the line without running it, but Enter
+# already does that while enter_accept is unset (false).
+#
+# A [keymap] table makes atuin ignore [keys]; this file sets no [keys].
+# Bound in every mode so it still holds if keymap_mode is set to vim.
+[keymap.emacs]
+"tab" = "toggle-tab"
+
+[keymap.vim-normal]
+"tab" = "toggle-tab"
+
+[keymap.vim-insert]
+"tab" = "toggle-tab"
+
+[keymap.inspector]
+"tab" = "toggle-tab"

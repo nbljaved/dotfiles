@@ -214,6 +214,11 @@ eval "$(direnv hook bash)"
 # starship
 export PATH="$PATH":/usr/local/bin
 eval "$(starship init bash)"
+# Local only, see ~/.config/atuin/config.toml.  Runs after
+# fzf so it takes C-r, and uses ble.sh's hooks since ble.sh is loaded above.
+if command -v "atuin" >/dev/null 2>&1; then
+    eval "$(atuin init bash)"
+fi
 
 ## npm
 # To allow global package installations for the current user

@@ -27,13 +27,14 @@ NIX := $(shell command -v nix >/dev/null 2>&1 && echo nix)
 #   thinkpad  Debian + Guix package manager. No system config; its
 #             profile is the shared manifest plus HOST_MANIFEST.
 #   pc        Guix System, configured by HOST_CONFIG.
+# Both use HOME_CONFIG for Guix Home; it picks its services by hostname.
+HOME_CONFIG := home.scm
 ifeq ($(HOSTNAME), thinkpad)
 HOST_MANIFEST := thinkpad-manifest.scm
 EXTRA_MANIFESTS := -m $(HOST_MANIFEST)
 endif
 ifeq ($(HOSTNAME), pc)
 HOST_CONFIG := config-pc.scm
-HOST_HOME := home-pc.scm
 endif
 
 .PHONY: help all sync sync-guix sync-nix \
@@ -111,19 +112,11 @@ else
 	guix system build $(HOST_CONFIG) -L modules
 endif
 
-apply-guix-home: ## pc only: reconfigure Guix Home from home-pc.scm (PipeWire services)
-ifdef HOST_HOME
-	guix home reconfigure $(HOST_HOME) -L modules
-else
-	@echo "Unsupported host: $(HOSTNAME) (no Guix Home config; Debian runs PipeWire itself)"
-endif
+apply-guix-home: ## Reconfigure Guix Home from home.scm (atuin; pc also gets PipeWire services)
+	guix home reconfigure $(HOME_CONFIG) -L modules
 
-check-guix-home: ## pc only: build home-pc.scm to catch breakage (does NOT activate)
-ifndef HOST_HOME
-	@echo "Unsupported host: $(HOSTNAME) (no Guix Home config)" && exit 1
-else
-	guix home build $(HOST_HOME) -L modules
-endif
+check-guix-home: ## Build home.scm for this host to catch breakage (does NOT activate)
+	guix home build $(HOME_CONFIG) -L modules
 
 apply-guix-profile: ## Make the Guix profile match current-profile-manifest (+ thinkpad-manifest.scm on thinkpad); removes anything else
 	guix package -m current-profile-manifest $(EXTRA_MANIFESTS) -L modules

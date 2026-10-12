@@ -590,7 +590,7 @@ hash -r; guix describe
 cd ~/dotfiles/guix-config
 guix describe -f channels > channels-lock.scm   # replaces the lock that pinned unpatched 35e88b7
 make apply-guix-profile                     # guix package -m current-profile-manifest -L modules
-make apply-guix-home                        # home-pc.scm: D-Bus + PipeWire user services; log out and back in after
+make apply-guix-home                        # home.scm: atuin, D-Bus + PipeWire user services; log out and back in after
 #+end_src
 Reconfiguring later: root has never pulled, and the bare system guix cannot load your config because nonguix is missing. So reconfigure with *your* guix:
 #+begin_src sh

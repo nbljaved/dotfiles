@@ -26,7 +26,7 @@ The Guix =scsynth= links =jack2='s =libjack=, which looks for a =jackd= that
 never runs here.  =pw-jack= puts PipeWire's =libjack= first on
 =LD_LIBRARY_PATH=; the =sclang= that scide starts and the =scsynth= that
 =s.boot= starts inherit it.  PipeWire itself comes from Guix Home on the pc
-(=../../home-pc.scm=) and from Debian on the thinkpad.
+(=../../home.scm=) and from Debian on the thinkpad.
 
 #+begin_src shell
 

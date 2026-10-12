@@ -54,14 +54,18 @@ sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 
 #+end_src
 
-* Guix Home (pc only)
-=home-pc.scm= holds the pc's Guix Home: just =home-dbus-service-type= and =home-pipewire-service-type=, so PipeWire, WirePlumber and =pipewire-pulse= start at login. Packages stay in =current-profile-manifest=.
+* Guix Home
+=home.scm= is the Guix Home for both hosts, and picks the host-only services with =(gethostname)=; any other hostname is an error.
+For example:
+- Both: =atuin= for shell history, with its config from =.config/atuin/config.toml= (local only: no sync, no update check). =.bashrc= runs =atuin init bash=. History lives in =~/.local/share/atuin/=, outside git. =atuin import bash= once pulls in the old =~/.bash_history=.
+- pc: =home-dbus-service-type= and =home-pipewire-service-type=, so PipeWire, WirePlumber and =pipewire-pulse= start at login.
+- thinkpad: nothing extra. Debian's systemd already runs PipeWire, and a second one would fight it for the sound card.
 
-The thinkpad doesn't use Guix Home: Debian's systemd already runs PipeWire, and a second one would fight it for the sound card. JACK apps from the Guix profile (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=. SuperCollider's config and how to run it are in =.config/SuperCollider/Readme.org=.
+Other packages stay in =current-profile-manifest=. JACK apps from the Guix profile (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=. SuperCollider's config and how to run it are in =.config/SuperCollider/Readme.org=.
 
 #+begin_src sh
 make check-guix-home   # build only
-make apply-guix-home   # guix home reconfigure home-pc.scm -L modules
+make apply-guix-home   # guix home reconfigure home.scm -L modules
 #+end_src
 
 https://guix.gnu.org/manual/devel/en/html_node/Sound-Home-Services.html
