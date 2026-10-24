@@ -13,4 +13,8 @@
 
  (xft:cache-fonts)
  (clx-truetype:cache-fonts)
- (set-font (make-instance 'xft:font :family "DejaVu Sans Mono" :subfamily "Book" :size 17)))
+ (set-font (make-instance
+            'xft:font
+            :family "DejaVu Sans Mono"
+            :subfamily "Book"
+            :size (if pc? 17 13))))
