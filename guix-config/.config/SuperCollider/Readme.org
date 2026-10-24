@@ -1,8 +1,6 @@
 #+title: SuperCollider: audio synthesis and algorithmic composition
 #+url: https://supercollider.github.io
 
-=supercollider= and =supercollider:ide= come from =current-profile-manifest=.
-
 * Files
 Both are symlinked into =~/.config/SuperCollider/= (see =~/dotfiles/README.org=):
 

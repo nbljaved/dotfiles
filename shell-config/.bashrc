@@ -136,15 +136,16 @@ GUIX_SYSTEM=$(grep '^ID=guix' /etc/os-release)
 if [ -z "$GUIX_SYSTEM" ] && [ -n "$GUIX" ]; then
     # -z : zero length
     # -n : non-zero length
-    export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
-    export GUIX_PROFILE="$HOME/.guix-profile"
+    # Every package is in Guix Home (guix-config/home.scm).
+    export GUIX_LOCPATH="$HOME/.guix-home/profile/lib/locale"
+    export GUIX_PROFILE="$HOME/.guix-home/profile"
     source "$GUIX_PROFILE/etc/profile"
     export GUIX_CHECKOUT="$HOME/src/guix"
     #
     export PKG_CONFIG_PATH=$GUIX_PROFILE/lib/pkgconfig
     # SSL certificate
-    export SSL_CERT_DIR="$HOME/.guix-profile/etc/ssl/certs"
-    export SSL_CERT_FILE="$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt"
+    export SSL_CERT_DIR="$GUIX_PROFILE/etc/ssl/certs"
+    export SSL_CERT_FILE="$GUIX_PROFILE/etc/ssl/certs/ca-certificates.crt"
     export GIT_SSL_CAINFO="$SSL_CERT_FILE"
 fi
 
@@ -253,7 +254,7 @@ fi
 
 ## typst
 # do fc-list to look at available fonts
-export TYPST_FONT_PATHS="$HOME/.guix-profile/share/fonts/:$HOME/.local/share/fonts"
+export TYPST_FONT_PATHS="$HOME/.guix-home/profile/share/fonts/:$HOME/.local/share/fonts"
 
 # Dark theme for pavucontrol
 export GTK_THEME=Adwaita:dark

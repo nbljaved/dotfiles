@@ -275,6 +275,19 @@ systemctl instead."
   (run-shell-command "pactl -- set-sink-volume @DEFAULT_SINK@ -5%" )
   (run-shell-command  "dunstify -h string:x-dunst-stack-tag:volume \"Volume\" $(pamixer --get-volume-human) " t))
 
+;; Media players over MPRIS (librewolf, ...)
+(defcommand media-play-pause () ()
+  "Play / Pause the media player"
+  (run-shell-command "playerctl play-pause"))
+
+(defcommand media-next () ()
+  "Next track"
+  (run-shell-command "playerctl next"))
+
+(defcommand media-previous () ()
+  "Previous track"
+  (run-shell-command "playerctl previous"))
+
 (defcommand clear-notifications () ()
   (run-shell-command "dunstctl close-all"))
 

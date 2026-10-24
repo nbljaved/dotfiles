@@ -1,17 +1,17 @@
 # Source-of-truth direction:
 #   * `make sync`  captures the live system INTO the repo
-#                  (/etc/config.scm + profiles  ->  this repo).
-#                  Exception: on the thinkpad the Guix profile is NOT
-#                  captured (the shared manifest would get its host-only
-#                  packages); `sync-guix` only reports differences there.
+#                  (/etc/config.scm + Nix profile  ->  this repo).
+#                  Guix packages are not captured: they are declared in
+#                  home.scm, and `sync-guix` only lists what is left in
+#                  the scratch ~/.guix-profile.
 #   * `make apply-*` pushes the repo OUT to the live system
 #                  (this repo  ->  /etc/config.scm + reconfigure).
 # Treat the repo as canonical: edit here, then `apply`. Use `sync`
 # only to import ad-hoc changes you made directly on the machine.
 #
 # Target families:
-#   sync-*       live system  ->  repo (capture; report-only for the
-#                thinkpad's Guix profile)
+#   sync-*       live system  ->  repo (capture; report-only for Guix
+#                packages)
 #   apply-*      repo  ->  live system (install/reconfigure)
 #   check-*      validate without touching the live system
 #   distrobox-*  container image / sandbox management
@@ -24,22 +24,18 @@ HOSTNAME := $(shell hostname)
 NIX := $(shell command -v nix >/dev/null 2>&1 && echo nix)
 
 # Hosts:
-#   thinkpad  Debian + Guix package manager. No system config; its
-#             profile is the shared manifest plus HOST_MANIFEST.
+#   thinkpad  Debian + Guix package manager. No system config.
 #   pc        Guix System, configured by HOST_CONFIG.
-# Both use HOME_CONFIG for Guix Home; it picks its services by hostname.
+# Both use HOME_CONFIG for Guix Home, which holds every user package and
+# picks the host-only packages and services by hostname.
 HOME_CONFIG := home.scm
-ifeq ($(HOSTNAME), thinkpad)
-HOST_MANIFEST := thinkpad-manifest.scm
-EXTRA_MANIFESTS := -m $(HOST_MANIFEST)
-endif
 ifeq ($(HOSTNAME), pc)
 HOST_CONFIG := config-pc.scm
 endif
 
 .PHONY: help all sync sync-guix sync-nix \
         check-guix-system check-guix-home \
-        apply-guix-system apply-guix-home apply-guix-profile apply-nix-profile \
+        apply-guix-system apply-guix-home apply-nix-profile \
         distrobox distrobox-build distrobox-recreate
 
 help: ## Show this help (list of targets and what they do)
@@ -52,7 +48,7 @@ all: sync ## Alias for `sync` (the default target)
 
 sync: sync-guix sync-nix ## Run sync-guix and sync-nix
 
-sync-guix: ## Link channels.scm; pc: capture /etc/config.scm + Guix profile; thinkpad: report profile vs manifests (writes nothing)
+sync-guix: ## Link channels.scm; pc: capture /etc/config.scm; list what is left in the scratch ~/.guix-profile
 ifdef HOST_CONFIG
 	cat /etc/config.scm > $(HOST_CONFIG)
 endif
@@ -60,24 +56,13 @@ endif
 # cat /etc/xremap.yaml > xremap.yaml
 	# Guix: Configure channels
 	ln -sf ~/dotfiles/guix-config/channels.scm ~/.config/guix/channels.scm
-	# Guix: Get current profile
-	# The following command doesn't work:
-	# guile ./scripts/sort-manifest.scm  current-profile-manifest > current-profile-manifest
-	#
-	# Can't read from same file as bash due to the 'redirection'
-	# truncates the output file to zero length, therefore we need
-	# to use 'sponge' from moreutils that sponges up all the output
-	# from the pipe before opening the output file for writing
-	#
-	# guile ./scripts/sort-manifest.scm  current-profile-manifest | sponge current-profile-manifest
-ifdef HOST_MANIFEST
-	# This profile is current-profile-manifest plus $(HOST_MANIFEST), so
-	# capturing it would leak host-only packages into the shared file.
-	# Report only what needs action instead; fix the manifests by hand.
-	guile ./scripts/check-host-manifest.scm current-profile-manifest $(HOST_MANIFEST)
-else
-	guile ./scripts/sort-manifest.scm > current-profile-manifest
-endif
+	# Guix: every package is declared in home.scm, so there is no
+	# profile to capture.  ~/.guix-profile is only for trying packages
+	# out: list what is in it, to add to home.scm or remove.
+	@if [ -n "$$(guix package -I)" ]; then \
+		echo "In ~/.guix-profile (add to home.scm, then 'guix package -r' it):"; \
+		guix package -I; \
+	fi
 	@echo ""
 
 sync-nix: ## Capture Nix channels symlink and current Nix profile manifest (if nix is installed)
@@ -112,14 +97,11 @@ else
 	guix system build $(HOST_CONFIG) -L modules
 endif
 
-apply-guix-home: ## Reconfigure Guix Home from home.scm (atuin; pc also gets PipeWire services)
+apply-guix-home: ## Reconfigure Guix Home from home.scm (every user package, atuin's config; pc also gets PipeWire services)
 	guix home reconfigure $(HOME_CONFIG) -L modules
 
 check-guix-home: ## Build home.scm for this host to catch breakage (does NOT activate)
 	guix home build $(HOME_CONFIG) -L modules
-
-apply-guix-profile: ## Make the Guix profile match current-profile-manifest (+ thinkpad-manifest.scm on thinkpad); removes anything else
-	guix package -m current-profile-manifest $(EXTRA_MANIFESTS) -L modules
 
 apply-nix-profile: ## Install the captured Nix profile from nix-config/attribute-manifest.nix
 	nix-env --install --remove-all --file ./nix-config/attribute-manifest.nix

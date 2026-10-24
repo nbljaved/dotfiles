@@ -33,9 +33,11 @@
   ;; the dpi to 144 (26 * 6)
   (xsettingsd-start))
 
-(when pc?
-  ;; to avoid reader error of 'package doesn't exist'
-  (load (merge-pathnames "load-fonts.lisp" *config-dir*)))
+;; Only with Quicklisp (bootstrap-quicklisp.sh), and loaded at run time
+;; to avoid reader error of 'package doesn't exist'.  `ignore-errors' so a
+;; broken clx-truetype can't stop the rest of this file (battery timer).
+(when (find-package :ql)
+  (ignore-errors (load (merge-pathnames "load-fonts.lisp" *config-dir*))))
 
 (defparameter *battery-low-timer*
   (run-with-timer 1                     ; delay of x no. of seconds

@@ -178,7 +178,7 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 (when guix?
   (defvar guix-profile-path (or (getenv "GUIX_PROFILE")
 			        (concat (getenv "HOME")
-				        "/.guix-profile"))
+				        "/.guix-home/profile"))
     "Value of environment variable $GUIX_PROFILE.")
 
   (defvar guix-checkout-path (or (getenv "GUIX_CHECKOUT")

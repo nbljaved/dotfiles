@@ -6,8 +6,9 @@
  ;; FONTS (FORGET ABOUT THIS !!!!!!!!!!!!!)
 
  ;; Add https://github.com/goose121/clx-truetype to ~/quicklisp/local-projects/
-
- (setf xft:*font-dirs* '("/run/current-system/profile/share/fonts/"))
+ (setf xft:*font-dirs* (list (if pc?
+                                 "/run/current-system/profile/share/fonts/"
+                                 (concat (getenv "HOME") "/.guix-home/profile/share/fonts/"))))
  (setf clx-truetype::+font-cache-filename+ (concat (getenv "HOME") "/.fonts/font-cache.sexp"))
 
  (xft:cache-fonts)

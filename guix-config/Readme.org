@@ -18,8 +18,8 @@ ln -sf ~/dotfiles/guix-config/channels.scm ~/.config/guix/channels.scm
 ** Reproducibility: pinned channels
 =channels.scm= floats to each channel's HEAD on =guix pull=, so it alone
 cannot reproduce a profile. =channels-lock.scm= captures the exact channel
-commits currently in use (=guix describe -f channels=). Together with the
-package manifest this pins an exact environment.
+commits currently in use (=guix describe -f channels=). Together with
+=home.scm= this pins an exact environment.
 
 #+CAPTION: Refresh the lock after a `guix pull` you want to keep
 #+begin_src shell
@@ -29,7 +29,7 @@ guix describe -f channels > ~/dotfiles/guix-config/channels-lock.scm
 #+CAPTION: Reproduce that exact environment elsewhere
 #+begin_src shell
 guix time-machine -C ~/dotfiles/guix-config/channels-lock.scm -- \
-     package -m ~/dotfiles/guix-config/current-profile-manifest -L ~/dotfiles/guix-config/modules
+     home reconfigure ~/dotfiles/guix-config/home.scm -L ~/dotfiles/guix-config/modules
 #+end_src
 
 * ./scripts
@@ -55,13 +55,15 @@ sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 #+end_src
 
 * Guix Home
-=home.scm= is the Guix Home for both hosts, and picks the host-only services with =(gethostname)=; any other hostname is an error.
-For example:
+=home.scm= is the Guix Home for both hosts. It holds every user package, and picks the host-only packages and services with =(gethostname)=; any other hostname is an error.
+- Packages: =common-packages= on both, plus =pc-packages= or =thinkpad-packages=. They are specifications, as for =guix install=. The pc's system packages stay in =config-pc.scm=; the thinkpad's root-level tools come from apt.
 - Both: =atuin= for shell history, with its config from =.config/atuin/config.toml= (local only: no sync, no update check). =.bashrc= runs =atuin init bash=. History lives in =~/.local/share/atuin/=, outside git. =atuin import bash= once pulls in the old =~/.bash_history=.
 - pc: =home-dbus-service-type= and =home-pipewire-service-type=, so PipeWire, WirePlumber and =pipewire-pulse= start at login.
-- thinkpad: nothing extra. Debian's systemd already runs PipeWire, and a second one would fight it for the sound card.
+- thinkpad: no extra services. Debian's systemd already runs PipeWire, and a second one would fight it for the sound card.
 
-Other packages stay in =current-profile-manifest=. JACK apps from the Guix profile (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=. SuperCollider's config and how to run it are in =.config/SuperCollider/Readme.org=.
+=~/.guix-profile= stays empty, for trying packages out with =guix install=; =make sync-guix= lists what is left in it, to add to =home.scm= or remove. To see what Home installed: =guix package -p ~/.guix-home/profile -I=.
+
+JACK apps from Guix Home (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=. SuperCollider's config and how to run it are in =.config/SuperCollider/Readme.org=.
 
 #+begin_src sh
 make check-guix-home   # build only

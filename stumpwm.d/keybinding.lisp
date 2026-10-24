@@ -134,6 +134,12 @@
 (define-key *top-map* (kbd "XF86AudioLowerVolume") "volume-down")
 (define-key *top-map* (kbd "XF86AudioMicMute") "mic-mute")
 
+;; Media, also a Bluetooth headset's buttons (BlueZ sends them as keys)
+(define-key *top-map* (kbd "XF86AudioPlay") "media-play-pause")
+(define-key *top-map* (kbd "XF86AudioPause") "media-play-pause")
+(define-key *top-map* (kbd "XF86AudioNext") "media-next")
+(define-key *top-map* (kbd "XF86AudioPrev") "media-previous")
+
 ;; dunst
 (define-key *top-map* (kbd "C-S-SPC") "clear-notifications")
 ;; winner-mode

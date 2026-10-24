@@ -91,7 +91,7 @@ bash ~/dotfiles/stumpwm.d/bootstrap-quicklisp.sh
 #+end_src
 Needs =sbcl=, =curl=, =gpg= and the network; it never calls =guix=.
 
-* Fonts (clx-truetype, pc only)
-=startup.lisp= loads =load-fonts.lisp= only =(when pc?)=. It quickloads =clx-truetype= (package nickname =xft=) and the contrib module =ttf-fonts=, which implements StumpWM's font protocol for =xft:font= objects, caches the font list into =~/.fonts/font-cache.sexp=, and sets DejaVu Sans Mono 17. That is what makes the message, input and mode-line windows antialiased instead of X core bitmap fonts.
+* Fonts (clx-truetype)
+=startup.lisp= loads =load-fonts.lisp= whenever Quicklisp is loaded, on both hosts. It quickloads =clx-truetype= (package nickname =xft=) and the contrib module =ttf-fonts=, which implements StumpWM's font protocol for =xft:font= objects, caches the font list into =~/.fonts/font-cache.sexp=, and sets DejaVu Sans Mono 17. That is what makes the message, input and mode-line windows antialiased instead of X core bitmap fonts.
 
-To enable it on the thinkpad, =load-fonts.lisp= first has to stop hard-coding =/run/current-system/profile/share/fonts/=, which does not exist on Debian; it would need =~/.guix-profile/share/fonts/= (and =/usr/share/fonts/=).
+It scans one font directory: =/run/current-system/profile/share/fonts/= on the pc, where =font-dejavu= is a system package, and =~/.guix-home/profile/share/fonts/= on the thinkpad, where it is in =thinkpad-packages=. Without Quicklisp or =clx-truetype= StumpWM starts anyway, with X core fonts.

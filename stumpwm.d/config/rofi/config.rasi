@@ -4,5 +4,5 @@ configuration {
   combi-modes: [ run, window ];
 }
 
-@theme "/home/nabeel/.guix-profile/share/rofi/themes/purple.rasi"
+@theme "/home/nabeel/.guix-home/profile/share/rofi/themes/purple.rasi"
 
