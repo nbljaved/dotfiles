@@ -1,5 +1,6 @@
-# Atuin, installed and placed at ~/.config/atuin/config.toml by Guix Home
-# (../../home.scm).  .bashrc runs `atuin init bash'.
+# Atuin, installed by Guix Home (../../home.scm), which links this file to
+# ~/.config/atuin/config.toml;
+# .bashrc runs `atuin init bash'.
 # do `atuin import bash` to get the non-atuin bash history
 #
 # Local only: history stays in ~/.local/share/atuin/history.db on each

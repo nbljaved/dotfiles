@@ -1,213 +1,52 @@
 #+startup: overview
 
 Guix manual: https://guix.gnu.org/manual/devel/en/guix.html
-Your current profile and other stuff (like channels.scm) is in ~/.config/guix/
 
-#+CAPTION: To update this repository by fetching the config files from appropriate locations
-#+begin_src shell
-make
+=make help= lists the targets. =make= (=sync=) copies =/etc/config.scm= into =config-pc.scm= and the Nix profile into =nix-config/=.
+
+* Guix System (pc)
+=config-pc.scm= imports modules under =(nbl ...)= from =modules/nbl/=, so pass =-L modules=. Don't pass the repo root: guix would try to load its loose =.scm= files as modules.
+#+begin_src sh
+sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
 #+end_src
 
-#+CAPTION: Link this repo's channel.scm file to your actual one
-#+begin_src shell
-
-ln -sf ~/dotfiles/guix-config/channels.scm ~/.config/guix/channels.scm
-
+* Guix Home (both hosts)
+=home.scm= picks the host by =(gethostname)=; any hostname other than =pc= or =thinkpad= is an error.
+- Packages: =common-packages=, plus =pc-packages= or =thinkpad-packages=. The pc's system packages stay in =config-pc.scm=, and the thinkpad's root-side tools come from apt.
+- Links: every link from =$HOME= into =~/dotfiles= (see =../README.org=, "Symlinks").
+- pc only: D-Bus and PipeWire user services. The thinkpad uses Debian's PipeWire; a second one would fight it for the sound card.
+#+begin_src sh
+make check-guix-home   # build only
+make apply-guix-home   # remove old ln -sf links, then guix home reconfigure
 #+end_src
+=~/.guix-profile= stays empty, for trying packages with =guix install=. =make sync= lists anything left in it.
 
-** Reproducibility: pinned channels
-=channels.scm= floats to each channel's HEAD on =guix pull=, so it alone
-cannot reproduce a profile. =channels-lock.scm= captures the exact channel
-commits currently in use (=guix describe -f channels=). Together with
-=home.scm= this pins an exact environment.
+Run JACK apps (Ardour, SuperCollider) through PipeWire with =pw-jack=, e.g. =pw-jack ardour9=.
 
-#+CAPTION: Refresh the lock after a `guix pull` you want to keep
+* Pinned channels
+=channels.scm= follows each channel's HEAD. =channels-lock.scm= records the exact commits, so it plus =home.scm= reproduces an environment.
 #+begin_src shell
-guix describe -f channels > ~/dotfiles/guix-config/channels-lock.scm
-#+end_src
-
-#+CAPTION: Reproduce that exact environment elsewhere
-#+begin_src shell
+guix describe -f channels > ~/dotfiles/guix-config/channels-lock.scm   # after a guix pull you want to keep
 guix time-machine -C ~/dotfiles/guix-config/channels-lock.scm -- \
      home reconfigure ~/dotfiles/guix-config/home.scm -L ~/dotfiles/guix-config/modules
 #+end_src
 
 * ./scripts
-./scripts/ is a folder that contains, you guessed it, useful scripts :)
-
-- To solve binaries breaking due to expectations of FHS:
-  * =./scripts/uv-guix-shell.sh= runs =uv= in a container with linux's File System Heirarchy (FHS)
-  * =./scripts/fix-foreign-binary.sh= fixes a binary that is failing due to Guix not abiding by the FHS
-
-* Guix as your OS
-
-#+CAPTION: To reconfigure the system with my custom packages
-The config imports custom modules under =(nbl ...)= (e.g. =(nbl packages
-tailscale)=). Those live in =modules/nbl/=, so the load path must point at
-=modules/= via =-L= (its parent). Without it, the reconfigure fails to
-resolve those modules. Note: point =-L= at =modules/=, NOT the repo root —
-the root holds loose non-module files (=channels.scm=, =config-*.scm=) that
-guix would try (and fail) to load as modules.
-#+begin_src sh
-
-sudo guix system reconfigure -L ~/dotfiles/guix-config/modules /etc/config.scm
-
-#+end_src
-
-* Guix Home
-=home.scm= is the Guix Home for both hosts. It holds every user package, and picks the host-only packages and services with =(gethostname)=; any other hostname is an error.
-- Packages: =common-packages= on both, plus =pc-packages= or =thinkpad-packages=. They are specifications, as for =guix install=. The pc's system packages stay in =config-pc.scm=; the thinkpad's root-level tools come from apt.
-- Both: =atuin= for shell history, with its config from =.config/atuin/config.toml= (local only: no sync, no update check). =.bashrc= runs =atuin init bash=. History lives in =~/.local/share/atuin/=, outside git. =atuin import bash= once pulls in the old =~/.bash_history=.
-- pc: =home-dbus-service-type= and =home-pipewire-service-type=, so PipeWire, WirePlumber and =pipewire-pulse= start at login.
-- thinkpad: no extra services. Debian's systemd already runs PipeWire, and a second one would fight it for the sound card.
-
-=~/.guix-profile= stays empty, for trying packages out with =guix install=; =make sync-guix= lists what is left in it, to add to =home.scm= or remove. To see what Home installed: =guix package -p ~/.guix-home/profile -I=.
-
-JACK apps from Guix Home (Ardour, SuperCollider) run on either machine with =pw-jack=, e.g. =pw-jack ardour9=. SuperCollider's config and how to run it are in =.config/SuperCollider/Readme.org=.
-
-#+begin_src sh
-make check-guix-home   # build only
-make apply-guix-home   # guix home reconfigure home.scm -L modules
-#+end_src
-
-https://guix.gnu.org/manual/devel/en/html_node/Sound-Home-Services.html
+- =uv-guix-shell.sh= runs =uv= in a container with the usual Linux file system layout (FHS).
+- =fix-foreign-binary.sh= fixes a binary that fails because Guix doesn't follow the FHS.
+- =repo-risk.sh= lists every git repo under =$HOME= with anything uncommitted, stashed or unpushed.
+- =clear-home-links.sh=: =make apply-guix-home= runs it.
 
 * Nix
-I use Nix for packages that aren't currently available in Guix, or those I might need at a moments notice.
-
-** Install Nix in non-guix linux distro
-https://nix.dev/manual/nix/2.28/installation/index.html
-Install the multi-user one.
-
-https://nix.dev/manual/nix/2.28/quick-start.html
-
-** Install Nix in Guix system
-#+CAPTION: Enable nix service in Guix
-(see [[https://guix.gnu.org/manual/en/html_node/Miscellaneous-Services.html][Guix Miscellaneous Services]])
-#+begin_src lisp :eval no
-;; Add this service in services /etc/config.scm
-(service nix-service-type)
-#+end_src
-
-After guix system reconfigure configure Nix for your user:
-
- * Add a Nix channel and update it. See [[https://nixos.org/nix/manual/][Nix Package Manager Guide]].
- * Create a symlink to your profile and activate Nix profile: 
-
- #+CAPTION: This is what the Guix manual says, but I just did the source step
- #+begin_src shell :eval no
- ln -s "/nix/var/nix/profiles/per-user/$USER/profile" ~/.nix-profile
- source /run/current-system/profile/etc/profile.d/nix.sh
- #+end_src
-
-** Nix Channel setup
-First see https://nixos.wiki/wiki/Nix_channels
-
-#+CAPTION: https://nixos.wiki/wiki/Nix_channels
+For packages Guix doesn't have. On the pc, =config-pc.scm= has =(service nix-service-type)=; the thinkpad has no Nix.
 #+begin_src shell
-  ## Common nix-channel commands
-
-  # Listing current channels
-  nix-channel --list
-
-  # Adding a primary channel
-  nix-channel --add https://nixos.org/channels/channel-name nixos
-  # For eg: nix-channel --add https://nixos.org/channels/nixos-26.05 nixos
-  # For eg: nix-channel --add https://nixos.org/channels/nixos-unstable nixos-unstable  
-
-  # Adding other channels
-  nix-channel --add https://some.channel/url my-alias
-
-  # Remove a channel
-  nix-channel --remove channel-alias
-
-  # Updating a channel
-  nix-channel --update channel-alias
-
-  # Updating all channels
-  nix-channel --update
-
-  # Note that updating channels won't cause a rebuild in itself; if you
-  # want to update channels and rebuild, you can use nixos-rebuild with
-  # the --upgrade flag to do both in one step.
-
-  # Also need to load the <attribnute-name> channel
-  nix-channel --add channel-url <attribute-name>
+source /run/current-system/profile/etc/profile.d/nix.sh
+nix-channel --update
+make apply-nix-profile        # installs nix-config/attribute-manifest.nix
 #+end_src
+- Channels: https://nixos.wiki/wiki/Nix_channels
+- =nix-env=: https://nix.dev/manual/nix/2.28/quick-start.html, or =curl cheat.sh/nix-env=
+- On another distro, use the multi-user install: https://nix.dev/manual/nix/2.28/installation/index.html
 
-** nix-env cheatsheet
-
-#+begin_src shell :results output
-curl cheat.sh/nix-env
-#+end_src
-
-#+RESULTS:
-#+begin_example
-# nix-env
-# Manipulate or query Nix user environments.
-# More information: <https://nixos.org/manual/nix/stable/#sec-nix-env>.
-
-# List all installed packages:
-nix-env -q
-
-# Query installed packages:
-nix-env -q search_term
-
-# Query available packages:
-nix-env -qa search_term
-
-# Install package:
-nix-env -iA nixos.pkg_name
-
-# Install a package from a URL:
-nix-env -i pkg_name --file example.com
-
-# Uninstall package:
-nix-env -e pkg_name
-
-# Upgrade one package:
-nix-env -u pkg_name
-
-# Upgrade all packages:
-nix-env -u
-#+end_example
-
-** nix-env quickstart
-
-#+CAPTION: https://nix.dev/manual/nix/2.18/quick-start
-#+begin_src shell
-# See what installable packages are currently available in the channel:
-nix-env --query --available --attr-path
-
-# Install a package from the channel
-nix-env --install --attr nixos.hello
-
-# Uninstall a package:
-nix-env --uninstall hello
-
-# Test packages without installing them
-nix-shell --packages hello
-
-# To keep up-to-date with the channel, do:
-nix-channel --update nixos
-nix-env --upgrade '*'
-
-# The latter command will upgrade each installed package for which
-# there is a “newer” version (as determined by comparing the version
-# numbers).
-
-# If you're unhappy with the result of a nix-env action (e.g., an
-# upgraded package turned out not to work properly), you can go back:
-
-nix-env --rollback
-
-You should periodically run the Nix garbage collector to get rid of unused packages, since uninstalls or upgrades don't actually delete them:
-
- nix-collect-garbage --delete-old
-#+end_src
-
-#+RESULTS:
-
-* Miscellaneous
-
-You can also search for third-party Guix package/service definitions at https://toys.whereis.social/.
+* Elsewhere
+Third-party Guix packages and services: https://toys.whereis.social/

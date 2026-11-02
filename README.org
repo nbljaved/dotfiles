@@ -1,57 +1,29 @@
 #+TITLE: dotfiles
 
-One repo for the configs that used to be four. Each directory keeps its own =Readme.org=.
+| Directory       | What                                            |
+|-----------------+-------------------------------------------------|
+| =emacs.d/=      | Emacs; =Emacs.org= tangles =init.el=            |
+| =shell-config/= | bash, ble.sh, kitty, starship, git, sbcl        |
+| =stumpwm.d/=    | StumpWM and the X session                       |
+| =guix-config/=  | Guix System, Guix Home, Nix, reinstall runbooks |
 
-| Directory     | What                                              | Was                     |
-|---------------+---------------------------------------------------+-------------------------|
-| =emacs.d/=      | Emacs; =Emacs.org= tangles =init.el=                  | =nbljaved/emacs-config=   |
-| =shell-config/= | bash, ble.sh, kitty, starship, git, sbcl          | =nbljaved/shell-config=   |
-| =stumpwm.d/=    | StumpWM, X session, Xresources                    | =nbljaved/stumpwm-config= |
-| =guix-config/=  | Guix System and profiles, Nix, reinstall runbooks | =nbljaved/guix-config=    |
-
-The old repos are archived; their full history is in this one (=git log -- emacs.d/=).
+The archived repos =nbljaved/{emacs,shell,stumpwm,guix}-config= live on here: =git log -- emacs.d/=.
 
 * Install
 #+begin_src shell
 git clone --recurse-submodules git@github.com:nbljaved/dotfiles.git ~/dotfiles
+make -C ~/dotfiles/guix-config apply-guix-home
 #+end_src
 
 * Symlinks
-Nothing else in =$HOME= points into this repo.
+Guix Home makes every link from =$HOME= into this repo, on both machines; the list is in =guix-config/home.scm=. The links point at the files here, not at copies in the store, so edits take effect at once. Re-run =apply-guix-home= only after adding or removing a link. If it stops on a directory in the way (say, a real =~/.emacs.d=), move that directory aside and run it again.
 
-The directory links use =-T=. Without it, if the target is already a real directory (=~/.emacs.d= after Emacs has started once), =ln= puts the link inside it (=~/.emacs.d/emacs.d=) and still exits 0. With it, =ln= stops with =cannot overwrite directory=: move that directory aside and run the line again.
+Two links are made by hand:
 #+begin_src shell
-# Emacs only looks in ~/.emacs.d (or ~/.config/emacs)
-ln -sfnT ~/dotfiles/emacs.d                       ~/.emacs.d
-
-# shell
-ln -sf  ~/dotfiles/shell-config/.bashrc           ~/.bashrc
-ln -sf  ~/dotfiles/shell-config/.bash_profile     ~/.bash_profile
-ln -sf  ~/dotfiles/shell-config/.blerc            ~/.blerc
-ln -sfnT ~/dotfiles/shell-config/kitty            ~/.config/kitty
-ln -sf  ~/dotfiles/shell-config/starship/starship.toml ~/.config/starship.toml
-ln -sf  ~/dotfiles/shell-config/.sbclrc           ~/.sbclrc
-ln -sf  ~/dotfiles/shell-config/.gitconfig        ~/.gitconfig
-mkdir -p ~/.config/git
-ln -sf  ~/dotfiles/shell-config/git/ignore        ~/.config/git/ignore
-
-# StumpWM: ~/.stumpwm.d/ is created by StumpWM itself and only holds logs and history
-mkdir -p ~/.config/stumpwm
-ln -sf  ~/dotfiles/stumpwm.d/init.lisp            ~/.config/stumpwm/config
-ln -sf  ~/dotfiles/stumpwm.d/xinitrc              ~/.xinitrc          # thinkpad only
-ln -sfnT ~/dotfiles/stumpwm.d/clx-truetype        ~/quicklisp/local-projects/clx-truetype  # bootstrap-quicklisp.sh already does this
-
-# Guix / Nix
+# Before the first `guix pull' on a new machine; Guix Home takes it over
 mkdir -p ~/.config/guix
-ln -sf  ~/dotfiles/guix-config/channels.scm       ~/.config/guix/channels.scm
-ln -sf  ~/dotfiles/guix-config/nix-config/nix-channels ~/.nix-channels   # where Nix is installed; `make sync-nix` does this too
+ln -sf  ~/dotfiles/guix-config/channels.scm  ~/.config/guix/channels.scm
 
-# SuperCollider: only the two config files, the rest of that directory is cache
-mkdir -p ~/.config/SuperCollider
-ln -sf  ~/dotfiles/guix-config/.config/SuperCollider/sc_ide_conf.yaml ~/.config/SuperCollider/sc_ide_conf.yaml
-ln -sf  ~/dotfiles/guix-config/.config/SuperCollider/sclang_conf.yaml ~/.config/SuperCollider/sclang_conf.yaml
-
-# Claude Code: the shot-scraper skill
-mkdir -p ~/.claude/skills/screenshot
-ln -sf  ~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md ~/.claude/skills/screenshot/SKILL.md
+# Made by stumpwm.d/bootstrap-quicklisp.sh
+ln -sfnT ~/dotfiles/stumpwm.d/clx-truetype   ~/quicklisp/local-projects/clx-truetype
 #+end_src

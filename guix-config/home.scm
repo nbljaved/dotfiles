@@ -7,11 +7,12 @@
 ;;             must not get Guix's: a second PipeWire/WirePlumber would
 ;;             fight Debian's for the sound card.
 ;;
+;; It also makes every link from $HOME into ~/dotfiles (see `dotfile').
 ;; ~/.guix-profile stays empty, for trying packages out; `make sync-guix'
 ;; lists anything left in it.  Apply with `make apply-guix-home`.
 
 (use-modules (gnu home)
-             (gnu home services)        ; home-xdg-configuration-files-service-type
+             (gnu home services)        ; home-files-service-type, home-xdg-…
              (gnu home services desktop)
              (gnu home services sound)
              (gnu packages)             ; specifications->packages
@@ -25,16 +26,13 @@
 (define common-packages
   (list "acpi"
         "age"
-        "anki"
         "arandr"
         "ardour"
         "atool"
         "atuin"
         "autoconf"
-        "awscli"
         "bat"
         "beancount"
-        "beep"
         "bind"
         "blesh"
         "blueman"
@@ -47,11 +45,9 @@
         "cloc"
         "cmake"
         "cmatrix"
-        "curlie"
         "ddcui"
         "ddcutil"
         "desktop-file-utils"
-        "diffpdf"
         "direnv"
         "distrobox"
         "dmidecode"
@@ -73,7 +69,6 @@
         "eza"
         "fd"
         "feh"
-        "figlet"
         "file"
         "flameshot"
         "font-adobe-source-sans"
@@ -85,13 +80,15 @@
         "font-sil-gentium"
         "fzf"
         "gcc-toolchain"
-        "git-lfs"
         "glances"
         "glibc-locales"
         "gnome-themes-extra"
-        "gnucobol"
         "gnupg"
         "go"
+        ;; Sets GI_TYPELIB_PATH so solfege finds xlib-2.0.typelib, which
+        ;; its wrapper lacks (gobject-introspection is missing from Guix's
+        ;; solfege inputs).  Drop this once Guix fixes the recipe.
+        "gobject-introspection"
         "google-chrome-stable"
         "guile"
         "guile-colorized"
@@ -100,8 +97,6 @@
         "htop"
         "jq"
         "kitty"
-        "kmonad"
-        "ktouch"
         "libedit"
         "libreoffice"
         "librewolf"
@@ -111,7 +106,6 @@
         "make"
         "moreutils"
         "mpv"
-        "mullvadbrowser"
         "nautilus"
         "nbl-emacs"
         "ncdu"
@@ -120,40 +114,31 @@
         "nmap"
         "node"
         "nss-certs"
-        "nyancat"
         "okular"
         "pamixer"
         "pandoc"
         "pavucontrol"
         "perl-image-exiftool"
+        "pianobooster"
         "picom"
         "pinentry"
         "playerctl"                     ; StumpWM's media keys
-        "pre-commit"
         "python"
-        "python-flake8"
-        "python-icecream"
         "python-ipython"
-        "python-jedi"
-        "python-openpyxl"
         "python-sortedcontainers"
-        "python-yapf"
-        "qpdf"
-        "racket"
         "readline"
-        "remmina"
         "ripgrep"
         "rofi"
         "roswell"
         "setxkbmap"
         "simplescreenrecorder"
         "sox"
+        "solfege"
         "sqlite"
         "starship"
         "strace"
         "supercollider"
         "supercollider:ide"
-        "tealdeer"
         "telegram-desktop"
         "tmux"
         "trash-cli"
@@ -163,7 +148,6 @@
         "unzip"
         "vim"
         "whois"
-        "wireshark"
         "wmctrl"
         "xclip"
         "xdg-utils"
@@ -173,8 +157,6 @@
         "xremap-x11"
         "xset"
         "xsettingsd"
-        "yt-dlp"
-        "z3"
         "zoxide"))
 
 ;; Guix System puts the pc's other packages in its system profile.
@@ -191,13 +173,52 @@
         "sbcl"
         "stumpwm-with-slynk"))
 
+(define dotfiles
+  (string-append (getenv "HOME") "/dotfiles"))
+
+;; A link to FILE in ~/dotfiles itself, not a copy of it in the store: the
+;; store item is only a symlink to that path.  So an edit takes effect at
+;; once, without `make apply-guix-home', and programs that write their own
+;; config (git, Emacs, scide) still can.  Only adding or removing a link
+;; needs the command.  A FILE that doesn't exist is an error here, rather
+;; than a dangling link later.
+(define (dotfile file)
+  (let ((target (string-append dotfiles "/" file)))
+    (unless (file-exists? target)
+      (error "home.scm: not in ~/dotfiles:" file))
+    ;; Store names can't start with a dot.
+    (computed-file (string-append "dotfile-"
+                                  (string-trim (basename file) #\.))
+                   #~(symlink #$target #$output))))
+
 ;; Both hosts.
 (define common-services
   (list
-   ;; Atuin's config: local history only, no sync, no update check.
-   (service home-xdg-configuration-files-service-type
-            `(("atuin/config.toml"
-               ,(local-file ".config/atuin/config.toml"))))))
+   ;; Relative to $HOME.
+   (simple-service 'dotfiles home-files-service-type
+                   `((".bashrc"       ,(dotfile "shell-config/.bashrc"))
+                     (".bash_profile" ,(dotfile "shell-config/.bash_profile"))
+                     (".blerc"        ,(dotfile "shell-config/.blerc"))
+                     (".sbclrc"       ,(dotfile "shell-config/.sbclrc"))
+                     (".gitconfig"    ,(dotfile "shell-config/.gitconfig"))
+                     (".emacs.d"      ,(dotfile "emacs.d"))
+                     (".nix-channels" ,(dotfile "guix-config/nix-config/nix-channels"))
+                     (".claude/skills/screenshot/SKILL.md"
+                      ,(dotfile "guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md"))))
+   ;; Relative to ~/.config.  Atuin's config keeps history local: no sync,
+   ;; no update check.
+   (simple-service 'dotfiles-xdg home-xdg-configuration-files-service-type
+                   `(("atuin/config.toml" ,(dotfile "guix-config/.config/atuin/config.toml"))
+                     ("git/ignore"        ,(dotfile "shell-config/git/ignore"))
+                     ("guix/channels.scm" ,(dotfile "guix-config/channels.scm"))
+                     ("kitty"             ,(dotfile "shell-config/kitty"))
+                     ("starship.toml"     ,(dotfile "shell-config/starship/starship.toml"))
+                     ("stumpwm/config"    ,(dotfile "stumpwm.d/init.lisp"))
+                     ;; Only these two: the rest of that directory is cache.
+                     ("SuperCollider/sc_ide_conf.yaml"
+                      ,(dotfile "guix-config/.config/SuperCollider/sc_ide_conf.yaml"))
+                     ("SuperCollider/sclang_conf.yaml"
+                      ,(dotfile "guix-config/.config/SuperCollider/sclang_conf.yaml"))))))
 
 (define pc-services
   (list
@@ -221,7 +242,11 @@
              ;; Appended to ~/.config/alsa/asoundrc.
              (extra-content "")))))
 
-(define thinkpad-services '())
+(define thinkpad-services
+  (list
+   ;; `startx' reads it.  The pc logs in through GDM, which never does.
+   (simple-service 'dotfiles-thinkpad home-files-service-type
+                   `((".xinitrc" ,(dotfile "stumpwm.d/xinitrc"))))))
 
 (define-values (host-packages host-services)
   (match (gethostname)

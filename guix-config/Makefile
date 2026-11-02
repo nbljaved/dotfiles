@@ -48,14 +48,12 @@ all: sync ## Alias for `sync` (the default target)
 
 sync: sync-guix sync-nix ## Run sync-guix and sync-nix
 
-sync-guix: ## Link channels.scm; pc: capture /etc/config.scm; list what is left in the scratch ~/.guix-profile
+sync-guix: ## pc: capture /etc/config.scm; list what is left in the scratch ~/.guix-profile
 ifdef HOST_CONFIG
 	cat /etc/config.scm > $(HOST_CONFIG)
 endif
 	@echo ""
 # cat /etc/xremap.yaml > xremap.yaml
-	# Guix: Configure channels
-	ln -sf ~/dotfiles/guix-config/channels.scm ~/.config/guix/channels.scm
 	# Guix: every package is declared in home.scm, so there is no
 	# profile to capture.  ~/.guix-profile is only for trying packages
 	# out: list what is in it, to add to home.scm or remove.
@@ -65,10 +63,8 @@ endif
 	fi
 	@echo ""
 
-sync-nix: ## Capture Nix channels symlink and current Nix profile manifest (if nix is installed)
+sync-nix: ## Capture the current Nix profile manifest (if nix is installed)
 ifdef NIX
-	# Nix: Configure channels
-	ln -sf ~/dotfiles/guix-config/nix-config/nix-channels ~/.nix-channels
 	# Nix: Get current profile
 	cat ~/.nix-profile/manifest.nix > ./nix-config/manifest.nix
 	bash ./scripts/extract-nix-packages.sh
@@ -97,7 +93,10 @@ else
 	guix system build $(HOST_CONFIG) -L modules
 endif
 
-apply-guix-home: ## Reconfigure Guix Home from home.scm (every user package, atuin's config; pc also gets PipeWire services)
+apply-guix-home: ## Reconfigure Guix Home from home.scm (every user package, dotfile links; pc also gets PipeWire services)
+	# Remove old `ln -sf' links into ~/dotfiles first, and stop on a
+	# directory in the way: Guix Home can't back one up.
+	sh ./scripts/clear-home-links.sh "$$(guix home build $(HOME_CONFIG) -L modules)"
 	guix home reconfigure $(HOME_CONFIG) -L modules
 
 check-guix-home: ## Build home.scm for this host to catch breakage (does NOT activate)

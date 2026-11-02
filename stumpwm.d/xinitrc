@@ -1,12 +1,6 @@
 #!/bin/sh
-# Symlink this to ~/.xinitrc:  ln -sf ~/dotfiles/stumpwm.d/xinitrc ~/.xinitrc
-#
-# `startx` reads it.  Only the thinkpad needs it: that machine runs Debian,
-# where Xorg comes from apt and StumpWM comes from a Guix profile, started by
-# hand after a tty1 login (see Readme.org, "Starting the session").  The pc
-# runs Guix System and logs in through GDM, which builds the session itself
-# and never reads this file -- so everything below is written to be harmless
-# anywhere, and the Debian-only parts are guarded by the hostname.
+# ~/.xinitrc on the thinkpad (Guix Home links it), read by `startx' after a
+# tty1 login.  The pc logs in through GDM, which never reads it.
 host=$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null)
 
 # Let systemd user services (PipeWire, xdg portals) see this display.
