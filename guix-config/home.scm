@@ -116,6 +116,7 @@
         "nmap"
         "node"
         "nss-certs"
+        "obs"
         "okular"
         "pamixer"
         "pandoc"
@@ -149,6 +150,7 @@
         "udiskie"
         "units"
         "unzip"
+        "v4l-utils"                     ; v4l2-ctl --list-devices
         "vim"
         "whois"
         "wmctrl"

@@ -19,6 +19,8 @@
  (gnu packages window-management)
  (gnu packages virtualization)
  (gnu packages rsync)
+ ;; Only this: the kernel below is nonguix's `linux', not linux-libre.
+ ((gnu packages linux) #:select (v4l2loopback-linux-module))
  (gnu services shepherd)
  ;; https://lists.nongnu.org/archive/html/guix-patches/2022-02/msg00365.html
  (gnu system file-systems)
@@ -33,6 +35,7 @@
  (nbl services tailscale))
 
 (use-package-modules
+ android                                ; android-udev-rules
  curl
  docker
  containers
@@ -48,6 +51,7 @@
  docker
  dbus
  containers
+ linux                                  ; kernel-module-loader-service-type
  networking
  nix
  ssh
@@ -88,6 +92,10 @@
   )
  (initrd microcode-initrd)
  (firmware (list linux-firmware))
+ ;; Virtual webcams (/dev/video10 and 11), configured in kernel-arguments
+ ;; and loaded by kernel-module-loader-service-type.  Guix builds it for
+ ;; `kernel' above.
+ (kernel-loadable-modules (list v4l2loopback-linux-module))
  (locale "en_IN.utf8")
  (timezone "Asia/Kolkata")
  (keyboard-layout (keyboard-layout "us" "altgr-intl"))
@@ -106,6 +114,7 @@
                                         "lp" ;Users need to be in the lp group to access the D-Bus service, like bluetooth.
                                         "audio" ;sound card
                                         "video" ;video devices such as webcams
+                                        "adbusers" ;adb (scrcpy) to an Android phone over USB
                                         "input"
                                         "cgroup" ;Adding the account to the "cgroup" group makes it possible to run podman commands.
                                         ;; "docker"
@@ -206,7 +215,16 @@
                 (udev-rules-service 'uinput
                                     (udev-rule
                                      "99-uinput.rules"
-                                     "KERNEL==\"uinput\", GROUP=\"input\", MODE=\"0660\", OPTIONS+=\"static_node=uinput\"\n")))
+                                     "KERNEL==\"uinput\", GROUP=\"input\", MODE=\"0660\", OPTIONS+=\"static_node=uinput\"\n"))
+                ;; Let the "adbusers" group open Android phones' USB
+                ;; device, so adb (and scrcpy, which runs it) works
+                ;; without root.
+                (udev-rules-service 'android android-udev-rules
+                                    #:groups '("adbusers"))
+                ;; Load v4l2loopback at boot; its options are in
+                ;; kernel-arguments.
+                (service kernel-module-loader-service-type
+                         '("v4l2loopback")))
           ;; This is the default list of services we
           ;; are appending to.
           (modify-services %desktop-services
@@ -276,7 +294,22 @@
  ;;
  ;; See https://guix.gnu.org/manual/devel/en/html_node/Swap-Space.html to
  ;; understand how to get these values
+ ;;
+ ;; The v4l2loopback.* arguments are options for that module (see
+ ;; kernel-loadable-modules): Guix's modprobe reads them from
+ ;; /proc/cmdline, but never reads /etc/modprobe.d.  Two devices:
+ ;; /dev/video10 for OBS's Virtual Camera, which passes the webcam on to
+ ;; Meet/Teams while OBS holds the real one, and /dev/video11 for the
+ ;; phone camera (scrcpy writes to it, OBS reads it).  OBS can't be told
+ ;; which device to use: it takes the lowest-numbered free one, so its
+ ;; device must come first or it takes the phone's.  exclusive_caps=1
+ ;; makes a device show up as a camera only while something writes to it,
+ ;; which Chrome needs to list it at all.  Labels can't hold spaces here.
  (kernel-arguments
   (cons* "resume=/dev/mapper/cryptroot"        ;device that holds /swapfile
          "resume_offset=34816"      ;offset of /swapfile on device
+         "v4l2loopback.devices=2"
+         "v4l2loopback.video_nr=10,11"
+         "v4l2loopback.card_label=OBS-Virtual-Camera,Phone-Camera"
+         "v4l2loopback.exclusive_caps=1,1"
          %default-kernel-arguments)))

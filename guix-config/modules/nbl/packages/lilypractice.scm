@@ -18,8 +18,8 @@
 ;; To update: push lilypractice, then put its commit here, and the hash
 ;; that `guix hash -x --serializer=nar' gives for a clean checkout of it.
 (define-public lilypractice
-  (let ((commit "9c4107ad2537dc92794e63dd7bf9f1ab87b1a834")
-        (revision "1"))
+  (let ((commit "962d432fd9497a0f6624f99faf11b12c487fe0aa")
+        (revision "2"))
     (package
       (name "lilypractice")
       (version (git-version "0.1" revision commit))
@@ -31,7 +31,7 @@
                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "1r337n2v3gvarcs318mqc6qf1asl0mlrn3b5z6jsq0fzcnm00jld"))))
+          (base32 "1wsa429f5hkyb3vxqznf18hzfc24lyfcyw6qg98w2zqhdyx1m525"))))
       (build-system go-build-system)
       (arguments
        (list
@@ -46,8 +46,8 @@
                 (when tests?
                   (invoke "go" "test" "lilypractice/practice"
                           "lilypractice/score" "lilypractice/midikeys"))))
-            ;; It runs LilyPond and FluidSynth, and finds the soundfont and
-            ;; its icons in XDG_DATA_DIRS.
+            ;; It runs LilyPond and FluidSynth, and finds the soundfont, its
+            ;; icons and GTK's settings schemas in XDG_DATA_DIRS.
             (add-after 'install 'wrap
               (lambda _
                 (wrap-program (string-append #$output "/bin/lilypractice")
@@ -57,7 +57,8 @@
                   `("XDG_DATA_DIRS" suffix
                     (,(string-append #$(this-package-input "fluid-3") "/share")
                      ,(string-append #$(this-package-input "adwaita-icon-theme")
-                                     "/share")))))))))
+                                     "/share")
+                     ,(string-append #$(this-package-input "gtk") "/share")))))))))
       (native-inputs (list lilypond pkg-config)) ;LilyPond for the tests
       (inputs
        (list adwaita-icon-theme

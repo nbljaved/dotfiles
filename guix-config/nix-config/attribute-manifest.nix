@@ -6,6 +6,7 @@
 { pkgs ? import <nixos-unstable> {} }:
 
 [
+  pkgs.android-tools
   pkgs.backrest
   pkgs.claude-code
   pkgs.gh
@@ -14,6 +15,7 @@
   pkgs.rclone
   pkgs.restic
   pkgs.scrcpy
+  pkgs.sunshine
   pkgs.tinymist
   pkgs.uv
 ]

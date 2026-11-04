@@ -1,3 +1,4 @@
+;;; early-init.el --- -*- lexical-binding: t; -*-
 ;; ;; Initialize package sources
 ;; (require 'package)
 ;; (setq package-archives '(("org" . "https://orgmode.org/elpa/")

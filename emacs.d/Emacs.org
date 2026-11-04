@@ -7,6 +7,7 @@
 Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time.
 
 #+begin_src emacs-lisp
+;;; init.el --- -*- lexical-binding: t; -*-
 (setq debug-on-error t)
 ;; The default is 800 kilobytes.  Measured in bytes.
 (setq gc-cons-threshold (* 50 1000 1000))
@@ -24,6 +25,7 @@ Make startup faster by reducing the frequency of garbage collection and then use
 Install =emacs-use-package= from Guix
 
 #+begin_src emacs-lisp :tangle ~/.emacs.d/early-init.el
+;;; early-init.el --- -*- lexical-binding: t; -*-
 ;; ;; Initialize package sources
 ;; (require 'package)
 ;; (setq package-archives '(("org" . "https://orgmode.org/elpa/")
@@ -4716,7 +4718,7 @@ An Emacs library that allows Org mode to evaluate code blocks using a Jupyter ke
         help-at-pt-display-when-idle t)
   (help-at-pt-set-timer)
   ;; download images if their link is provided in org link form
-  (set org-display-remote-inline-images 'download)
+  (setq org-display-remote-inline-images 'download)
 
   ;; making strikethrough text look like comments
   (cl-pushnew '("+" (:inherit font-lock-comment-face :strike-through t))
@@ -5160,9 +5162,6 @@ No database is needed,
 The file name (=IDENTIFIER--title__keywords.org=) carries the metadata.
 
 #+begin_src emacs-lisp
-(make-directory "~/org/roam" :parents)
-#+end_src
-#+begin_src emacs-lisp
 (use-package denote
   :demand t
   :hook
@@ -5171,7 +5170,7 @@ The file name (=IDENTIFIER--title__keywords.org=) carries the metadata.
   :bind
   ( :map global-map
     ("C-c n n" . denote)
-    ("C-c n o" . denote-open-or-create)
+    ("C-c n f" . denote-open-or-create)
     ("C-c n d" . denote-dired)
     ("C-c n l" . denote-link)
     ("C-c n L" . denote-add-links)
