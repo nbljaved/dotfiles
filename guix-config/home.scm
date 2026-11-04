@@ -21,8 +21,8 @@
              (guix gexp)
              (ice-9 match))
 
-;; Both hosts.  Specifications, as for `guix install'; "nbl-emacs" comes
-;; from modules/nbl, hence `-L modules'.
+;; Both hosts.  Specifications, as for `guix install'; "nbl-emacs" and
+;; "lilypractice" come from modules/nbl, hence `-L modules'.
 (define common-packages
   (list "acpi"
         "age"
@@ -101,6 +101,8 @@
         "libreoffice"
         "librewolf"
         "libtool"
+        "lilypond"
+        "lilypractice"
         "lsof"
         "magic-wormhole"
         "make"
@@ -126,6 +128,7 @@
         "python"
         "python-ipython"
         "python-sortedcontainers"
+        "qpwgraph"
         "readline"
         "ripgrep"
         "rofi"

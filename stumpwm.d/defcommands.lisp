@@ -236,6 +236,10 @@ systemctl instead."
   "Open sound settings"
   (run-or-raise "pavucontrol" '(:class "Pavucontrol")))
 
+(defcommand qpwgraph () ()
+  "Run-or-raise qpwgraph"
+  (run-or-raise "qpwgraph" '(:class "qpwgraph")))
+
 (defcommand nbl/slack () ()
   "Unbound key"
   (run-or-raise "teams-for-linux" '(:class "teams-for-linux")))

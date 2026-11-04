@@ -14,10 +14,10 @@
   #:use-module (gnu)
   #:use-module (gnu packages linux)) ; for iptables
 
-(define go-package go-1.26)
-(define tailscale-version "1.96.4")
-(define tailscale-go-git-ref-hash "0qqlj6cq43h0pr8jg9g956yz5xgg81959vq2kl7n9yqnixyh8w2n")
-(define tailscale-go-fetch-vendor-hash "1lz2pmyfka0inhiasgfd1spxa5ikn56c76r3zg136n9dz6163wz2")
+(define go-package go-1.27)
+(define tailscale-version "1.104.4")
+(define tailscale-go-git-ref-hash "132l8nhgmymyi78mvw195ijv8kq035p7wk7rz5n2vbasf6hpg65h")
+(define tailscale-go-fetch-vendor-hash "10x30dkjvprhgxrhmqbjwmikvysx5fjh5vy5m97g0v205a6sq28d")
 
 (define-record-type* <go-git-reference>
   go-git-reference make-go-git-reference
@@ -132,6 +132,7 @@
         #~(modify-phases #$phases
             (replace 'build
               (lambda _
+                (unsetenv "GO111MODULE")
                 (chdir "./src/tailscale.com")
                 (invoke "go" "build" "-o" "tailscaled"
                         "tailscale.com/cmd/tailscaled")

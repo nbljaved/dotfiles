@@ -99,6 +99,11 @@
 (define-key *xrandr-map* (kbd "s-r") "xrandr-right-of-laptop")
 (define-key *xrandr-map* (kbd "s-x") "refresh-heads")
 
+;; audio
+(defvar *audio-map* (make-sparse-keymap))
+(define-key *top-map* (kbd "s-u") '*audio-map*)
+(define-key *audio-map* (kbd "s-s") "qpwgraph")
+
 ;; Launch applications
 ;; Add "run-or-raises" programs to root-map
 (define-key *top-map* (kbd "s-RET") "terminal")

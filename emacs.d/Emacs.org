@@ -198,7 +198,7 @@ See https://guix.gnu.org/cookbook/en/html_node/Direct-checkout-hacking.html")
 
 **** emacs-guix
 See https://github.com/alezost/guix.el
-=guix install emacs-guix=
+=emacs-guix= is in Guix Home (=guix-config/home.scm=).
 
 #+begin_src emacs-lisp
 (when guix?
@@ -342,9 +342,7 @@ https://github.com/NixOS/nix-mode
 ** Font
 *** Basic
 
-#+begin_src bash
-guix install font-nerd-fira-code
-#+end_src
+=font-nerd-fira-code= is in Guix Home (=guix-config/home.scm=).
 
 # Use [[https://github.com/getnf/getnf?ref=linuxtldr.com][getnf]] to install Nerd Fonts (then do =fc-cache -fv= to force refresh), then launch a new Emacs.
 # Using 'getnf' install the following fonts:
@@ -731,28 +729,10 @@ You can use =M-x nerd-icons-install-fonts= to install =Symbols Nerd Fonts Mono= 
 *** After version 29.4
 **** If Emacs from Guix isn't respecting alpha-background
 
-Then we have to rebuild a custom version of emacs
-
-#+begin_src lisp
-;; custom-emacs.scm
-
-(use-modules (guix packages)
-             (gnu packages emacs)
-             (gnu packages xorg))
-
-(define-public nbl-emacs
-  (package
-   (inherit emacs)
-   (inputs (modify-inputs (package-inputs emacs)
-                          (prepend libxaw)))))
-
-nbl-emacs
-#+end_src
-
-To build this just do
-#+begin_src shell
-guix package -f custom-emacs.scm
-#+end_src
+Then we have to rebuild a custom version of emacs: =nbl-emacs=, which is
+=emacs= with =libxaw= added to its inputs.  It is defined in
+=guix-config/modules/nbl/packages/custom-emacs.scm= and installed by Guix Home
+(=guix-config/home.scm=); =make apply-guix-home= in =guix-config= rebuilds it.
 
 **** Transparency setting
 #+begin_src emacs-lisp :lexical no
@@ -1632,7 +1612,7 @@ https://codeberg.org/akib/emacs-eat
 
 #+begin_src emacs-lisp :lexical no
 (use-package eat
-  :ensure nil ;; installed via Guix (guix install emacs-eat)
+  :ensure nil ;; installed via Guix Home (guix-config/home.scm)
   )
 #+end_src
 
@@ -1645,7 +1625,7 @@ When a region is selected, it is possible to copy the text and leave vterm-copy-
 
 #+begin_src emacs-lisp
 (use-package vterm
-  :ensure nil ;; installed via Guix (guix install emacs-vterm)
+  :ensure nil ;; installed via Guix Home (guix-config/home.scm)
   :config
   (bind-key* (kbd "C-<return>") 'vterm-other-window)
   (setq
@@ -1895,7 +1875,8 @@ From AUR, install =libtgvoip=, =libtd=
    
 #+begin_src emacs-lisp
 (when guix?
-  ;; On guix: guix package -i emacs-telega font-gnu-{unifont,freefont}
+  ;; emacs-telega and font-gnu-{unifont,freefont} are in Guix Home
+  ;; (guix-config/home.scm).
   (require 'telega nil :no-error))
 #+end_src
 
@@ -4320,7 +4301,7 @@ Using =tllocalmgr= install: (already in =texlive-most=)
 #+begin_src emacs-lisp
   ;; (use-package maxima
   ;; :mode ("\\.ma[cx]\\'" . maxima-mode))
-  ;;(add-to-list 'load-path "/home/nabeel/.guix-profile/share/emacs/site-lisp/")
+  ;;(add-to-list 'load-path "/home/nabeel/.guix-home/profile/share/emacs/site-lisp/")
   (autoload 'maxima-mode "maxima" "Maxima mode" t)
   (autoload 'imaxima "imaxima" "Frontend for maxima with Image support" t)
   (autoload 'maxima "maxima" "Maxima interaction" t)
@@ -4603,7 +4584,7 @@ Emacs frontend to python package manager pip
 
 **** COMMENT yapfify
 
-~$ guix install yapf~
+Add =yapf= to =guix-config/home.scm=.
 
 #+begin_src emacs-lisp :lexical no
 (use-package yapfify
@@ -4828,7 +4809,7 @@ https://github.com/typst/typst
 
 #+begin_src emacs-lisp :lexical no
 (unless (executable-find "typst")
-  (warn "Install typst using `guix install typst`"))
+  (warn "Install typst by adding it to guix-config/home.scm"))
 #+end_src
 
 **** typst-ts-mode
@@ -5012,12 +4993,13 @@ previewing LaTeX fragments such as in doxygen comments. Other use-cases are Math
     (condition-case nil
         (let* ((texlive-path (or (car (last (split-string
     					   (shell-command-to-string
-    					    "guix package -I texlive"))))
-    			       (error "install 'texlive' using 'guix install texlive'")))
+    					    (concat "guix package -p " guix-profile-path
+    						    " -I texlive")))))
+    			       (error "install 'texlive' by adding it to guix-config/home.scm")))
     	     (texlive-bin (concat texlive-path "/bin")))
   	(cl-pushnew texlive-bin exec-path)
   	texlive-bin)
-      (error (warn "install 'texlive' using 'guix install texlive'"))))
+      (error (warn "install 'texlive' by adding it to guix-config/home.scm"))))
 
   (use-package auctex
     :ensure nil ;; installed via Guix (emacs-auctex)

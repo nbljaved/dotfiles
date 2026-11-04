@@ -2,11 +2,10 @@
 
 ##############################################################################
 ## ble.sh
-#BLESH=$( guix package -I blesh | awk '{print $4}')
-#BLESH="$BLESH/share/blesh/ble.sh"
-BLESH=$( guix locate ble.sh | awk '{print $2}')
+# blesh is in Guix Home (guix-config/home.scm).
+BLESH="$HOME/.guix-home/profile/share/blesh/ble.sh"
 # Add this lines at the top of .bashrc:
-[[ $- == *i* ]] && source "$BLESH" --noattach
+[[ $- == *i* ]] && [[ -f $BLESH ]] && source "$BLESH" --noattach
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
@@ -60,7 +59,7 @@ export TERM=xterm-256color # otherwise ssh has keyboard problems
 
 ## Common Lisp
 # SBCL
-# export SBCL_HOME="/home/nabeel/.guix-profile/lib/sbcl/"
+# export SBCL_HOME="/home/nabeel/.guix-home/profile/lib/sbcl/"
 # Roswell
 #export PATH="$PATH:/home/nabeel/.roswell/bin"
 
