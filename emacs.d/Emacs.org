@@ -2291,6 +2291,17 @@ Might need to use newer version of inbuilt emacs packages.
   (magit-todos-mode 1))
 #+end_src
 
+*** magit-annex
+[[https://github.com/magit/magit-annex]]
+
+=@= in a Magit buffer opens the git-annex menu (add, get, drop, sync).
+
+#+begin_src emacs-lisp
+(use-package magit-annex
+  :ensure nil ;; installed via Guix.
+  :after magit)
+#+end_src
+
 *** COMMENT forge
 
 #+begin_src emacs-lisp :lexical no
@@ -4190,6 +4201,20 @@ https://github.com/skeeto/skewer-mode
 #+begin_src emacs-lisp :lexical no
 (use-package skewer-mode
   :hook ((js2-mode . skewer-mode)))
+#+end_src
+
+** LilyPond
+*** lilypond-mode
+https://lilypond.org/doc/v2.26/Documentation/usage/emacs-mode
+
+=C-c C-l= compiles the file, =C-c C-s= opens its PDF (in Evince, not the default =xpdf=), =C-c RET= plays the MIDI of the score at point (with =timidity=).
+
+#+begin_src emacs-lisp :lexical no
+(use-package lilypond-mode
+  :ensure nil ;; installed via Guix.
+  :mode ("\\.i?ly\\'" . lilypond-mode)
+  :custom
+  (lilypond-pdf-command "okular"))
 #+end_src
 
 ** COMMENT Perl
