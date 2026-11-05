@@ -66,6 +66,7 @@
         "emacs-magit-annex"
         "emacs-magit-todos"
         "emacs-pdf-tools"
+        "emacs-popper"
         "emacs-telega"
         "emacs-vterm"
         "evince"

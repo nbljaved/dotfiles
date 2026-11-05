@@ -673,6 +673,29 @@ Keeps code indented . (always)
   (eyebrowse-mode 1))
 #+end_src
 
+*** popper
+https://github.com/karthink/popper
+
+Emacs minor-mode to summon and dismiss buffers easily.
+
+#+begin_src emacs-lisp
+(use-package popper
+  :ensure nil ;; installed via Guix.
+  :bind (("C-`"   . popper-toggle)
+         ("C-~"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (setq popper-display-function #'popper-display-popup-at-bottom)
+  (popper-mode +1)
+  (popper-echo-mode +1))
+#+end_src
+
 ** nerd-icons
 https://github.com/emacsmirror/nerd-icons
 
@@ -1848,6 +1871,7 @@ https://github.com/purcell/diredfl
   :ensure nil ;; installed via Guix.
   :bind (:map pdf-view-mode-map
               ("C-s" . isearch-forward))
+  :hook (pdf-view-mode . auto-revert-mode)
   :config
   (pdf-tools-install t))
 #+end_src
@@ -4207,14 +4231,56 @@ https://github.com/skeeto/skewer-mode
 *** lilypond-mode
 https://lilypond.org/doc/v2.26/Documentation/usage/emacs-mode
 
-=C-c C-l= compiles the file, =C-c C-s= opens its PDF (in Evince, not the default =xpdf=), =C-c RET= plays the MIDI of the score at point (with =timidity=).
+LilyPond's own mode, from =emacs-lilypond-mode= in Guix Home
+(=guix-config/home.scm=). The package doesn't tie =.ly= and =.ily= files
+to it, so =:mode= does.
 
-#+begin_src emacs-lisp :lexical no
+- =C-c C-c= compiles the file.
+- =C-c C-m= stops the MIDI and compiles it, to write the MIDI again.
+- =C-c C-p= plays the MIDI of the score at point with =timidity=; again, it pauses, and again, it goes on. =C-u C-c C-p= stops it.
+
+LilyPond writes MIDI only for a =\score= with a =\midi= block:
+#+begin_example
+\score {
+  { c' e' g' e' }
+  \layout { }
+  \midi { }
+}
+#+end_example
+
+#+begin_src emacs-lisp :lexical yes
 (use-package lilypond-mode
   :ensure nil ;; installed via Guix.
   :mode ("\\.i?ly\\'" . lilypond-mode)
-  :custom
-  (lilypond-pdf-command "okular"))
+  :bind (:map lilypond-mode-map
+              ("C-c C-c" . lilypond-command-lilypond)
+              ("C-c C-p" . nbl/lilypond-play)
+              ;; The Return key, in a graphical frame; the mode binds it.
+              ("C-c <return>" . nbl/lilypond-midi)
+              ("C-c C-m" . nbl/lilypond-midi))
+  :config
+  ;; The mode's own C-c RET runs timidity as *compilation*'s process, where
+  ;; it can't find it again to stop it, and the next compile kills it.
+  (defun nbl/lilypond-play (stop)
+    "Play the MIDI of the score at point, pause it, or go on; with a prefix
+argument, STOP it."
+    (interactive "P")
+    (let ((playing (get-process "lilypond-midi"))
+          (midi (lilypond-string-current-midi)))
+      (cond (stop (when playing (delete-process playing)))
+            ((and playing (eq (process-status playing) 'stop))
+             (continue-process playing))
+            ;; timidity ignores the SIGTSTP of `stop-process'.
+            (playing (signal-process playing 'SIGSTOP))
+            ((file-exists-p midi)
+             (start-process "lilypond-midi" nil "timidity" midi))
+            (t (message "No %s: C-c C-m writes it, for a \\score with a \\midi { }" midi)))))
+
+  (defun nbl/lilypond-midi ()
+    "Stop the MIDI, and compile this file to write it again."
+    (interactive)
+    (nbl/lilypond-play t)
+    (lilypond-command-lilypond)))
 #+end_src
 
 ** COMMENT Perl
