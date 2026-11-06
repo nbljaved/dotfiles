@@ -79,8 +79,15 @@ register.  So there, name Debian's copy by path.  `pc?' is set in init.lisp.")
 (defun power-command (verb)
   "Shell command to suspend/hibernate/reboot/poweroff.  On Guix System, elogind's loginctl
 has these verbs; on Debian, systemd's loginctl lacks them and they live in
-systemctl instead."
-  (format nil "~a ~a" (if (executable? "systemctl") "systemctl" "loginctl") verb))
+systemctl instead.
+
+`guix system reconfigure' preloads the new kernel for kexec, and while one is
+loaded elogind turns `loginctl reboot' into a kexec that it runs as a bare
+`kexec' with no arguments, so nothing happens; LOGINCTL_SKIP_AUTO_KEXEC=1
+makes it a normal reboot."
+  (if (executable? "systemctl")
+      (format nil "systemctl ~a" verb)
+      (format nil "LOGINCTL_SKIP_AUTO_KEXEC=1 loginctl ~a" verb)))
 
 (defcommand hibernate () ()
   (when (command-is-successful? (power-command "hibernate"))
