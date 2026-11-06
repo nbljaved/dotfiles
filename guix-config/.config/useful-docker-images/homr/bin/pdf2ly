@@ -10,19 +10,25 @@ Makes LilyPond of each score FILE: score.pdf into score.ly beside it.
 FILE is one of
   a PDF (.pdf) or a picture of a page (.png, .jpg, .jpeg), which homr
     reads into MusicXML, in its container (make builds the image);
-  MusicXML (.musicxml, .xml, or .mxl, zipped), taken as it is.
+  MusicXML (.musicxml, .xml, or .mxl, zipped), taken as it is;
+  MIDI (.mid, .midi), which LilyPond's midi2ly reads, a staff a track.
 
 fixxml.py mends the MusicXML for LilyPond's musicxml2ly, which makes
 LilyPond of it, and fixly.py puts back the repeats fixxml.py took out.
-pdf2ly says what fixxml.py changed, and prints the name of each .ly it
-writes; the files between stay in /tmp/pdf2ly-*. It won't write over a
-.ly that is there already, and stops at the first FILE that fails.
+Of MIDI, fixmidi.py first puts on a grid what isn't: the notes' ends, if
+a program ended them early; their starts and ends, if it was played in.
+And it splits a piano on one track at middle C, into two hands.
+pdf2ly says what fixxml.py and fixmidi.py changed, and prints the name
+of each .ly it writes; the files between stay in /tmp/pdf2ly-*. It won't
+write over a .ly that is there already, and stops at the first FILE that
+fails.
 
   -h, --help  show this and exit
 
 Examples:
   pdf2ly score.pdf page.jpg   # score.ly and page.ly
   pdf2ly piece.mxl            # piece.ly
+  pdf2ly take.mid             # take.ly
 EOF
 }
 
@@ -37,6 +43,25 @@ for a; do
 done
 
 dir=$(dirname -- "$(readlink -f -- "$0")")/..
+
+# from_xml xml: LilyPond of the MusicXML in $w.ly, and what fixxml.py
+# changed in $w.json.
+from_xml() {
+	python3 -I "$dir/fixxml.py" "$1" "$w.fixed.musicxml" "$w.json" &&
+		musicxml2ly --output="$w.musicxml2ly.ly" "$w.fixed.musicxml" 2>"$work/musicxml2ly.log" &&
+		python3 -I "$dir/fixly.py" "$w.musicxml2ly.ly" "$w.json" "$w.ly"
+}
+
+# from_midi midi: LilyPond of the MIDI in $w.ly, by way of fixmidi.py and
+# midi2ly. midi2ly writes absolute pitches, as in \relative it puts some
+# notes an octave out, and writes for LilyPond 2.14; convert-ly brings that
+# up to date.
+from_midi() {
+	python3 -I "$dir/fixmidi.py" "$1" "$w.fixed.midi" "$f" &&
+		midi2ly --absolute-pitches --output="$w.ly" "$w.fixed.midi" 2>"$work/midi2ly.log" &&
+		convert-ly --edit "$w.ly" 2>"$work/convert-ly.log"
+}
+
 for f; do
 	[[ -f $f ]] || { echo "pdf2ly: $f: no such file" >&2; exit 1; }
 	name=$(basename -- "$f")
@@ -46,19 +71,17 @@ for f; do
 	work=$(mktemp -d /tmp/pdf2ly-XXXX) || exit
 	w=$work/$stem
 	cp -- "$f" "$work/" || exit
-	# MusicXML is taken as it is; homr reads the rest into MusicXML.
+	# MIDI goes to midi2ly; MusicXML is taken as it is, and homr reads the
+	# rest into MusicXML.
 	case ${name,,} in
-	*.musicxml | *.xml | *.mxl) xml=$work/$name ;;
-	*) xml=$w.musicxml && "$dir/bin/homr" "$work/$name" >/dev/null ;;
-	esac &&
-		python3 -I "$dir/fixxml.py" "$xml" "$w.fixed.musicxml" "$w.json" &&
-		musicxml2ly --output="$w.musicxml2ly.ly" "$w.fixed.musicxml" 2>"$work/musicxml2ly.log" &&
-		python3 -I "$dir/fixly.py" "$w.musicxml2ly.ly" "$w.json" "$w.ly" &&
-		cp -- "$w.ly" "$ly" || {
+	*.mid | *.midi) from_midi "$work/$name" ;;
+	*.musicxml | *.xml | *.mxl) from_xml "$work/$name" ;;
+	*) "$dir/bin/homr" "$work/$name" >/dev/null && from_xml "$w.musicxml" ;;
+	esac && cp -- "$w.ly" "$ly" || {
 		echo "pdf2ly: reading $f failed; its files are in $work" >&2
 		exit 1
 	}
-	python3 -I -c 'import json, sys
+	[[ -f $w.json ]] && python3 -I -c 'import json, sys
 for c in json.load(open(sys.argv[1]))["changes"]:
     print(f"pdf2ly: {sys.argv[2]}: {c}", file=sys.stderr)' "$w.json" "$f"
 	echo "$ly"
