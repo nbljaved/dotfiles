@@ -18,8 +18,8 @@
 ;; To update: push lilypractice, then put its commit here, and the hash
 ;; that `guix hash -x --serializer=nar' gives for a clean checkout of it.
 (define-public lilypractice
-  (let ((commit "962d432fd9497a0f6624f99faf11b12c487fe0aa")
-        (revision "2"))
+  (let ((commit "3f09051ddd0fb07b3598a2700bfb98a2d58ed7f9")
+        (revision "3"))
     (package
       (name "lilypractice")
       (version (git-version "0.1" revision commit))
@@ -31,7 +31,7 @@
                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "1wsa429f5hkyb3vxqznf18hzfc24lyfcyw6qg98w2zqhdyx1m525"))))
+          (base32 "1a7iqvbh7w0j71g5q8ljrirc8abpz7m3n17wlwhx44xpfc06jr0y"))))
       (build-system go-build-system)
       (arguments
        (list
