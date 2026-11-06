@@ -1,0 +1,24 @@
+* homr in a container
+[[https://github.com/liebharc/homr][homr]] reads sheet music, a PDF or a photo of a page, by optical music recognition and writes MusicXML. =Dockerfile= is homr's own, with the clone pinned to a commit; building it fetches homr's models into the image, so it runs with no network. =.bashrc= puts =bin/= on =PATH=.
+
+#+begin_src shell
+make                       # build the image, then check bin/ is on PATH
+homr score.pdf             # score.musicxml beside it
+pdf2ly score.pdf page.jpg  # score.ly and page.ly beside them
+pdf2ly piece.musicxml      # piece.ly; MusicXML (.musicxml, .xml, .mxl) skips homr
+podman run --rm -p 33203:8000 homr   # homr's web page, at http://localhost:33203/
+#+end_src
+
+homr gives up on a whole PDF at a page without music, a title page or notes say; =homr= then reads the PDF's pages again without it.
+
+=pdf2ly= takes a PDF, a picture of a page (png, jpg), or MusicXML: homr reads the first two into MusicXML, and MusicXML, from MuseScore say, or zipped (=.mxl=), is taken as it is. It makes LilyPond of the MusicXML in three steps, with the Python and LilyPond of Guix Home:
+1. =fixxml.py= mends the MusicXML for LilyPond's =musicxml2ly=, which crashed, hung or let the bars run out of step on what homr writes. It drops the empty bars homr finds about repeat signs and the ends of volta brackets; balances tuplets and two-note tremolos; gives a bar holding more than its time signature (homr misread one, say) a time signature of its own length, not shown (one it gave is shown in the next bar, if that keeps to it); and takes the repeats out, writing their structure, and each bar's length, to a JSON file.
+2. =musicxml2ly= makes LilyPond of that.
+3. =fixly.py= puts the repeats back: =\repeat volta= and =\alternative= about a track of spacer rests, which each staff is given, so the voices aren't touched.
+=pdf2ly= tells what =fixxml.py= changed; the files between stay in =/tmp=. MusicXML that is right as it is goes through as it came, but for its repeats.
+
+What comes out wants checking against the original: homr misreads some rhythms (tuplets most) and the place of some repeat signs, and reads no octave lines, octave clefs or tremolos.
+
+LilyPond's own tests of =musicxml2ly= (=input/regression/musicxml/= in its source, 161 files) all come through, with the notes, bars and time signatures =musicxml2ly= alone gives them, and mostly its repeats: of nested repeats only the inner come out right (=musicxml2ly= garbles them too), a forward repeat nothing goes back to is left out (=musicxml2ly= repeats to the end), and =musicxml2ly= alone lost a bar to invalid volta brackets.
+
+The 27 scores in lilypractice's =testdata/=, drawn by LilyPond, all come back, and all pass its =lpcheck=: 95% of their notes with the right pitches in order (82% with the right lengths too), from 73% to 100%, nearly all with as many bars as the original and most with its repeats. A page takes 15 to 20 seconds.

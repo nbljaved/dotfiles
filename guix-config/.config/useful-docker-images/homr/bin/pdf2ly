@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+# pdf2ly: sheet music to LilyPond; see usage, or pdf2ly --help.
+
+usage() {
+	cat <<'EOF'
+Usage: pdf2ly FILE...
+Makes LilyPond of each score FILE: score.pdf into score.ly beside it.
+
+FILE is one of
+  a PDF (.pdf) or a picture of a page (.png, .jpg, .jpeg), which homr
+    reads into MusicXML, in its container (make builds the image);
+  MusicXML (.musicxml, .xml, or .mxl, zipped), taken as it is.
+
+fixxml.py mends the MusicXML for LilyPond's musicxml2ly, which makes
+LilyPond of it, and fixly.py puts back the repeats fixxml.py took out.
+pdf2ly says what fixxml.py changed, and prints the name of each .ly it
+writes; the files between stay in /tmp/pdf2ly-*. It won't write over a
+.ly that is there already, and stops at the first FILE that fails.
+
+  -h, --help  show this and exit
+
+Examples:
+  pdf2ly score.pdf page.jpg   # score.ly and page.ly
+  pdf2ly piece.mxl            # piece.ly
+EOF
+}
+
+if (($# == 0)); then
+	usage >&2
+	exit 1
+fi
+for a; do
+	case $a in
+	-h | --help) usage; exit ;;
+	esac
+done
+
+dir=$(dirname -- "$(readlink -f -- "$0")")/..
+for f; do
+	[[ -f $f ]] || { echo "pdf2ly: $f: no such file" >&2; exit 1; }
+	name=$(basename -- "$f")
+	stem=${name%.*}
+	ly=$(dirname -- "$f")/$stem.ly
+	[[ -e $ly ]] && { echo "pdf2ly: $ly is there already" >&2; exit 1; }
+	work=$(mktemp -d /tmp/pdf2ly-XXXX) || exit
+	w=$work/$stem
+	cp -- "$f" "$work/" || exit
+	# MusicXML is taken as it is; homr reads the rest into MusicXML.
+	case ${name,,} in
+	*.musicxml | *.xml | *.mxl) xml=$work/$name ;;
+	*) xml=$w.musicxml && "$dir/bin/homr" "$work/$name" >/dev/null ;;
+	esac &&
+		python3 -I "$dir/fixxml.py" "$xml" "$w.fixed.musicxml" "$w.json" &&
+		musicxml2ly --output="$w.musicxml2ly.ly" "$w.fixed.musicxml" 2>"$work/musicxml2ly.log" &&
+		python3 -I "$dir/fixly.py" "$w.musicxml2ly.ly" "$w.json" "$w.ly" &&
+		cp -- "$w.ly" "$ly" || {
+		echo "pdf2ly: reading $f failed; its files are in $work" >&2
+		exit 1
+	}
+	python3 -I -c 'import json, sys
+for c in json.load(open(sys.argv[1]))["changes"]:
+    print(f"pdf2ly: {sys.argv[2]}: {c}", file=sys.stderr)' "$w.json" "$f"
+	echo "$ly"
+done

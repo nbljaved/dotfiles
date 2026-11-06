@@ -116,6 +116,10 @@ alias rm='echo "Use trash-cli instead of: rm"'
 # See ~/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/
 export PATH=$PATH:"$HOME/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/bin"
 
+# homr and pdf2ly: sheet music, a PDF or a photo, to MusicXML and LilyPond
+# See ~/dotfiles/guix-config/.config/useful-docker-images/homr/
+export PATH=$PATH:"$HOME/dotfiles/guix-config/.config/useful-docker-images/homr/bin"
+
 # Golang
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:"$HOME/go/bin"

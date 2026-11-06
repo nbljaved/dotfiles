@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# homr score.pdf page.png ...: reads each score, a PDF or a picture of a
+# page, into score.musicxml beside it, with homr in its container (make
+# builds the image). Each is read in a new directory in /tmp, the only one
+# the container sees, and with no network; the pictures of its pages stay
+# there. Pages of a PDF without music (a title page, notes) are left out.
+
+# homr_in file...: homr in the container, on files in /work. What it says
+# goes to stderr and to $work/homr.log.
+homr_in() {
+	podman run --rm --network=none -v "$work:/work" homr \
+		/root/.local/bin/poetry run homr "$@" 2>&1 | tee "$work/homr.log" >&2
+	return "${PIPESTATUS[0]}"
+}
+
+for f; do
+	[[ -f $f ]] || { echo "homr: $f: no such file" >&2; exit 1; }
+	name=$(basename -- "$f")
+	stem=${name%.*}
+	xml=$(dirname -- "$f")/$stem.musicxml
+	[[ -e $xml ]] && { echo "homr: $xml is there already" >&2; exit 1; }
+	work=$(mktemp -d /tmp/homr-XXXX) || exit
+	cp -- "$f" "$work/" || exit
+	homr_in "/work/$name"
+	ok=$?
+
+	# homr gives up on a PDF at the first page it finds no music on, having
+	# drawn every page: stem.png, stem_1.png, stem_2.png... Read the
+	# pictures again without that page, which homr makes one score of,
+	# named after the first.
+	pages=()
+	[[ -f $work/$stem.png ]] && pages+=("$stem.png")
+	for ((i = 1; ; i++)); do
+		[[ -f $work/${stem}_$i.png ]] || break
+		pages+=("${stem}_$i.png")
+	done
+	first=$stem
+	while ((ok != 0)) && [[ ${name,,} == *.pdf ]]; do
+		bad=$(sed -n 's#^An error occurred while processing /work/\(.*\): No \(noteheads or clefs\|staffs\) found$#\1#p' "$work/homr.log" | tail -1)
+		left=()
+		for p in "${pages[@]}"; do
+			[[ $p == "$bad" ]] || left+=("$p")
+		done
+		((${#left[@]} > 0 && ${#left[@]} < ${#pages[@]})) || break
+		n=${bad%.png}
+		n=${n#"$stem"}
+		echo "homr: no music on page $((${n#_} + 1)) of $f; reading the others again" >&2
+		pages=("${left[@]}")
+		homr_in "${pages[@]/#//work/}"
+		ok=$?
+		first=${pages[0]%.png}
+	done
+
+	if ((ok != 0)) || ! cp -- "$work/$first.musicxml" "$xml"; then
+		echo "homr: reading $f failed; its files are in $work" >&2
+		exit 1
+	fi
+	echo "$xml"
+done
