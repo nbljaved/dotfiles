@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: sh scripts/clear-home-links.sh HOME-DIR   (the output of `guix home build')
+# Usage: sh other/scripts/clear-home-links.sh HOME-DIR   (the output of `guix home build')
 # `make apply-guix-home' runs it before `guix home reconfigure'.
 #
 # Guix Home backs up whatever sits where it wants a link by copying it, which

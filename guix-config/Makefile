@@ -67,7 +67,7 @@ sync-nix: ## Capture the current Nix profile manifest (if nix is installed)
 ifdef NIX
 	# Nix: Get current profile
 	cat ~/.nix-profile/manifest.nix > ./nix-config/manifest.nix
-	bash ./scripts/extract-nix-packages.sh
+	bash ./other/scripts/extract-nix-packages.sh
 else
 	# nix is not installed on this host
 endif
@@ -96,7 +96,7 @@ endif
 apply-guix-home: ## Reconfigure Guix Home from home.scm (every user package, dotfile links; pc also gets PipeWire services)
 	# Remove old `ln -sf' links into ~/dotfiles first, and stop on a
 	# directory in the way: Guix Home can't back one up.
-	sh ./scripts/clear-home-links.sh "$$(guix home build $(HOME_CONFIG) -L modules)"
+	sh ./other/scripts/clear-home-links.sh "$$(guix home build $(HOME_CONFIG) -L modules)"
 	guix home reconfigure $(HOME_CONFIG) -L modules
 
 check-guix-home: ## Build home.scm for this host to catch breakage (does NOT activate)

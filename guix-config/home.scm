@@ -215,7 +215,7 @@
                      (".emacs.d"      ,(dotfile "emacs.d"))
                      (".nix-channels" ,(dotfile "guix-config/nix-config/nix-channels"))
                      (".claude/skills/screenshot/SKILL.md"
-                      ,(dotfile "guix-config/.config/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md"))))
+                      ,(dotfile "guix-config/other/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md"))))
    ;; Relative to ~/.config.  Atuin's config keeps history local: no sync,
    ;; no update check.
    (simple-service 'dotfiles-xdg home-xdg-configuration-files-service-type

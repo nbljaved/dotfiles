@@ -31,7 +31,7 @@ guix time-machine -C ~/dotfiles/guix-config/channels-lock.scm -- \
      home reconfigure ~/dotfiles/guix-config/home.scm -L ~/dotfiles/guix-config/modules
 #+end_src
 
-* ./scripts
+* ./other/scripts
 - =uv-guix-shell.sh= runs =uv= in a container with the usual Linux file system layout (FHS).
 - =fix-foreign-binary.sh= fixes a binary that fails because Guix doesn't follow the FHS.
 - =repo-risk.sh= lists every git repo under =$HOME= with anything uncommitted, stashed or unpushed.

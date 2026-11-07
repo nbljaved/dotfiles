@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 MANIFEST_FILE="$PROJECT_ROOT/nix-config/manifest.nix"
 OUTPUT_FILE="$PROJECT_ROOT/nix-config/attribute-manifest.nix"
 

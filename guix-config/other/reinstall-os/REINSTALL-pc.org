@@ -24,7 +24,7 @@ Wipes the whole of =/dev/nvme0n1= and installs Guix System from =~/dotfiles=, wi
 ** 1.1 Push every repo
 #+begin_src sh
 make -C ~/dotfiles/guix-config sync                 # config-pc.scm from /etc/config.scm; commit it
-bash ~/dotfiles/guix-config/scripts/repo-risk.sh    # every line must say ok
+bash ~/dotfiles/guix-config/other/scripts/repo-risk.sh    # every line must say ok
 #+end_src
 To rescue a stash, push it as a branch:
 #+begin_src sh

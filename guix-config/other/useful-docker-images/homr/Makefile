@@ -13,6 +13,6 @@ check:
 	else \
 		echo "✗ homr and pdf2ly are not available on PATH"; \
 		echo "Add the following to your shell configuration:"; \
-		echo "export PATH=\"\$$PATH:\$$HOME/dotfiles/guix-config/.config/useful-docker-images/homr/bin\""; \
+		echo "export PATH=\"\$$PATH:\$$HOME/dotfiles/guix-config/other/useful-docker-images/homr/bin\""; \
 		exit 1; \
 	fi

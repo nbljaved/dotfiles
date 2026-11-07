@@ -26,7 +26,7 @@ Code blocks are =:eval no=, so copy them on purpose. *DESTRUCTIVE* blocks erase 
 - *The hostname must be =thinkpad=*, because =home.scm= keys on it.
 
 * Phase 1 — Before the wipe
-- =bash ~/dotfiles/guix-config/scripts/repo-risk.sh=: every line must say =ok=. To rescue stashes, see =REINSTALL-pc.org= 1.1.
+- =bash ~/dotfiles/guix-config/other/scripts/repo-risk.sh=: every line must say =ok=. To rescue stashes, see =REINSTALL-pc.org= 1.1.
 - Note the RAM (=free -h=) for 3.3, and the disk (=lsblk -d -o NAME,SIZE,MODEL=) so you pick the right one.
 - Choose a LUKS passphrase and write it on paper.
 

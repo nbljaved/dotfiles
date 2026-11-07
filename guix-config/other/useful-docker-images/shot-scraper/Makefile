@@ -17,6 +17,6 @@ check:
 	else \
 		echo "✗ shot-scraper is not available on PATH"; \
 		echo "Add the following to your shell configuration:"; \
-		echo "export PATH=\"\$$PATH:\$$HOME/dotfiles/guix-config/.config/useful-docker-images/shot-scraper/bin\""; \
+		echo "export PATH=\"\$$PATH:\$$HOME/dotfiles/guix-config/other/useful-docker-images/shot-scraper/bin\""; \
 		exit 1; \
 	fi
