@@ -36,6 +36,7 @@ guix time-machine -C ~/dotfiles/guix-config/channels-lock.scm -- \
 - =fix-foreign-binary.sh= fixes a binary that fails because Guix doesn't follow the FHS.
 - =repo-risk.sh= lists every git repo under =$HOME= with anything uncommitted, stashed or unpushed.
 - =clear-home-links.sh=: =make apply-guix-home= runs it.
+- =webcam-stream.sh= streams the webcam, to watch it from the phone over SSH; usage is at its top.
 
 * Nix
 For packages Guix doesn't have. On the pc, =config-pc.scm= has =(service nix-service-type)=; the thinkpad has no Nix.
