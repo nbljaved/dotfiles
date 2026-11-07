@@ -15,9 +15,9 @@
   #:use-module (gnu packages linux)) ; for iptables
 
 (define go-package go-1.27)
-(define tailscale-version "1.104.4")
-(define tailscale-go-git-ref-hash "132l8nhgmymyi78mvw195ijv8kq035p7wk7rz5n2vbasf6hpg65h")
-(define tailscale-go-fetch-vendor-hash "10x30dkjvprhgxrhmqbjwmikvysx5fjh5vy5m97g0v205a6sq28d")
+(define tailscale-version "1.104.5")
+(define tailscale-go-git-ref-hash "0wwr54km7hri7aa67rickjqlp47yv8h93ds61i2x9h7rxq2jkbka")
+(define tailscale-go-fetch-vendor-hash "19w2fnygfx171wlyccg18z1dfqgmzm6sb0h6x3dwyzd1n8vi7z9j")
 
 (define-record-type* <go-git-reference>
   go-git-reference make-go-git-reference
@@ -27,16 +27,21 @@
   (sha go-git-reference-sha256))
 
 (define* (go-fetch-vendored uri hash-algorithm hash-value name #:key system)
-  (let ((src
-         (match uri
-           (($ <go-git-reference> url commit sha)
-            (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url url)
-                    (commit commit)))
-              (sha256 sha)))))
-        (name (or name "go-git-checkout")))
+  ;; NAME is also given to the git checkout, so that a name holding the
+  ;; version changes both store paths on a version bump: a fixed-output
+  ;; store path depends only on its name and hash, so with the same name
+  ;; and hash Guix would reuse the old version's source without fetching.
+  (let* ((name (or name "go-git-checkout"))
+         (src
+          (match uri
+            (($ <go-git-reference> url commit sha)
+             (origin
+               (method git-fetch)
+               (uri (git-reference
+                     (url url)
+                     (commit commit)))
+               (file-name name)
+               (sha256 sha))))))
     (gexp->derivation
      (string-append name "-vendored.tar.gz")
      (with-imported-modules '((guix build utils))
@@ -98,6 +103,7 @@
           (url "https://github.com/tailscale/tailscale")
           (commit (string-append "v" tailscale-version))
           (sha (base32 tailscale-go-git-ref-hash))))
+    (file-name (git-file-name "tailscale" tailscale-version))
     (sha256
      (base32 tailscale-go-fetch-vendor-hash))))
 
