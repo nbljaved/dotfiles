@@ -251,7 +251,16 @@
              ;; pavucontrol) use PipeWire.
              (enable-pulseaudio? #t)
              ;; Appended to ~/.config/alsa/asoundrc.
-             (extra-content "")))))
+             (extra-content "")))
+   ;; The EPOS headset otherwise never plays, and is silent below about
+   ;; 40% volume.  The files say why.
+   (simple-service 'dotfiles-epos home-xdg-configuration-files-service-type
+                   `(("wireplumber/wireplumber.conf.d/51-epos-impact.conf"
+                      ,(dotfile "guix-config/.config/wireplumber/wireplumber.conf.d/51-epos-impact.conf"))
+                     ("alsa-card-profile/mixer/profile-sets/epos-impact-860.conf"
+                      ,(dotfile "guix-config/.config/alsa-card-profile/mixer/profile-sets/epos-impact-860.conf"))
+                     ("alsa-card-profile/mixer/paths/epos-impact-860-output.conf"
+                      ,(dotfile "guix-config/.config/alsa-card-profile/mixer/paths/epos-impact-860-output.conf"))))))
 
 (define thinkpad-services
   (list
