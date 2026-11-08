@@ -21,9 +21,8 @@
              (guix gexp)
              (ice-9 match))
 
-;; Both hosts.  Specifications, as for `guix install'; "nbl-emacs",
-;; "lilypractice" and "pianoteq-trial" come from modules/nbl, hence
-;; `-L modules'.
+;; Both hosts.  Specifications, as for `guix install'; "nbl-emacs" and
+;; "lilypractice" come from modules/nbl, hence `-L modules'.
 (define common-packages
   (list "acpi"
         "age"
@@ -128,7 +127,6 @@
         "pavucontrol"
         "perl-image-exiftool"
         "pianobooster"
-        "pianoteq-trial"
         "picom"
         "pinentry"
         "playerctl"                     ; StumpWM's media keys
