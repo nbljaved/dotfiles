@@ -33,8 +33,12 @@ ifeq ($(HOSTNAME), pc)
 HOST_CONFIG := config-pc.scm
 endif
 
+# Not in git, and different on each host: the SSH canary that home.scm
+# links to ~/.ssh/config.  `make check-ssh-canary' says how to write it.
+SSH_CONFIG := private/ssh-config
+
 .PHONY: help all sync sync-guix sync-nix \
-        check-guix-system check-guix-home \
+        check-guix-system check-guix-home check-ssh-canary \
         apply-guix-system apply-guix-home apply-nix-profile \
         distrobox distrobox-build distrobox-recreate
 
@@ -93,14 +97,17 @@ else
 	guix system build $(HOST_CONFIG) -L modules
 endif
 
-apply-guix-home: ## Reconfigure Guix Home from home.scm (every user package, dotfile links; pc also gets PipeWire services)
+apply-guix-home: check-ssh-canary ## Reconfigure Guix Home from home.scm (every user package, dotfile links; pc also gets PipeWire services)
 	# Remove old `ln -sf' links into ~/dotfiles first, and stop on a
 	# directory in the way: Guix Home can't back one up.
 	sh ./other/scripts/clear-home-links.sh "$$(guix home build $(HOME_CONFIG) -L modules)"
 	guix home reconfigure $(HOME_CONFIG) -L modules
 
-check-guix-home: ## Build home.scm for this host to catch breakage (does NOT activate)
+check-guix-home: check-ssh-canary ## Build home.scm for this host to catch breakage (does NOT activate)
 	guix home build $(HOME_CONFIG) -L modules
+
+check-ssh-canary: ## Check private/ssh-config (the SSH canary, not in git) and its keys exist; print how to make them if not
+	@sh ./other/scripts/check-ssh-canary.sh $(SSH_CONFIG)
 
 apply-nix-profile: ## Install the captured Nix profile from nix-config/attribute-manifest.nix
 	nix-env --install --remove-all --file ./nix-config/attribute-manifest.nix

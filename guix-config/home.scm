@@ -212,6 +212,10 @@
                      (".gitconfig"    ,(dotfile "shell-config/.gitconfig"))
                      (".emacs.d"      ,(dotfile "emacs.d"))
                      (".nix-channels" ,(dotfile "guix-config/nix-config/nix-channels"))
+                     ;; Not in git (private/ is ignored): it holds a decoy
+                     ;; host that sets off a DNS canarytoken.  `make
+                     ;; check-ssh-canary' says how to write it.
+                     (".ssh/config"   ,(dotfile "guix-config/private/ssh-config"))
                      (".claude/skills/screenshot/SKILL.md"
                       ,(dotfile "guix-config/other/useful-docker-images/shot-scraper/claude-skills/shot-scraper.md"))))
    ;; Relative to ~/.config.  Atuin's config keeps history local: no sync,

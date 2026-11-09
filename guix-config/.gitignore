@@ -8,6 +8,9 @@
 # Stray screenshots/images dropped into config dirs
 .config/distrobox/*.png
 
+# Per-host secrets, never committed (see `make check-ssh-canary')
+/private/
+
 # Guix/Nix build artifacts
 /result
 /result-*
