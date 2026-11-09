@@ -110,7 +110,7 @@ check-ssh-canary: ## Check private/ssh-config (the SSH canary, not in git) and i
 	@sh ./other/scripts/check-ssh-canary.sh $(SSH_CONFIG)
 
 apply-nix-profile: ## Install the captured Nix profile from nix-config/attribute-manifest.nix
-	nix-env --install --remove-all --file ./nix-config/attribute-manifest.nix
+	NIXPKGS_ALLOW_UNFREE=1 nix-env --install --remove-all --file ./nix-config/attribute-manifest.nix
 
 distrobox: distrobox-build distrobox-recreate ## Build the Arch image and (re)create the distrobox container
 
