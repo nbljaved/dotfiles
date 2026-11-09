@@ -2310,7 +2310,8 @@ Might need to use newer version of inbuilt emacs packages.
   (setq magit-todos-fontify-org nil
         magit-todos-group-by '(magit-todos-item-filename
                                magit-todos-item-keyword)
-        magit-todos-scanner #'magit-todos--scan-with-git-grep)
+        magit-todos-scanner #'magit-todos--scan-with-git-grep
+        magit-process-apply-ansi-colors t)
   (setq magit-todos-exclude-globs '(".git/" "*.map"))
   (magit-todos-mode 1))
 #+end_src
@@ -2400,7 +2401,7 @@ https://github.com/gitleaks/gitleaks
 (defvar gitleaks-pre-commit-string
   "#!/bin/sh
 
-set -xeu -o
+set -xeu
 
 # if gitleaks is installed, then run it else warn the user to install it
 if command -v gitleaks > /dev/null 2>&1
